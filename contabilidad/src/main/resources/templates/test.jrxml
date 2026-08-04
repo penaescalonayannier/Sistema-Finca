@@ -1,0 +1,320 @@
+<!-- Created with Jaspersoft Studio version 7.0.3.final using JasperReports Library version 7.0.3-41034ca841d452f3305ba55b9042260aaa1ab5dd  -->
+<jasperReport name="BancoLojaCorporativeRetentionVoucher" language="java" columnCount="1" pageWidth="595" pageHeight="842" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="20" bottomMargin="0" uuid="99ecb3a5-c18f-45ed-a233-ee84ebfacf4d">
+    <property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+    <query language="sql"><![CDATA[]]></query>
+    <field name="retentionSriModel" class="com.opinno.urbano.jasper.retention.RetentionSriModel"/>
+    <field name="logoBase64" class="java.io.InputStream"/>
+    <field name="logoProduct" class="java.awt.Image"/>
+    <field name="productType" class="java.lang.String"/>
+    <field name="isMigration" class="java.lang.Boolean"/>
+    <background splitType="Stretch"/>
+    <detail>
+        <band height="390" splitType="Stretch">
+            <element kind="rectangle" uuid="9d0f8d0e-4c1a-4158-ae2f-4a490e9e83c2" x="50" y="2" width="500" height="380">
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                <property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+            </element>
+            <element kind="staticText" uuid="3f1ae050-c044-4547-a8b7-9676f683321f" x="89" y="14" width="451" height="20" fontSize="15.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+                <text><![CDATA[       COMPROBANTE DE RETENCIÓN]]></text>
+            </element>
+            <element kind="textField" uuid="2f5847e1-4704-47d6-9b84-cf34d7c03235" x="89" y="30" width="451" height="20" fontSize="15.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+                <expression><![CDATA[      "No.: " + $F{retentionSriModel}.getRetentionNumber()]]></expression>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                <property name="com.jaspersoft.studio.unit.width" value="px"/>
+            </element>
+            <element kind="rectangle" uuid="a7597744-7484-45fc-98ff-88840365b2b3" x="57" y="55" width="484" height="318">
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+            </element>
+            <element kind="staticText" uuid="1211dd38-3b12-4371-a681-8ee8bd40b650" x="56" y="56" width="172" height="12" fontSize="7.0" bold="true" vTextAlign="Middle">
+                <paragraph leftIndent="5"/>
+                <text><![CDATA[NOMBRES SUJETO PASIVO DE RETENCIÓN:]]></text>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                <property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+                <property name="com.jaspersoft.studio.unit.width" value="px"/>
+            </element>
+            <element kind="staticText" uuid="a59d87f5-b3a1-45c1-bb8c-9d389309461c" x="56" y="67" width="172" height="12" fontSize="7.0" bold="true" vTextAlign="Middle">
+                <paragraph leftIndent="5"/>
+                <text><![CDATA[CÉDULA DE CIUDADANÍA / RUC / PASAPORTE:]]></text>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                <property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+                <property name="com.jaspersoft.studio.unit.width" value="px"/>
+            </element>
+            <element kind="staticText" uuid="1d54d5f2-fb61-49c4-bc13-18f40fee5513" x="56" y="79" width="144" height="12" fontSize="7.0" bold="true" vTextAlign="Middle">
+                <paragraph leftIndent="5"/>
+                <text><![CDATA[CIUDAD:]]></text>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                <property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+                <property name="com.jaspersoft.studio.unit.width" value="px"/>
+            </element>
+            <element kind="staticText" uuid="be25e548-3eac-4795-9713-bef554f744d9" x="56" y="92" width="144" height="12" fontSize="7.0" bold="true" vTextAlign="Middle">
+                <paragraph leftIndent="5"/>
+                <text><![CDATA[DIRECCIÓN:]]></text>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                <property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+                <property name="com.jaspersoft.studio.unit.width" value="px"/>
+            </element>
+            <element kind="staticText" uuid="0f33dacd-9f3b-4b1f-93a0-1970dea607d2" x="56" y="120" width="144" height="12" fontSize="7.0" bold="true" vTextAlign="Middle">
+                <paragraph leftIndent="5"/>
+                <text><![CDATA[FECHA DE EMISIÓN:]]></text>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                <property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+                <property name="com.jaspersoft.studio.unit.width" value="px"/>
+            </element>
+            <element kind="line" uuid="8d426b40-cb8d-45b6-8fa2-a478a891fe21" x="56" y="134" width="484" height="1">
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+            </element>
+            <element kind="line" uuid="5d6712b1-8701-450e-893d-9615b8528631" x="391" y="55" width="1" height="79">
+                <property name="com.jaspersoft.studio.unit.width" value="px"/>
+            </element>
+            <element kind="textField" uuid="0b7d8e95-982e-42e9-a49c-347a670acf38" x="230" y="56" width="160" height="12" fontSize="7.0" hTextAlign="Left" vTextAlign="Middle">
+                <expression><![CDATA[$F{retentionSriModel}.getSubjectName()]]></expression>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                <property name="com.jaspersoft.studio.unit.width" value="px"/>
+            </element>
+            <element kind="textField" uuid="8bc7b4f9-7e69-44d0-a1c1-1581a07cdbba" x="230" y="67" width="160" height="12" fontSize="7.0" hTextAlign="Left" vTextAlign="Middle">
+                <expression><![CDATA[$F{retentionSriModel}.getSubjectIdentityCard()]]></expression>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                <property name="com.jaspersoft.studio.unit.width" value="px"/>
+            </element>
+            <element kind="textField" uuid="aa3f9643-2299-412e-a5ac-e2e61b63fab0" x="230" y="79" width="160" height="12" fontSize="7.0" hTextAlign="Left" vTextAlign="Middle">
+                <expression><![CDATA[$F{retentionSriModel}.getSubjectCity()]]></expression>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                <property name="com.jaspersoft.studio.unit.width" value="px"/>
+            </element>
+            <element kind="textField" uuid="6a4507b2-87a3-43da-801f-64ba3d7154c9" x="230" y="92" width="160" height="38" fontSize="7.0" hTextAlign="Left" vTextAlign="Top">
+                <expression><![CDATA[$F{retentionSriModel}.getSubjectAddress()]]></expression>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                <property name="com.jaspersoft.studio.unit.width" value="px"/>
+            </element>
+            <element kind="textField" uuid="e2724f49-edc0-44b1-bb47-5d9dcfd5b144" x="230" y="120" width="160" height="12" fontSize="7.0" hTextAlign="Left" vTextAlign="Middle">
+                <expression><![CDATA[$F{retentionSriModel}.getSubjectEmissionDate()]]></expression>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                <property name="com.jaspersoft.studio.unit.width" value="px"/>
+            </element>
+            <element kind="textField" uuid="a26fb31a-630e-4aa7-b9c3-473ce74d308e" x="392" y="61" width="148" height="12" fontSize="7.0" bold="true" hTextAlign="Left" vTextAlign="Middle">
+                <paragraph leftIndent="5"/>
+                <expression><![CDATA[$F{retentionSriModel}.getAgentName()]]></expression>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                <property name="com.jaspersoft.studio.unit.width" value="px"/>
+                <property name="com.jaspersoft.studio.unit.x" value="px"/>
+            </element>
+            <element kind="textField" uuid="4cae631c-5228-468d-8952-7591e1e4b3ce" x="392" y="82" width="148" height="17" fontSize="7.0" bold="true" hTextAlign="Left" vTextAlign="Top">
+                <paragraph leftIndent="5"/>
+                <expression><![CDATA[$F{retentionSriModel}.getAgentAddress()]]></expression>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                <property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+                <property name="com.jaspersoft.studio.unit.width" value="px"/>
+                <property name="com.jaspersoft.studio.unit.x" value="px"/>
+            </element>
+            <element kind="textField" uuid="900f9521-274f-4aeb-8258-f0975605f566" x="392" y="99" width="148" height="12" fontSize="7.0" bold="true" hTextAlign="Left" vTextAlign="Middle">
+                <paragraph leftIndent="5"/>
+                <expression><![CDATA[$F{retentionSriModel}.getAgentIdentityCard()]]></expression>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                <property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+                <property name="com.jaspersoft.studio.unit.x" value="px"/>
+            </element>
+            <element kind="textField" uuid="51edbb87-1676-4731-881a-3ff5c419b895" x="392" y="117" width="148" height="12" fontSize="7.0" bold="true" hTextAlign="Left" vTextAlign="Middle">
+                <paragraph leftIndent="5"/>
+                <expression><![CDATA["\"CONTRIBUYENTE ESPECIAL\""]]></expression>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                <property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+                <property name="com.jaspersoft.studio.unit.x" value="px"/>
+            </element>
+            <element kind="staticText" uuid="ce0825b1-fb4a-4f26-be2c-03fb535d2066" x="56" y="143" width="144" height="12" fontSize="7.0" bold="true" vTextAlign="Middle">
+                <paragraph leftIndent="5"/>
+                <text><![CDATA[AUTORIZACIÓN ELECTRÓNICA No.:]]></text>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                <property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+            </element>
+            <element kind="textField" uuid="d3d7e5fa-767f-485a-ac8b-3f1357a721b3" mode="Transparent" x="230" y="143" width="274" height="12" fontSize="7.0" linkType="None" linkTarget="None" blankWhenNull="true" printRepeatedValues="false" bold="true" hTextAlign="Left" vTextAlign="Middle">
+                <expression><![CDATA[$F{retentionSriModel}.getAuthorizationCode()]]></expression>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                <property name="com.jaspersoft.studio.unit.width" value="px"/>
+            </element>
+            <element kind="line" uuid="19d2b79e-1447-440b-9c13-ac3e1f5f0f3e" x="57" y="162" width="483" height="1">
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+            </element>
+            <element kind="staticText" uuid="6de8e466-3699-47f2-b2b6-d764727d755d" x="57" y="177" width="114" height="12" fontSize="7.0" bold="true" vTextAlign="Middle">
+                <paragraph leftIndent="5"/>
+                <text><![CDATA[CÓDIGO:]]></text>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                <property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+            </element>
+            <element kind="textField" uuid="17de39ba-854b-4608-afba-3c8b740b7566" x="199" y="177" width="332" height="12" fontSize="7.0" bold="true" hTextAlign="Left" vTextAlign="Middle">
+                <expression><![CDATA[$F{retentionSriModel}.getCode()]]></expression>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+            </element>
+            <element kind="staticText" uuid="0205f880-4861-42cf-bb53-8208fce48152" x="57" y="194" width="114" height="12" fontSize="7.0" bold="true" vTextAlign="Middle">
+                <paragraph leftIndent="5"/>
+                <text><![CDATA[TIPO DE DOCUMENTO:]]></text>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                <property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+            </element>
+            <element kind="textField" uuid="65d4b1de-c3df-444e-85d4-b14a14173302" x="199" y="194" width="331" height="12" fontSize="7.0" bold="true" hTextAlign="Left" vTextAlign="Middle">
+                <expression><![CDATA[$F{retentionSriModel}.getDocumentType()]]></expression>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+            </element>
+            <element kind="staticText" uuid="ded96c0b-53cf-49a3-93e2-097699021e05" x="57" y="214" width="114" height="12" fontSize="7.0" bold="true" vTextAlign="Middle">
+                <paragraph leftIndent="5"/>
+                <text><![CDATA[VALOR BASE RETENCIÓN:]]></text>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                <property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+            </element>
+            <element kind="staticText" uuid="a6b58132-e466-4ccd-9581-638a97bb8e1b" x="57" y="231" width="114" height="12" fontSize="7.0" bold="true" vTextAlign="Middle">
+                <paragraph leftIndent="5"/>
+                <text><![CDATA[VALOR RETENIDO:]]></text>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                <property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+            </element>
+            <element kind="textField" uuid="5eec4fed-6b88-4957-8518-378560b5d95c" x="199" y="214" width="91" height="12" fontSize="7.0" bold="true" hTextAlign="Right" vTextAlign="Middle">
+                <paragraph rightIndent="6"/>
+                <expression><![CDATA["*********"+$F{retentionSriModel}.getBaseValueRetention()]]></expression>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                <property name="com.jaspersoft.studio.unit.rightIndent" value="px"/>
+                <box>
+                    <pen lineWidth="1.0"/>
+                </box>
+            </element>
+            <element kind="textField" uuid="3261c337-ac44-4244-a77f-a987ed4a9c02" x="199" y="231" width="90" height="12" fontSize="7.0" bold="true" hTextAlign="Right" vTextAlign="Middle">
+                <paragraph rightIndent="6"/>
+                <expression><![CDATA["*********"+$F{retentionSriModel}.getRetentionValue()]]></expression>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                <property name="com.jaspersoft.studio.unit.rightIndent" value="px"/>
+                <box>
+                    <pen lineWidth="1.0"/>
+                </box>
+            </element>
+            <element kind="textField" uuid="b6489877-0254-4467-b51b-3b9bce89d48b" x="434" y="215" width="96" height="12" fontSize="7.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+                <paragraph rightIndent="5"/>
+                <expression><![CDATA[$F{retentionSriModel}.getDocumentNumber()]]></expression>
+                <property name="com.jaspersoft.studio.unit.rightIndent" value="px"/>
+                <property name="com.jaspersoft.studio.unit.width" value="px"/>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                <box>
+                    <topPen lineWidth="1.0"/>
+                    <leftPen lineWidth="1.0"/>
+                    <bottomPen lineWidth="1.0"/>
+                    <rightPen lineWidth="1.0"/>
+                </box>
+            </element>
+            <element kind="textField" uuid="a5dfb23f-befb-44f2-9043-288f3fedc2f0" x="434" y="232" width="96" height="12" fontSize="7.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+                <paragraph rightIndent="5"/>
+                <expression><![CDATA[$F{retentionSriModel}.getRetentionPercentage()+ " % "]]></expression>
+                <property name="com.jaspersoft.studio.unit.rightIndent" value="px"/>
+                <property name="com.jaspersoft.studio.unit.width" value="px"/>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                <box>
+                    <topPen lineWidth="1.0"/>
+                    <leftPen lineWidth="1.0"/>
+                    <bottomPen lineWidth="1.0"/>
+                    <rightPen lineWidth="1.0"/>
+                </box>
+            </element>
+            <element kind="staticText" uuid="c364b787-4c9e-402f-854e-c484d06f317f" x="346" y="215" width="72" height="12" fontSize="7.0" bold="true" hTextAlign="Left" vTextAlign="Middle">
+                <paragraph leftIndent="5"/>
+                <text><![CDATA[Nº DOCUMENTO:]]></text>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                <property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+            </element>
+            <element kind="staticText" uuid="987cd9c5-a447-4c5a-a020-0086cba84ae2" x="346" y="232" width="72" height="12" fontSize="7.0" bold="true" hTextAlign="Left" vTextAlign="Middle">
+                <paragraph leftIndent="5"/>
+                <text><![CDATA[% RETENCIÓN:
+]]></text>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                <property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+                <property name="com.jaspersoft.studio.unit.width" value="px"/>
+            </element>
+            <element kind="line" uuid="e77f393b-fa63-4099-af04-a78df414a697" x="57" y="260" width="483" height="1">
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+            </element>
+            <element kind="staticText" uuid="be9c9c26-8d3e-40c8-9a39-2259261a46a4" x="57" y="265" width="153" height="10" fontSize="7.0" bold="true" vTextAlign="Middle">
+                <paragraph leftIndent="5"/>
+                <text><![CDATA[OBLIGADO A LLEVAR CONTABILIDAD]]></text>
+                <property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+            </element>
+            <element kind="textField" uuid="caf44aba-5b3d-4f11-b90a-630a101c438c" x="57" y="275" width="182" height="10" fontSize="7.0" bold="true" hTextAlign="Left" vTextAlign="Middle">
+                <paragraph leftIndent="5"/>
+                <expression><![CDATA["\"CONTRIBUYENTE ESPECIAL\""]]></expression>
+                <property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+            </element>
+            <element kind="textField" uuid="439c88c1-3f34-4d21-89b1-584d38daed2b" x="57" y="285" width="182" height="10" fontSize="7.0" bold="true" hTextAlign="Left" vTextAlign="Middle">
+                <paragraph leftIndent="5"/>
+                <expression><![CDATA["RESOLUCIÓN No. 3997DEL 22-08-1996"]]></expression>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                <property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+            </element>
+            <element kind="textField" uuid="1ad65f9c-0980-4261-9917-6f06769342c6" x="57" y="295" width="91" height="10" fontSize="7.0" bold="true" hTextAlign="Left" vTextAlign="Middle">
+                <paragraph leftIndent="5"/>
+                <expression><![CDATA["EJERCICIO FISCAL:"]]></expression>
+                <property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+            </element>
+            <element kind="textField" uuid="a6357179-70c3-4304-b4c7-6a4c91c1a3ac" x="148" y="295" width="91" height="10" fontSize="7.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+                <expression><![CDATA[$F{retentionSriModel}.getFiscalPeriod()]]></expression>
+            </element>
+            <element kind="textField" uuid="e900ea62-c4ad-4f9a-925f-144bf104fffb" x="351" y="265" width="109" height="10" fontSize="7.0" bold="true" hTextAlign="Left" vTextAlign="Bottom">
+                <expression><![CDATA["GRAN CONTRIBUYENTE"]]></expression>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+            </element>
+            <element kind="textField" uuid="170b0132-de6f-4bde-b9dd-609a6de1263b" x="351" y="275" width="187" height="12" fontSize="7.0" bold="true" hTextAlign="Left" vTextAlign="Middle">
+                <expression><![CDATA["RESOLUCIÓN No. NAC-ADROGEC24-00000536-M"]]></expression>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                <property name="com.jaspersoft.studio.unit.width" value="px"/>
+            </element>
+            <element kind="line" uuid="af87fa88-ff37-40b5-81a7-6bb2ba732aa0" x="57" y="309" width="483" height="1">
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+            </element>
+            <element kind="component" uuid="a007a6eb-fac4-4c5b-87e8-afa588843509" x="79" y="317" width="155" height="27">
+                <printWhenExpression><![CDATA[$F{isMigration}.equals(false)]]></printWhenExpression>
+                <component kind="barbecue" type="Code128" drawText="false" checksumRequired="false" barWidth="0" barHeight="0">
+                    <codeExpression><![CDATA[$F{retentionSriModel}.getAuthorizationCode() != null &&
+!$F{retentionSriModel}.getAuthorizationCode().isBlank()
+    ? $F{retentionSriModel}.getAuthorizationCode()
+    : ""]]></codeExpression>
+                </component>
+                <property name="com.jaspersoft.studio.unit.barWidth" value="px"/>
+                <property name="com.jaspersoft.studio.unit.barHeight" value="px"/>
+            </element>
+            <element kind="textField" uuid="d9550c7a-5ed4-4f75-a732-6f48b8092d5a" x="83" y="346" width="274" height="12" forecolor="#000000" fontSize="7.0" linkType="None" linkTarget="Self" blankWhenNull="true" bold="true" hTextAlign="Left" vTextAlign="Middle">
+                <printWhenExpression><![CDATA[$F{isMigration}.equals(false)]]></printWhenExpression>
+                <expression><![CDATA[ $F{retentionSriModel}.getAuthorizationCode().toString()
+]]></expression>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+            </element>
+            <element kind="staticText" uuid="f1ff4771-2f68-4274-9b2f-ea69fb122ad0" x="357" y="321" width="53" height="12" fontSize="7.0" bold="true" hTextAlign="Left" vTextAlign="Middle">
+                <paragraph leftIndent="5"/>
+                <text><![CDATA[EMISIÓN:]]></text>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                <property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+                <property name="com.jaspersoft.studio.unit.width" value="px"/>
+            </element>
+            <element kind="textField" uuid="3f19726e-3287-4844-a9dd-0283f39a6695" x="429" y="321" width="63" height="12" fontSize="7.0" bold="false" hTextAlign="Left" vTextAlign="Middle">
+                <expression><![CDATA[$F{retentionSriModel}.getEmission()]]></expression>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                <property name="com.jaspersoft.studio.unit.width" value="px"/>
+            </element>
+            <element kind="staticText" uuid="0e570c7f-c674-4aa7-8ad5-a48378628633" x="357" y="338" width="53" height="12" fontSize="7.0" bold="true" hTextAlign="Left" vTextAlign="Middle">
+                <paragraph leftIndent="5"/>
+                <text><![CDATA[AMBIENTE:
+]]></text>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                <property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+                <property name="com.jaspersoft.studio.unit.width" value="px"/>
+            </element>
+            <element kind="textField" uuid="adb3c4e2-f2e7-4e3e-b0f5-c44584282f14" x="429" y="338" width="62" height="12" fontSize="7.0" bold="false" hTextAlign="Left" vTextAlign="Middle">
+                <expression><![CDATA[$F{retentionSriModel}.getAmbient()]]></expression>
+                <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                <property name="com.jaspersoft.studio.unit.width" value="px"/>
+            </element>
+            <element kind="frame" uuid="4749398e-055e-40e0-a18b-86ff0b83392b" x="60" y="10" width="101" height="41">
+                <element kind="image" uuid="709ab42c-7752-46ea-a38a-51de6bff842d" x="4" y="3" width="92" height="35" scaleImage="RetainShape" usingCache="false">
+                    <expression><![CDATA[$F{logoBase64} != null ? $F{logoBase64} : $F{logoProduct}]]></expression>
+                    <property name="com.jaspersoft.studio.unit.x" value="px"/>
+                    <property name="com.jaspersoft.studio.unit.y" value="px"/>
+                    <property name="com.jaspersoft.studio.unit.width" value="px"/>
+                    <property name="com.jaspersoft.studio.unit.height" value="px"/>
+                </element>
+            </element>
+            <property name="com.jaspersoft.studio.unit.height" value="px"/>
+        </band>
+    </detail>
+</jasperReport>

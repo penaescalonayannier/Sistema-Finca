@@ -1,0 +1,590 @@
+<!-- Created with Jaspersoft Studio version 7.0.1.final using JasperReports Library version 7.0.1-573496633c2b4074e32f433154b543003f7d2498  -->
+<jasperReport name="orden_examen" language="javascript" columnCount="1" pageWidth="612" pageHeight="792" columnWidth="572" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="c352693a-a449-4d92-8526-37a41f118d0f">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Treatment"/>
+	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="239"/>
+	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="756"/>
+	<dataset name="Diagnostico" uuid="780501ba-06b2-421c-84fc-047ee794b034">
+		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+		<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="272"/>
+		<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="720"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="doctorkyn"/>
+		<parameter name="id_consulta" class="java.lang.String"/>
+		<query language="SQL"><![CDATA[Select  (treatment.diagnosis.icdcode || ' - ' ||  treatment.diagnosis.description) as Diagnostico from  treatment.diagnosis where  treatment.diagnosis.external_consultation_id = $P{id_consulta}  ::uuid]]></query>
+		<field name="diagnostico" class="java.lang.String">
+			<property name="com.jaspersoft.studio.field.name" value="diagnostico"/>
+			<property name="com.jaspersoft.studio.field.label" value="diagnostico"/>
+		</field>
+		<group name="diagnostico">
+			<expression><![CDATA[$F{diagnostico}]]></expression>
+		</group>
+	</dataset>
+	<dataset name="DiagnosticoSurgery" uuid="73248e8f-47f2-49a4-a861-0d331b32063a">
+		<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+		<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="272"/>
+		<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="720"/>
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="doctorkyn"/>
+		<parameter name="id_consulta" class="java.lang.String"/>
+		<query language="SQL"><![CDATA[Select  (surgery.diagnosis.icdcode || ' - ' ||  surgery.diagnosis.description) as Diagnostico from  surgery.diagnosis where  surgery.diagnosis.surgery_id = $P{id_consulta}  ::uuid]]></query>
+		<field name="diagnostico" class="java.lang.String">
+			<property name="com.jaspersoft.studio.field.name" value="diagnostico"/>
+			<property name="com.jaspersoft.studio.field.label" value="diagnostico"/>
+		</field>
+		<group name="diagnostico">
+			<expression><![CDATA[$F{diagnostico}]]></expression>
+		</group>
+	</dataset>
+	<parameter name="id_consulta" class="java.lang.String"/>
+	<query language="SQL"><![CDATA[SELECT
+    LTR.id as id_labTR, LTR.origen, LTR.specialty_name,
+    TO_CHAR(LTR.createdat, 'DD/MM/YYYY') AS consultationtime,
+    PT.name,
+    PT.lastname,
+    UPPER(PT.name || ' ' || PT.lastname) as fullname,
+    PT.identification,
+    DATE_PART('year', AGE(PT.birthdate))::int AS edad,
+   CASE
+        WHEN PT.gender = 'FEMALE' THEN 'FEMENINO'
+        WHEN PT.gender = 'MALE' THEN 'MASCULINO'
+        ELSE 'OTRO'
+END AS gender,
+    DR."name" as name_dr,
+    DR.lastname as apellido_dr,
+    DR.registernumber as regist_number,
+    UPPER(DR."name" || ' ' ||  COALESCE(DR.lastname, '')) as fullname_dr,
+    COALESCE(DR.registernumber, '') as registernumber,
+    UPPER(BS.name) as clinica,
+    BS.logo,
+    BS.email,
+	BS.phone,
+	BS.website,
+    LTI.code as examen_codigo, LTI.description as examen_descripcion
+   
+FROM "medical-test".lab_test_requests LTR
+         INNER JOIN "medical-test".lab_test_items LTI ON ltr.id = lti.order_id
+		 INNER JOIN "medical-test".lab_test_parameters LTP ON LTI.code = LTP.code
+         LEFT JOIN "treatment".patients PT ON PT.id = LTR.patient_id
+         LEFT JOIN "treatment".doctor DR ON DR.id = ltr.doctor_id
+         LEFT JOIN identity.business BS ON BS.id = ltr.business_id
+
+where LTR.id =  $P{id_consulta} ::uuid]]></query>
+	<field name="id_labtr" class="java.util.UUID">
+		<property name="com.jaspersoft.studio.field.name" value="id_labtr"/>
+		<property name="com.jaspersoft.studio.field.label" value="id_labtr"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="lab_test_requests"/>
+	</field>
+	<field name="origen" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="origen"/>
+		<property name="com.jaspersoft.studio.field.label" value="origen"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="lab_test_requests"/>
+	</field>
+	<field name="specialty_name" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="specialty_name"/>
+		<property name="com.jaspersoft.studio.field.label" value="specialty_name"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="lab_test_requests"/>
+	</field>
+	<field name="consultationtime" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="consultationtime"/>
+		<property name="com.jaspersoft.studio.field.label" value="consultationtime"/>
+	</field>
+	<field name="name" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="name"/>
+		<property name="com.jaspersoft.studio.field.label" value="name"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="patients"/>
+	</field>
+	<field name="lastname" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="lastname"/>
+		<property name="com.jaspersoft.studio.field.label" value="lastname"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="patients"/>
+	</field>
+	<field name="fullname" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="fullname"/>
+		<property name="com.jaspersoft.studio.field.label" value="fullname"/>
+	</field>
+	<field name="identification" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="identification"/>
+		<property name="com.jaspersoft.studio.field.label" value="identification"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="patients"/>
+	</field>
+	<field name="edad" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.name" value="edad"/>
+		<property name="com.jaspersoft.studio.field.label" value="edad"/>
+	</field>
+	<field name="gender" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="gender"/>
+		<property name="com.jaspersoft.studio.field.label" value="gender"/>
+	</field>
+	<field name="name_dr" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="name_dr"/>
+		<property name="com.jaspersoft.studio.field.label" value="name_dr"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="doctor"/>
+	</field>
+	<field name="apellido_dr" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="apellido_dr"/>
+		<property name="com.jaspersoft.studio.field.label" value="apellido_dr"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="doctor"/>
+	</field>
+	<field name="regist_number" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="regist_number"/>
+		<property name="com.jaspersoft.studio.field.label" value="regist_number"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="doctor"/>
+	</field>
+	<field name="fullname_dr" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="fullname_dr"/>
+		<property name="com.jaspersoft.studio.field.label" value="fullname_dr"/>
+	</field>
+	<field name="registernumber" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="registernumber"/>
+		<property name="com.jaspersoft.studio.field.label" value="registernumber"/>
+	</field>
+	<field name="clinica" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="clinica"/>
+		<property name="com.jaspersoft.studio.field.label" value="clinica"/>
+	</field>
+	<field name="logo" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="logo"/>
+		<property name="com.jaspersoft.studio.field.label" value="logo"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="business"/>
+	</field>
+	<field name="email" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="email"/>
+		<property name="com.jaspersoft.studio.field.label" value="email"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="business"/>
+	</field>
+	<field name="phone" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="phone"/>
+		<property name="com.jaspersoft.studio.field.label" value="phone"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="business"/>
+	</field>
+	<field name="website" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="website"/>
+		<property name="com.jaspersoft.studio.field.label" value="website"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="business"/>
+	</field>
+	<field name="examen_codigo" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="examen_codigo"/>
+		<property name="com.jaspersoft.studio.field.label" value="examen_codigo"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="lab_test_items"/>
+	</field>
+	<field name="examen_descripcion" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="examen_descripcion"/>
+		<property name="com.jaspersoft.studio.field.label" value="examen_descripcion"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="lab_test_items"/>
+	</field>
+	<title height="146" splitType="Stretch">
+		<element kind="frame" uuid="a0771210-32db-432d-98fe-2b40c560927b" mode="Transparent" x="0" y="0" width="570" height="80" forecolor="#006699" backcolor="#F2F9FC">
+			<property name="com.jaspersoft.studio.unit.x" value="px"/>
+			<property name="com.jaspersoft.studio.unit.y" value="px"/>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<element kind="textField" uuid="cbb40e4c-5e57-423b-a23e-0b2720f9c010" x="110" y="0" width="360" height="40" fontName="SansSerif" fontSize="16.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA["ORDEN DE EXÁMENES"]]></expression>
+				<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="image" uuid="d05efdc6-7a64-43ab-afce-aa897b641eea" x="0" y="0" width="110" height="80" scaleImage="RetainShape" onErrorType="Icon" hImageAlign="Center" vImageAlign="Middle">
+				<expression><![CDATA[new java.net.URL($F{logo}).toExternalForm()]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<property name="com.jaspersoft.studio.unit.y" value="px"/>
+			</element>
+			<element kind="textField" uuid="df873046-c927-48c9-9394-673c354eced7" x="110" y="40" width="360" height="40" fontSize="12.0" textAdjust="ScaleFont" blankWhenNull="true" bold="true" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA[$F{clinica}]]></expression>
+				<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="e9eeaf09-900f-425e-887a-7a278dd650bd" x="470" y="40" width="100" height="40" pattern="dd 'de' MMMM 'de' yyyy" blankWhenNull="true" hTextAlign="Center" vTextAlign="Middle">
+				<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="8599e5b7-e95e-4325-a135-8428306873f4" x="470" y="0" width="100" height="40" pattern="dd 'de' MMMM 'de' yyyy" blankWhenNull="true" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA[$F{consultationtime}]]></expression>
+				<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<box>
+				<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#006699"/>
+				<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#006699"/>
+				<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+			</box>
+		</element>
+		<element kind="textField" uuid="68a39275-1b12-4075-adae-ec9b3ef32c25" x="360" y="100" width="210" height="20" blankWhenNull="true" hTextAlign="Left" vTextAlign="Middle">
+			<paragraph leftIndent="2"/>
+			<expression><![CDATA[$F{specialty_name}]]></expression>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			<box>
+				<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+			</box>
+		</element>
+		<element kind="textField" uuid="8287be55-4b1e-4719-b3c7-69b002e612ae" mode="Transparent" x="60" y="120" width="90" height="20" backcolor="#D9F0FA" hTextAlign="Left" vTextAlign="Middle">
+			<paragraph leftIndent="2"/>
+			<expression><![CDATA[$F{gender}]]></expression>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<property name="com.jaspersoft.studio.unit.x" value="px"/>
+			<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+			<box>
+				<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+			</box>
+		</element>
+		<element kind="staticText" uuid="665b4aab-55ad-4579-9cd4-2d451032b0ad" mode="Opaque" x="0" y="100" width="60" height="20" backcolor="#D9F0FA" bold="false" hTextAlign="Left" vTextAlign="Middle">
+			<paragraph leftIndent="2"/>
+			<text><![CDATA[CÉDULA]]></text>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<property name="com.jaspersoft.studio.unit.x" value="px"/>
+			<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+			<box>
+				<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+			</box>
+		</element>
+		<element kind="staticText" uuid="c52473c5-b295-4c77-b9ee-0c6b4175e5bd" mode="Opaque" x="0" y="120" width="60" height="20" backcolor="#D9F0FA" bold="false" hTextAlign="Left" vTextAlign="Middle">
+			<paragraph leftIndent="2"/>
+			<text><![CDATA[GÉNERO]]></text>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			<box>
+				<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+			</box>
+		</element>
+		<element kind="textField" uuid="8b0a10cb-a508-46e0-b9fa-0a8988e7612c" x="60" y="100" width="220" height="20" blankWhenNull="true" bold="false" vTextAlign="Middle">
+			<paragraph leftIndent="2"/>
+			<expression><![CDATA[$F{identification}]]></expression>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+			<box>
+				<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+			</box>
+		</element>
+		<element kind="textField" uuid="ac8cf2e5-3c95-42ad-a0d2-a1f0e21417e7" x="210" y="120" width="70" height="20" blankWhenNull="true" hTextAlign="Left" vTextAlign="Middle">
+			<paragraph leftIndent="2"/>
+			<expression><![CDATA[$F{edad}]]></expression>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			<box>
+				<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+			</box>
+		</element>
+		<element kind="textField" uuid="870ff2b0-412a-4511-bb57-7fb7f45398b2" x="360" y="80" width="210" height="20" blankWhenNull="true" bold="true" vTextAlign="Middle">
+			<paragraph leftIndent="2"/>
+			<expression><![CDATA[$F{fullname_dr}]]></expression>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<box>
+				<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+			</box>
+		</element>
+		<element kind="staticText" uuid="548bb5dd-381e-42c4-8cbc-68d680862d6f" mode="Opaque" x="150" y="120" width="60" height="20" backcolor="#D9F0FA" hTextAlign="Left" vTextAlign="Middle">
+			<paragraph leftIndent="2"/>
+			<text><![CDATA[EDAD]]></text>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<property name="com.jaspersoft.studio.unit.x" value="px"/>
+			<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+			<box>
+				<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+			</box>
+		</element>
+		<element kind="staticText" uuid="6d4a4f66-1347-4084-8a60-cb62919813df" mode="Opaque" x="280" y="80" width="80" height="20" backcolor="#D9F0FA" bold="true" hTextAlign="Left" vTextAlign="Middle">
+			<paragraph leftIndent="2"/>
+			<text><![CDATA[DOCTOR]]></text>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<property name="com.jaspersoft.studio.unit.x" value="px"/>
+			<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+			<box>
+				<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+			</box>
+		</element>
+		<element kind="staticText" uuid="ad8fcfa3-0c58-435b-9b51-ddc9c25442f2" mode="Opaque" x="280" y="100" width="80" height="20" backcolor="#D9F0FA" hTextAlign="Left" vTextAlign="Middle">
+			<paragraph leftIndent="2"/>
+			<text><![CDATA[ESPECIALIDAD]]></text>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<property name="com.jaspersoft.studio.unit.x" value="px"/>
+			<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+			<box>
+				<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+			</box>
+		</element>
+		<element kind="staticText" uuid="bb49f6c7-e01f-47dc-bcde-434102618e04" mode="Opaque" x="280" y="120" width="80" height="20" backcolor="#D9F0FA" hTextAlign="Left" vTextAlign="Middle">
+			<paragraph leftIndent="2"/>
+			<text><![CDATA[NO. REGISTRO]]></text>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<property name="com.jaspersoft.studio.unit.x" value="px"/>
+			<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+			<box>
+				<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+			</box>
+		</element>
+		<element kind="textField" uuid="7ea65578-3e71-4653-b3e6-55f4ef78c32e" x="360" y="120" width="210" height="20" blankWhenNull="true" hTextAlign="Left" vTextAlign="Middle">
+			<paragraph leftIndent="2"/>
+			<expression><![CDATA[$F{registernumber}]]></expression>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			<box>
+				<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+			</box>
+		</element>
+		<element kind="staticText" uuid="455facd3-7b0a-4f40-a264-90bf4bfb2843" mode="Opaque" x="0" y="80" width="60" height="20" backcolor="#D9F0FA" bold="true" hTextAlign="Left" vTextAlign="Middle">
+			<paragraph leftIndent="2"/>
+			<text><![CDATA[NOMBRE]]></text>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<property name="com.jaspersoft.studio.unit.x" value="px"/>
+			<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+			<box>
+				<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+			</box>
+		</element>
+		<element kind="textField" uuid="39370fda-7038-4bf4-8c80-d05c48669b0b" x="60" y="80" width="220" height="20" blankWhenNull="true" bold="true" vTextAlign="Middle">
+			<paragraph leftIndent="2"/>
+			<expression><![CDATA[$F{fullname}]]></expression>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<box>
+				<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+			</box>
+		</element>
+		<property name="com.jaspersoft.studio.unit.height" value="px"/>
+	</title>
+	<columnHeader height="25" splitType="Stretch">
+		<element kind="staticText" uuid="3c4c31ff-03d4-4a0e-80bd-cdbf20a55687" mode="Opaque" x="0" y="0" width="360" height="25" backcolor="#D9F0FA" fontSize="10.0" bold="true" hTextAlign="Left" vTextAlign="Middle">
+			<paragraph leftIndent="4"/>
+			<text><![CDATA[EXAMEN]]></text>
+			<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			<box leftPadding="1">
+				<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+			</box>
+		</element>
+		<element kind="staticText" uuid="a25a12cb-7804-4e9d-9f66-e54adc06b12d" mode="Opaque" x="360" y="0" width="210" height="25" backcolor="#D9F0FA" fontSize="10.0" bold="true" hTextAlign="Left" vTextAlign="Middle">
+			<paragraph leftIndent="2"/>
+			<text><![CDATA[TIPO]]></text>
+			<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+			<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<box leftPadding="1">
+				<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+			</box>
+		</element>
+		<property name="com.jaspersoft.studio.unit.height" value="px"/>
+	</columnHeader>
+	<detail>
+		<band height="20">
+			<element kind="textField" uuid="699a6e00-1e56-4320-9125-0fd0ed97caaa" x="0" y="0" width="360" height="20" fontSize="10.0" textAdjust="ScaleFont" blankWhenNull="true" hTextAlign="Left" vTextAlign="Middle">
+				<paragraph leftIndent="4"/>
+				<expression><![CDATA[$F{examen_descripcion}]]></expression>
+				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="5ff8fe0e-6d81-4741-be3d-7daf3a8e4e18"/>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				<box>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+			</element>
+			<element kind="textField" uuid="fc780b6b-eafe-4f06-82be-9ba3de4f0121" x="360" y="0" width="210" height="20" fontSize="10.0" textAdjust="ScaleFont" blankWhenNull="true" hTextAlign="Left" vTextAlign="Middle">
+				<paragraph leftIndent="2"/>
+				<expression><![CDATA[$F{examen_codigo}]]></expression>
+				<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="5ff8fe0e-6d81-4741-be3d-7daf3a8e4e18"/>
+				<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+				<box>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+			</element>
+		</band>
+	</detail>
+	<summary height="110" splitType="Stretch">
+		<element kind="frame" uuid="5ec9827a-285e-4bec-8d62-29328ea18762" x="0" y="21" width="570" height="15">
+			<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			<element kind="component" uuid="0b2865a7-9715-4abe-87e2-dd36dce8ab17" x="0" y="0" width="570" height="15">
+				<printWhenExpression><![CDATA["CONSULTA_EXTERNA".equals($F{origen})]]></printWhenExpression>
+				<component kind="list" printOrder="Vertical">
+					<datasetRun uuid="d96a5072-9b7c-4cf5-86d4-cf54bca1bf7a" subDataset="Diagnostico">
+						<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+						<parameter name="id_consulta">
+							<expression><![CDATA[$F{id_labtr}]]></expression>
+						</parameter>
+					</datasetRun>
+					<contents height="15" width="570">
+						<element kind="textField" uuid="61c93022-78f0-4bf1-a6bb-46874b951246" x="0" y="0" width="380" height="15" vTextAlign="Middle">
+							<paragraph leftIndent="2" rightIndent="2"/>
+							<expression><![CDATA[$F{diagnostico}]]></expression>
+							<property name="com.jaspersoft.studio.unit.width" value="px"/>
+							<property name="com.jaspersoft.studio.unit.height" value="px"/>
+							<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+							<property name="com.jaspersoft.studio.unit.rightIndent" value="px"/>
+						</element>
+					</contents>
+				</component>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<property name="com.jaspersoft.studio.element.name" value="DiagnosticosTratamiento"/>
+			</element>
+			<element kind="component" uuid="fd942dba-7bad-4b02-b452-372e50fd49d4" x="0" y="0" width="570" height="15">
+				<printWhenExpression><![CDATA["CIRUGIA".equals($F{origen})]]></printWhenExpression>
+				<component kind="list" printOrder="Vertical">
+					<datasetRun uuid="886714b3-af5c-4389-9bbc-471d162df85b" subDataset="DiagnosticoSurgery">
+						<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+						<parameter name="id_consulta">
+							<expression><![CDATA[$F{id_labtr}]]></expression>
+						</parameter>
+					</datasetRun>
+					<contents height="15" width="570">
+						<element kind="textField" uuid="11aa37e1-afd9-4602-a470-febb08159390" x="0" y="0" width="570" height="15" blankWhenNull="true" bold="false" vTextAlign="Middle">
+							<paragraph leftIndent="2" rightIndent="2"/>
+							<expression><![CDATA[$F{diagnostico}]]></expression>
+							<property name="com.jaspersoft.studio.unit.width" value="px"/>
+							<property name="com.jaspersoft.studio.unit.height" value="px"/>
+							<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+							<property name="com.jaspersoft.studio.unit.rightIndent" value="px"/>
+							<box>
+								<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+								<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+								<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+								<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+							</box>
+						</element>
+					</contents>
+				</component>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<property name="com.jaspersoft.studio.element.name" value="DiagnosticoSurgery"/>
+				<property name="com.jaspersoft.studio.unit.y" value="px"/>
+			</element>
+			<box>
+				<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+			</box>
+		</element>
+		<element kind="staticText" uuid="254070ed-a787-4bc0-8ebf-0abd9d0b185b" mode="Opaque" x="0" y="6" width="570" height="15" backcolor="#D9F0FA" fontSize="10.0" bold="true" hTextAlign="Left" vTextAlign="Middle">
+			<paragraph leftIndent="2"/>
+			<text><![CDATA[DIAGNÓSTICOS]]></text>
+			<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<box leftPadding="1">
+				<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+			</box>
+		</element>
+		<element kind="frame" uuid="e88343b7-a326-4ab9-817f-3bfdf4d93609" positionType="Float" x="0" y="50" width="340" height="60">
+			<element kind="textField" uuid="a00c1440-cf95-411d-b0ec-3d30526e1cf8" x="80" y="0" width="260" height="20" fontSize="10.0" textAdjust="StretchHeight" blankWhenNull="true" bold="true" italic="true" vTextAlign="Middle">
+				<paragraph leftIndent="2"/>
+				<expression><![CDATA[$F{phone}]]></expression>
+				<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+				<box>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+			</element>
+			<element kind="textField" uuid="da656259-f1c9-4838-a6db-057697ea3dcf" x="80" y="20" width="260" height="20" fontSize="10.0" textAdjust="StretchHeight" blankWhenNull="true" bold="true" italic="true" vTextAlign="Middle">
+				<paragraph leftIndent="2"/>
+				<expression><![CDATA[$F{email}]]></expression>
+				<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+				<box>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+			</element>
+			<element kind="staticText" uuid="269c4edd-a811-42c3-9a16-c609f74c9b5d" mode="Opaque" x="0" y="0" width="80" height="20" backcolor="#DFEAF5" fontSize="10.0" bold="true" italic="true" hTextAlign="Left" vTextAlign="Middle">
+				<text><![CDATA[  Teléfonos]]></text>
+				<box>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+			</element>
+			<element kind="staticText" uuid="bd11fdc3-ee2c-4948-84b4-9321c3495626" mode="Opaque" x="0" y="20" width="80" height="20" backcolor="#DFEAF5" fontSize="10.0" bold="true" italic="true" hTextAlign="Left" vTextAlign="Middle">
+				<text><![CDATA[  Correo]]></text>
+				<box>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+			</element>
+			<element kind="staticText" uuid="988d1406-eb96-4440-8e2d-2af58ce4bbce" mode="Opaque" x="0" y="40" width="80" height="20" backcolor="#DFEAF5" fontSize="10.0" bold="true" italic="true" hTextAlign="Left" vTextAlign="Middle">
+				<text><![CDATA[  Sitio Web]]></text>
+				<box>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+			</element>
+			<element kind="textField" uuid="318862a2-7224-4bf8-a4cb-b727e5aef633" x="80" y="40" width="260" height="20" fontSize="10.0" textAdjust="StretchHeight" blankWhenNull="true" bold="true" italic="true" vTextAlign="Middle">
+				<paragraph leftIndent="2"/>
+				<expression><![CDATA[$F{website}]]></expression>
+				<property name="com.jaspersoft.studio.unit.leftIndent" value="px"/>
+				<box>
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+			</element>
+		</element>
+		<property name="com.jaspersoft.studio.unit.height" value="px"/>
+	</summary>
+</jasperReport>

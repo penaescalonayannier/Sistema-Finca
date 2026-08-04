@@ -1,0 +1,149 @@
+<!-- Created with Jaspersoft Studio version 7.0.1.final using JasperReports Library version 7.0.1-573496633c2b4074e32f433154b543003f7d2498  -->
+<jasperReport name="Blank_A4_2" language="javascript" columnCount="1" pageWidth="595" pageHeight="842" columnWidth="515" leftMargin="40" rightMargin="40" topMargin="20" bottomMargin="20" uuid="67ef7b8c-8d0b-43a9-807a-5865cadd888a">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="doctorkyn"/>
+	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="243"/>
+	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="752"/>
+	<property name="net.sf.jasperreports.export.pdf.force.linebreak.policy" value="true"/>
+	<property name="net.sf.jasperreports.export.pdf.embedded" value="true"/>
+	<parameter name="surgery_id" class="java.lang.String"/>
+	<query language="SQL"><![CDATA[Select 
+BS.name as clinica,
+BS.logo,
+PT.firstname,
+PT.lastname,
+PT.identification as ident_pac,
+COALESCE(MT.member_name, '') as Cirujano,
+SUR.surgery_type,
+CASE 
+        WHEN SUR.surgery_type = 'APENDICECTOMIA' THEN 'APENDICECTOMÍA'
+        WHEN SUR.surgery_type = 'COLECISTECTOMIA' THEN 'COLECISTECTOMÍA'
+        WHEN SUR.surgery_type = 'REPARACION_HERNIA' THEN 'REPARACIÓN DE HERNIA'
+        WHEN SUR.surgery_type = 'CESAREA' THEN 'CESÁREA'
+        WHEN SUR.surgery_type = 'CIRUGIA_BYPASS_CORONARIO' THEN 'CIRUGÍA DE BYPASS CORONARIO'
+        WHEN SUR.surgery_type = 'MASTECTOMIA' THEN 'MASTECTOMÍA'
+        WHEN SUR.surgery_type = 'CIRUGIA_CATARATAS' THEN 'CIRUGÍA DE CATARATAS'
+        WHEN SUR.surgery_type = 'AMIGDALECTOMIA' THEN 'AMIGDALECTOMÍA'
+        WHEN SUR.surgery_type = 'REEMPLAZO_CADERA' THEN 'REEMPLAZO DE CADERA'
+        WHEN SUR.surgery_type = 'REEMPLAZO_RODILLA' THEN 'REEMPLAZO DE RODILLA'
+        ELSE 'OTRO PROCEDIMIENTO' -- Opcional para valores no listados
+ END AS surgery_type_name
+
+from surgery.surgeries SUR
+inner join patient.patients PT on SUR.patient_id = PT.id
+inner join identity.business BS on SUR.business_id = BS.id
+left join surgery.medical_teams MT on MT.surgery_id = SUR.id and MT.role = 'surgeon1'
+
+
+WHERE SUR.id =   $P{surgery_id} ::uuid]]></query>
+	<field name="clinica" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="clinica"/>
+		<property name="com.jaspersoft.studio.field.label" value="clinica"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="business"/>
+	</field>
+	<field name="logo" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="logo"/>
+		<property name="com.jaspersoft.studio.field.label" value="logo"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="business"/>
+	</field>
+	<field name="firstname" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="firstname"/>
+		<property name="com.jaspersoft.studio.field.label" value="firstname"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="patients"/>
+	</field>
+	<field name="lastname" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="lastname"/>
+		<property name="com.jaspersoft.studio.field.label" value="lastname"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="patients"/>
+	</field>
+	<field name="ident_pac" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="ident_pac"/>
+		<property name="com.jaspersoft.studio.field.label" value="ident_pac"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="patients"/>
+	</field>
+	<field name="cirujano" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="cirujano"/>
+		<property name="com.jaspersoft.studio.field.label" value="cirujano"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="medical_teams"/>
+	</field>
+	<field name="surgery_type" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="surgery_type"/>
+		<property name="com.jaspersoft.studio.field.label" value="surgery_type"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="surgeries"/>
+	</field>
+	<field name="surgery_type_name" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="surgery_type_name"/>
+		<property name="com.jaspersoft.studio.field.label" value="surgery_type_name"/>
+	</field>
+	<background splitType="Stretch"/>
+	<title height="192" splitType="Stretch">
+		<element kind="image" uuid="5b757a1d-0401-44b5-a8f5-c013403b7d85" x="222" y="0" width="87" height="80" scaleImage="RetainShape" onErrorType="Blank" hImageAlign="Center" vImageAlign="Middle">
+			<expression><![CDATA[new java.net.URL($F{logo}).toExternalForm()]]></expression>
+		</element>
+		<element kind="textField" uuid="010f7056-6d17-4701-bcee-075be92028a6" x="0" y="80" width="510" height="50" forecolor="#2B3467" fontName="SansSerif" fontSize="18.0" bold="true" vTextAlign="Middle">
+			<expression><![CDATA["CONSENTIMIENTO INFORMADO PARA PROCEDIMIENTO QUIRÚRGICO"]]></expression>
+		</element>
+		<element kind="textField" uuid="306c1a1c-33fb-4b84-ac6d-15400b0b5c69" x="0" y="130" width="510" height="30" forecolor="#555555" fontName="SansSerif" fontSize="16.0" bold="true" vTextAlign="Middle">
+			<expression><![CDATA[$F{clinica}]]></expression>
+		</element>
+	</title>
+	<columnHeader height="210" splitType="Stretch">
+		<element kind="textField" uuid="4e3310fc-cdc6-430e-91e7-6a2823aaa4db" x="0" y="100" width="510" height="110" markup="styled" fontName="SansSerif" fontSize="12.0">
+			<expression><![CDATA["<b>He recibido información clara y suficiente sobre:</b>\n" 
+                + "• Objetivo y justificación del procedimiento\n"
+                + "• Riesgos y complicaciones potenciales\n"
+                + "• Alternativas terapéuticas\n"
+                + "• Tipo de anestesia requerida\n"
+                + "• Cuidados y seguimiento postoperatorio"]]></expression>
+		</element>
+		<element kind="textField" uuid="9853a342-3dd8-4e41-9879-14c44ce5fd00" x="0" y="3" width="510" height="96" markup="styled" fontName="SansSerif" fontSize="12.0">
+			<expression><![CDATA["Yo, "+"<b>"+$F{firstname} + " " +$F{lastname}+ "</b>"+"\n" 
+                + "Con cédula/pasaporte N.º "+ "<b>"+$F{ident_pac}+ "</b>"+"\n"
+                + "He sido informado/a por el Dr./Dra. "+ "<b>"+$F{cirujano}+ "</b>"+"\n"
+                + "Acerca del acerca del procedimiento quirúrgico denominado: "+ "<b>"+$F{surgery_type_name}+ "</b>"]]></expression>
+		</element>
+	</columnHeader>
+	<summary height="280" splitType="Stretch">
+		<element kind="frame" uuid="6c30dc8f-ba90-4b22-b94e-149dfe71f5c8" x="0" y="80" width="510" height="200">
+			<element kind="textField" uuid="141827a0-704a-4fba-8307-cf7aac769ddf" x="0" y="0" width="250" height="40" markup="styled" bold="true">
+				<expression><![CDATA["Nombre del Paciente: " +"\n" + "\n" + "<b>"+ $F{firstname} + " " + $F{lastname} + "</b>"]]></expression>
+			</element>
+			<element kind="textField" uuid="f406f9ee-bcbf-42d1-8b57-66ab4afe0b28" x="260" y="0" width="250" height="40">
+				<expression><![CDATA["Firma del Paciente:"]]></expression>
+			</element>
+			<element kind="line" uuid="c0512aff-f611-41c0-a774-0d2f26a9948c" x="260" y="40" width="250" height="1"/>
+			<element kind="textField" uuid="e30fbc9e-4e8b-4a11-afe8-5b6de261adf1" x="0" y="48" width="250" height="40" markup="styled" bold="true">
+				<expression><![CDATA["Nombre del Profesional Tratante: " +"\n" + "\n" + "<b>"+$F{cirujano} + "</b>"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="line" uuid="fa1ec6a3-7917-4359-a965-16dd236a2b65" x="0" y="88" width="250" height="1"/>
+			<element kind="textField" uuid="5af4b250-32e5-49e5-af46-f9dcfbba3bef" x="260" y="48" width="250" height="40">
+				<expression><![CDATA["Firma del Profesional Tratante:"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="line" uuid="c8bae62b-7669-4a42-84bf-c61df609868f" x="260" y="88" width="250" height="1"/>
+			<element kind="textField" uuid="b66b5ae8-54f5-41ab-9bd5-03baacefdb99" x="60" y="151" width="150" height="30" fontName="SansSerif" bold="true">
+				<expression><![CDATA["Fecha: " + new java.text.SimpleDateFormat("dd/MM/yyyy").format(new java.util.Date())]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="line" uuid="5cbeabae-de26-4e4b-8910-f8c6dfb9a4c8" x="60" y="180" width="100" height="1" forecolor="#FFFFFF">
+				<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			</element>
+			<element kind="textField" uuid="7b6b47c4-7312-447f-b73a-314b0865ba6d" x="0" y="102" width="250" height="40" markup="styled" bold="true">
+				<expression><![CDATA["Nombre del Testigo:"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="04207c9e-0121-4778-b6d9-55ef8762aed5" x="260" y="101" width="250" height="40">
+				<expression><![CDATA["Firma del Testigo:"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="line" uuid="066c4762-e830-40aa-a09b-5a9ad87fbf35" x="0" y="141" width="250" height="1"/>
+			<element kind="line" uuid="6042b4fa-6fef-4167-9462-301696fd4086" x="260" y="141" width="250" height="1"/>
+			<element kind="line" uuid="3385fad8-f992-45ff-abc3-a14f5dc9aecd" x="0" y="40" width="250" height="1"/>
+		</element>
+		<element kind="textField" uuid="1dcc7a73-013a-4ce0-89c5-9f09d225eb5c" mode="Opaque" x="40" y="10" width="440" height="50" backcolor="#F5F5F5" fontName="SansSerif" fontSize="12.0" hTextAlign="Center" vTextAlign="Middle">
+			<expression><![CDATA["Declaro que comprendo lo explicado y que todas mis dudas han sido aclaradas"]]></expression>
+		</element>
+	</summary>
+</jasperReport>

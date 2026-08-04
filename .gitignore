@@ -24,13 +24,9 @@ node_modules/
 npm-debug.log
 yarn-error.log
 .npm
-dist/
 
 # Vue.js
-/mi-proyecto-vue/mi-proyecto/node_modules/
-/mi-proyecto-vue/mi-proyecto/dist/
-/mi-proyecto-vue/mi-proyecto/.env.local
-/mi-proyecto-vue/mi-proyecto/.env.*.local
+dist/
 
 # Environment variables
 .env
@@ -58,7 +54,6 @@ Thumbs.db
 *~
 
 # Build outputs
-dist/
 build/
 .gradle/
 
@@ -70,5 +65,3 @@ build/
 tmp/
 temp/
 *.tmp
-contabilidad/
-mi-proyecto-vue/mi-proyecto/

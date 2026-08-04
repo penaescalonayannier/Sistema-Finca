@@ -1,0 +1,45 @@
+package com.kynsoft.report.applications.query.responseObject;
+
+import com.kynsof.share.core.domain.bus.query.IResponse;
+import com.kynsoft.report.domain.dto.ReporteDto;
+import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Setter
+@Getter
+@Builder
+public class ReporteResponse implements IResponse {
+
+    private UUID id;
+    private String bloque;
+    private String campo;
+    private String area;
+    private String norma;
+    private String fecha;
+    private String codigo;
+    private String year;
+    private String mes;
+    private UUID trabajadorResponsableId;
+    private String trabajadorResponsableNombre;
+
+    public ReporteResponse(ReporteDto dto) {
+        this.id = dto.getId();
+        this.bloque = dto.getBloque();
+        this.campo = dto.getCampo();
+        this.area = dto.getArea();
+        this.norma = dto.getNorma();
+        this.fecha = dto.getFecha();
+        this.codigo = dto.getCodigo();
+        this.year = dto.getYear();
+        this.mes = dto.getMes();
+        this.trabajadorResponsableId = dto.getTrabajadorResponsableId();
+        this.trabajadorResponsableNombre = dto.getTrabajadorResponsableNombre();
+    }
+
+}
