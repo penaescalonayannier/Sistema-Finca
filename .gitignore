@@ -1,0 +1,72 @@
+# Java/Maven
+target/
+.classpath
+.project
+.settings/
+.vscode/
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+.DS_Store
+*.iml
+.idea/
+
+# Spring Boot
+.mvn/wrapper/maven-wrapper.jar
+.mvn/wrapper/maven-wrapper.properties
+
+# Node/NPM
+node_modules/
+npm-debug.log
+yarn-error.log
+.npm
+dist/
+
+# Vue.js
+/mi-proyecto-vue/mi-proyecto/node_modules/
+/mi-proyecto-vue/mi-proyecto/dist/
+/mi-proyecto-vue/mi-proyecto/.env.local
+/mi-proyecto-vue/mi-proyecto/.env.*.local
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+Thumbs.db
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Build outputs
+dist/
+build/
+.gradle/
+
+# Database
+*.db
+*.sqlite
+
+# Temporary files
+tmp/
+temp/
+*.tmp
