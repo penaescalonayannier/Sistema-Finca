@@ -70,3 +70,5 @@ build/
 tmp/
 temp/
 *.tmp
+contabilidad/
+mi-proyecto-vue/mi-proyecto/
