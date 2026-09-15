@@ -64,7 +64,7 @@ Si una compilación falla antes del reinicio, los servicios actuales siguen ejec
 | PC | Estado | Observaciones |
 |---|---|---|
 | Contabilidad (`192.168.1.143`) | Preparada | Git instalado; `Sistema-Finca` clonado y `~/sistema-finca/update-from-github.sh` instalado. La primera actualización no se ha ejecutado, por lo que no se reiniciaron servicios ni se modificó la BD. |
-| RRHH (`192.168.1.245`) | Pendiente | La autenticación SSH por llave no está disponible en esta sesión. No se realizó cambio alguno; se necesita una llave válida o acceso autorizado para completar la instalación inicial. |
+| RRHH (`192.168.1.245`) | Preparada | Git instalado; `Sistema-Finca` clonado en el commit `f4cb8ab` y `~/sistema-finca/update-from-github.sh` instalado. La primera actualización no se ha ejecutado, por lo que no se reiniciaron servicios ni se modificó la BD. Se observaron dos procesos existentes de frontend; no fueron iniciados ni detenidos durante esta preparación. |
 | Central | Publicado | El actualizador se encuentra versionado en `deploy/update-from-github.sh`. |
 
 ## Responsabilidad operativa
