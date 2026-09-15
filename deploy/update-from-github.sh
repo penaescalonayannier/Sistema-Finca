@@ -121,6 +121,9 @@ main() {
 
     install_backend
 
+    log "Aplicando migraciones de base de datos"
+    bash "$SOURCE_DIR/deploy/apply-db-schema.sh" "$SOURCE_DIR" "$BACKEND_DIR/application-dev.properties"
+
     log "Reiniciando servicios"
     if [[ -x "$BASE_DIR/stop-all.sh" ]]; then
         "$BASE_DIR/stop-all.sh"

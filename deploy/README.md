@@ -7,9 +7,10 @@ En cada PC se instala `update-from-github.sh` en `~/sistema-finca/`. El script:
 1. Descarga `main` de `Sistema-Finca` y `finca-frontend`.
 2. Compila la librería `share` y el backend con Java 21.
 3. Instala las dependencias del frontend.
-4. Actualiza el JAR, reinicia los servicios y valida el health check.
+4. Aplica los cambios de esquema requeridos por la versión antes de reiniciar.
+5. Actualiza el JAR, reinicia los servicios y valida el health check.
 
-El código fuente se restablece exactamente a `origin/main`; por eso no se deben hacer cambios manuales dentro de `~/sistema-finca/source/Sistema-Finca` ni `~/sistema-finca/frontend`. Los archivos de configuración se guardan en `~/sistema-finca/config/`.
+El código fuente se restablece exactamente a `origin/main`; por eso no se deben hacer cambios manuales dentro de `~/sistema-finca/source/Sistema-Finca` ni `~/sistema-finca/frontend`. Los archivos de configuración se guardan en `~/sistema-finca/config/`. La migración usa las propiedades de conexión de `application-dev.properties`; pueden sobrescribirse con `SISTEMA_FINCA_DB_URL`, `SISTEMA_FINCA_DB_USER` y `SISTEMA_FINCA_DB_PASSWORD`.
 
 Para actualizar una PC ya configurada:
 
