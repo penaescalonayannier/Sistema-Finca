@@ -64,7 +64,7 @@ public class SalidaController {
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{id:[0-9a-fA-F-]+}")
     public ResponseEntity<UpdateSalidaMessage> update(@PathVariable UUID id, @RequestBody UpdateSalidaRequest request) {
         request.setId(id);
         UpdateSalidaCommand command = UpdateSalidaCommand.fromRequest(request);
@@ -72,14 +72,14 @@ public class SalidaController {
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id:[0-9a-fA-F-]+}")
     public ResponseEntity<DeleteSalidaMessage> delete(@PathVariable UUID id) {
         DeleteSalidaCommand command = new DeleteSalidaCommand(id);
         DeleteSalidaMessage response = mediator.send(command);
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id:[0-9a-fA-F-]+}")
     public ResponseEntity<SalidaResponse> findById(@PathVariable UUID id) {
         FindSalidaByIdQuery query = new FindSalidaByIdQuery(id);
         SalidaResponse response = mediator.send(query);
