@@ -14,6 +14,11 @@ import java.util.UUID;
 public class ItemSalidaResponse {
     private UUID id;
     private UUID salidaId;
+    private UUID fincaProductoId;
+    private UUID almacenFincaProductoId;
+    private String productoCode;
+    private String productoName;
+    private String unidadMedida;
     private UUID trabajadorId;
     private String trabajadorNombre;
     private Integer cantidad;

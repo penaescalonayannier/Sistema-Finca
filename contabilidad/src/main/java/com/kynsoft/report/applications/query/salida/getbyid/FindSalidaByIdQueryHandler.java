@@ -29,6 +29,11 @@ public class FindSalidaByIdQueryHandler implements IQueryHandler<FindSalidaByIdQ
                     .map(item -> new ItemSalidaResponse(
                             item.getId(),
                             item.getSalidaId(),
+                            item.getFincaProductoId(),
+                            item.getAlmacenFincaProductoId(),
+                            item.getProductoCode(),
+                            item.getProductoName(),
+                            item.getUnidadMedida(),
                             item.getTrabajadorId(),
                             item.getTrabajadorNombre(),
                             item.getCantidad(),

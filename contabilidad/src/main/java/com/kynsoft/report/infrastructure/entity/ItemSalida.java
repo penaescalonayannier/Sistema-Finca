@@ -34,6 +34,16 @@ public class ItemSalida {
     @JoinColumn(name = "salida_id", insertable = false, updatable = false)
     private Salida salida;
 
+    @Column(name = "finca_producto_id")
+    private UUID fincaProductoId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "finca_producto_id", insertable = false, updatable = false)
+    private FincaProducto fincaProducto;
+
+    @Column(name = "almacen_finca_producto_id")
+    private UUID almacenFincaProductoId;
+
     @Column(name = "trabajador_id", nullable = true)
     private UUID trabajadorId;
 
@@ -53,6 +63,8 @@ public class ItemSalida {
     public ItemSalida(ItemSalidaDto dto) {
         this.id = dto.getId();
         this.salidaId = dto.getSalidaId();
+        this.fincaProductoId = dto.getFincaProductoId();
+        this.almacenFincaProductoId = dto.getAlmacenFincaProductoId();
         this.trabajadorId = dto.getTrabajadorId();
         this.cantidad = dto.getCantidad();
         this.precio = dto.getPrecio();
@@ -63,6 +75,12 @@ public class ItemSalida {
         return ItemSalidaDto.builder()
                 .id(id)
                 .salidaId(salidaId)
+                .fincaProductoId(fincaProductoId)
+                .almacenFincaProductoId(almacenFincaProductoId)
+                .productoCode(fincaProducto != null && fincaProducto.getProducto() != null ? fincaProducto.getProducto().getCode() : null)
+                .productoName(fincaProducto != null && fincaProducto.getProducto() != null ? fincaProducto.getProducto().getName() : null)
+                .unidadMedida(fincaProducto != null && fincaProducto.getProducto() != null && fincaProducto.getProducto().getUnidadMedida() != null
+                        ? fincaProducto.getProducto().getUnidadMedida().name() : null)
                 .trabajadorId(trabajadorId)
                 .trabajadorNombre(trabajador != null ? trabajador.getNombre() : null)
                 .cantidad(cantidad)

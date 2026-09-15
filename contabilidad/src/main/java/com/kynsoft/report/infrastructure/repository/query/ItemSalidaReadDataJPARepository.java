@@ -13,7 +13,7 @@ import java.util.UUID;
 @Transactional(readOnly = true, transactionManager = "readTransactionManager")
 public interface ItemSalidaReadDataJPARepository extends JpaRepository<ItemSalida, UUID> {
 
-    @EntityGraph(attributePaths = {"trabajador"})
+    @EntityGraph(attributePaths = {"trabajador", "fincaProducto", "fincaProducto.producto"})
     List<ItemSalida> findBySalidaId(UUID salidaId);
 
     List<ItemSalida> findByTrabajadorId(UUID trabajadorId);

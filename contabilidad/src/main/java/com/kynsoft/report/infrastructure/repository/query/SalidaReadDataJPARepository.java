@@ -23,7 +23,7 @@ import java.util.UUID;
 public interface SalidaReadDataJPARepository extends JpaRepository<Salida, UUID>, JpaSpecificationExecutor<Salida> {
 
     @Override
-    @EntityGraph(attributePaths = {"fincaProducto", "fincaProducto.finca", "fincaProducto.producto", "items", "items.trabajador"})
+    @EntityGraph(attributePaths = {"fincaProducto", "fincaProducto.finca", "fincaProducto.producto", "items", "items.trabajador", "items.fincaProducto", "items.fincaProducto.producto"})
     Page<Salida> findAll(Specification specification, Pageable pageable);
 
     @Query("SELECT s FROM Salida s " +
@@ -32,6 +32,8 @@ public interface SalidaReadDataJPARepository extends JpaRepository<Salida, UUID>
            "LEFT JOIN FETCH fp.producto " +
            "LEFT JOIN FETCH s.items i " +
            "LEFT JOIN FETCH i.trabajador " +
+           "LEFT JOIN FETCH i.fincaProducto ifp " +
+           "LEFT JOIN FETCH ifp.producto " +
            "WHERE s.id = :id")
     Optional<Salida> findByIdWithDetails(@Param("id") UUID id);
 
@@ -45,6 +47,8 @@ public interface SalidaReadDataJPARepository extends JpaRepository<Salida, UUID>
            "JOIN FETCH fp.producto " +
            "LEFT JOIN FETCH s.items i " +
            "LEFT JOIN FETCH i.trabajador " +
+           "LEFT JOIN FETCH i.fincaProducto ifp " +
+           "LEFT JOIN FETCH ifp.producto " +
            "WHERE s.tipo = :tipo AND s.destino = :destino " +
            "AND s.fecha >= :fechaInicio AND s.fecha < :fechaFin AND s.activo = true " +
            "ORDER BY s.fecha, s.numero")
@@ -60,6 +64,8 @@ public interface SalidaReadDataJPARepository extends JpaRepository<Salida, UUID>
            "JOIN FETCH fp.producto " +
            "LEFT JOIN FETCH s.items i " +
            "LEFT JOIN FETCH i.trabajador " +
+           "LEFT JOIN FETCH i.fincaProducto ifp " +
+           "LEFT JOIN FETCH ifp.producto " +
            "WHERE s.tipo = :tipo AND s.fecha >= :fechaInicio AND s.fecha < :fechaFin AND s.activo = true " +
            "ORDER BY s.destino, s.fecha, s.numero")
     List<Salida> findActivasPorTipoYFecha(

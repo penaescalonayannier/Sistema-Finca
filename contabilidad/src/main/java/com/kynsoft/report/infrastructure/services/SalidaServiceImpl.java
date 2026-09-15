@@ -226,11 +226,7 @@ public class SalidaServiceImpl implements ISalidaService {
         return salida.getId();
     }
 
-    /**
-     * Registra varias salidas de un mismo almacén como una sola operación atómica.
-     * Cada línea conserva su documento de salida, por lo que la trazabilidad,
-     * la contabilidad y el kardex siguen el flujo estándar ya existente.
-     */
+    /** Registra varias líneas de producto en un único vale o factura. */
     @Override
     @Transactional
     public List<UUID> createMultipleFromAlmacen(UUID almacenId, DestinoSalida destino, String observaciones,
@@ -249,6 +245,8 @@ public class SalidaServiceImpl implements ISalidaService {
         }
 
         Set<UUID> productosEnSalida = new HashSet<>();
+        List<AlmacenFincaProducto> productosAlmacen = new ArrayList<>();
+        FincaProducto productoReferencia = null;
         for (LineaSalidaMultipleAlmacenDto linea : lineas) {
             if (linea == null || linea.getAlmacenFincaProductoId() == null) {
                 throw validationError("lineas", "Cada línea debe indicar el producto del almacén.");
@@ -270,24 +268,61 @@ public class SalidaServiceImpl implements ISalidaService {
                 throw validationError("cantidad", "Stock insuficiente de " + afp.getFincaProducto().getProducto().getName()
                         + ". Disponible: " + stockDisponible + ", solicitado: " + linea.getCantidad());
             }
+            FincaProducto fincaProducto = fincaProductoReadRepository.findByIdWithDetails(afp.getFincaProducto().getId())
+                    .orElseThrow(() -> validationError("fincaProductoId", "No se encontró uno de los productos seleccionados."));
+            if (fincaProducto.getStock() < linea.getCantidad()) {
+                throw validationError("cantidad", "Stock general insuficiente de " + fincaProducto.getProducto().getName()
+                        + ". Disponible: " + fincaProducto.getStock() + ", solicitado: " + linea.getCantidad());
+            }
+            if (productoReferencia != null && !productoReferencia.getFinca().getId().equals(fincaProducto.getFinca().getId())) {
+                throw validationError("lineas", "Todos los productos deben pertenecer a la misma finca.");
+            }
+            if (productoReferencia == null) productoReferencia = fincaProducto;
+            productosAlmacen.add(afp);
         }
 
-        List<UUID> salidaIds = new ArrayList<>();
-        for (LineaSalidaMultipleAlmacenDto linea : lineas) {
-            AlmacenFincaProducto afp = almacenFincaProductoReadRepository.findById(linea.getAlmacenFincaProductoId())
-                    .orElseThrow(() -> validationError("almacenFincaProductoId", "No se encontró uno de los productos seleccionados."));
-            SalidaDto salida = SalidaDto.builder()
-                    .destino(destino)
-                    .fincaProductoId(afp.getFincaProducto().getId())
+        TipoSalida tipo = determinarTipoSegunDestino(destino);
+        SalidaDto salidaDto = SalidaDto.builder()
+                .id(UUID.randomUUID())
+                .tipo(tipo)
+                .destino(destino)
+                // Se conserva para compatibilidad con vales históricos y filtros por finca.
+                .fincaProductoId(productoReferencia.getId())
+                .numero(numeracionService.generarSiguienteNumero(productoReferencia.getFinca().getId(), TipoDocumento.fromTipoSalida(tipo)))
+                .observaciones(observaciones)
+                .build();
+        Salida salida = new Salida(salidaDto);
+        repositoryCommand.save(salida);
+
+        for (int indice = 0; indice < lineas.size(); indice++) {
+            LineaSalidaMultipleAlmacenDto linea = lineas.get(indice);
+            AlmacenFincaProducto afp = productosAlmacen.get(indice);
+            FincaProducto fincaProducto = fincaProductoReadRepository.findByIdWithDetails(afp.getFincaProducto().getId())
+                    .orElseThrow(() -> validationError("fincaProductoId", "No se encontró uno de los productos seleccionados."));
+            Hibernate.initialize(fincaProducto.getProducto());
+            Double precio = obtenerPrecioSegunDestino(fincaProducto, destino);
+            ItemSalidaDto itemDto = ItemSalidaDto.builder()
+                    .id(UUID.randomUUID())
+                    .salidaId(salida.getId())
+                    .fincaProductoId(fincaProducto.getId())
                     .almacenFincaProductoId(afp.getId())
-                    .observaciones(observaciones)
-                    .build();
-            ItemSalidaDto item = ItemSalidaDto.builder()
                     .cantidad(linea.getCantidad())
+                    .precio(precio)
                     .build();
-            salidaIds.add(create(salida, List.of(item)));
+            itemRepositoryCommand.save(new ItemSalida(itemDto));
+
+            int stockAnterior = fincaProducto.getStock();
+            int stockNuevo = stockAnterior - linea.getCantidad();
+            fincaProducto.setStock(stockNuevo);
+            fincaProductoWriteRepository.save(fincaProducto);
+            afp.setStock((afp.getStock() == null ? 0 : afp.getStock()) - linea.getCantidad());
+            almacenFincaProductoWriteRepository.save(afp);
+            movimientoStockService.registrarMovimiento(
+                    fincaProducto.getId(), fincaProducto.getFinca().getId(), fincaProducto.getProducto().getId(),
+                    determinarTipoMovimientoSegunDestino(destino), -linea.getCantidad(), stockAnterior, stockNuevo,
+                    salida.getId(), "salida", "Salida " + salida.getNumero() + " - " + destino);
         }
-        return salidaIds;
+        return List.of(salida.getId());
     }
 
     private BusinessNotFoundException validationError(String field, String message) {
@@ -304,6 +339,9 @@ public class SalidaServiceImpl implements ISalidaService {
 
         // Obtener cantidad anterior
         List<ItemSalida> itemsAnteriores = itemRepositoryQuery.findBySalidaId(dto.getId());
+        if (itemsAnteriores.stream().anyMatch(item -> item.getFincaProductoId() != null)) {
+            throw validationError("id", "Los vales de varios productos no se editan. Anúlelo y registre uno nuevo.");
+        }
         int cantidadAnterior = itemsAnteriores.stream().mapToInt(ItemSalida::getCantidad).sum();
 
         // Calcular nueva cantidad total
@@ -456,28 +494,33 @@ public class SalidaServiceImpl implements ISalidaService {
             deudaDetalleService.desactivarBySalidaId(id);
         }
 
-        // Devolver stock con auditoría
-        FincaProducto fincaProducto = fincaProductoReadRepository.findByIdWithDetails(salida.getFincaProductoId())
-                .orElse(null);
-        if (fincaProducto != null) {
+        // Devolver stock de cada línea. En vales históricos el producto se toma del encabezado.
+        for (ItemSalida item : items) {
+            UUID fincaProductoId = item.getFincaProductoId() != null ? item.getFincaProductoId() : salida.getFincaProductoId();
+            FincaProducto fincaProducto = fincaProductoReadRepository.findByIdWithDetails(fincaProductoId).orElse(null);
+            if (fincaProducto == null) continue;
             Integer stockAnterior = fincaProducto.getStock();
-            Integer stockNuevo = stockAnterior + cantidadTotal;
+            Integer stockNuevo = stockAnterior + item.getCantidad();
             fincaProducto.setStock(stockNuevo);
             fincaProductoWriteRepository.save(fincaProducto);
-
-            // Registrar movimiento de devolución de stock
             movimientoStockService.registrarMovimiento(
                     fincaProducto.getId(),
                     fincaProducto.getFinca().getId(),
                     fincaProducto.getProducto().getId(),
                     TipoMovimientoStock.DEVOLUCION,
-                    cantidadTotal,
+                    item.getCantidad(),
                     stockAnterior,
                     stockNuevo,
                     salida.getId(),
                     "salida",
                     "Devolución por eliminación de Salida " + salida.getNumero()
             );
+            if (item.getAlmacenFincaProductoId() != null) {
+                almacenFincaProductoReadRepository.findById(item.getAlmacenFincaProductoId()).ifPresent(afp -> {
+                    afp.setStock((afp.getStock() == null ? 0 : afp.getStock()) + item.getCantidad());
+                    almacenFincaProductoWriteRepository.save(afp);
+                });
+            }
         }
 
         // Soft delete: marcar salida como inactiva (los items se mantienen para historial)

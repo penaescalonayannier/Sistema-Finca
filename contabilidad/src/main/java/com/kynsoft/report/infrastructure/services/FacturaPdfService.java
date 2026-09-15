@@ -92,10 +92,12 @@ public class FacturaPdfService {
             numeros.add(salida.getNumero());
             if (salida.getItems() == null) continue;
             for (ItemSalidaDto item : salida.getItems()) {
-                String key = String.join("|", valor(salida.getProductoCode()), valor(salida.getProductoName()),
-                        valor(salida.getUnidadMedida()));
+                String codigo = productoCode(salida, item);
+                String nombre = productoName(salida, item);
+                String unidad = unidadMedida(salida, item);
+                String key = String.join("|", valor(codigo), valor(nombre), valor(unidad));
                 ResumenProducto resumen = productos.computeIfAbsent(key,
-                        ignored -> new ResumenProducto(salida.getProductoCode(), salida.getProductoName(), salida.getUnidadMedida()));
+                        ignored -> new ResumenProducto(codigo, nombre, unidad));
                 int cantidad = item.getCantidad() != null ? item.getCantidad() : 0;
                 double precio = item.getPrecio() != null ? item.getPrecio() : 0d;
                 resumen.cantidad += cantidad;
@@ -163,8 +165,8 @@ public class FacturaPdfService {
                 detalleTable.addCell(crearCeldaTabla(String.valueOf(consecutivo++), fontNormal, TextAlignment.CENTER, fondo));
                 detalleTable.addCell(crearCeldaTabla(item.getTrabajadorNombre() != null
                         ? item.getTrabajadorNombre() : "Sin trabajador", fontNormal, TextAlignment.LEFT, fondo));
-                detalleTable.addCell(crearCeldaTabla(salida.getProductoName(), fontNormal, TextAlignment.LEFT, fondo));
-                detalleTable.addCell(crearCeldaTabla(salida.getUnidadMedida(), fontNormal, TextAlignment.CENTER, fondo));
+                detalleTable.addCell(crearCeldaTabla(productoName(salida, item), fontNormal, TextAlignment.LEFT, fondo));
+                detalleTable.addCell(crearCeldaTabla(unidadMedida(salida, item), fontNormal, TextAlignment.CENTER, fondo));
                 detalleTable.addCell(crearCeldaTabla(String.valueOf(cantidad), fontNormal, TextAlignment.CENTER, fondo));
                 detalleTable.addCell(crearCeldaTabla(salida.getNumero(), fontNormal, TextAlignment.CENTER, fondo));
                 detalleTable.addCell(crearCeldaTabla(String.format("$%.2f", importe), fontNormal, TextAlignment.RIGHT, fondo));
@@ -342,18 +344,20 @@ public class FacturaPdfService {
             }
         }
 
-        Double precioUnitario = items != null && !items.isEmpty() ? items.get(0).getPrecio() : 0.0;
-        if (precioUnitario == null) precioUnitario = 0.0;
-
-        String unidadMedida = salida.getUnidadMedida() != null ? salida.getUnidadMedida() : "UND";
-
-        itemsTable.addCell(crearCeldaTabla("1", fontNormal, TextAlignment.CENTER, ColorConstants.WHITE));
-        itemsTable.addCell(crearCeldaTabla(salida.getProductoCode(), fontNormal, TextAlignment.CENTER, ColorConstants.WHITE));
-        itemsTable.addCell(crearCeldaTabla(salida.getProductoName(), fontNormal, TextAlignment.LEFT, ColorConstants.WHITE));
-        itemsTable.addCell(crearCeldaTabla(unidadMedida, fontNormal, TextAlignment.CENTER, ColorConstants.WHITE));
-        itemsTable.addCell(crearCeldaTabla(String.valueOf(totalCantidad), fontNormal, TextAlignment.CENTER, ColorConstants.WHITE));
-        itemsTable.addCell(crearCeldaTabla(String.format("$%.2f", precioUnitario), fontNormal, TextAlignment.RIGHT, ColorConstants.WHITE));
-        itemsTable.addCell(crearCeldaTabla(String.format("$%.2f", totalGeneral), fontNormal, TextAlignment.RIGHT, ColorConstants.WHITE));
+        if (items != null && !items.isEmpty()) {
+            int consecutivo = 1;
+            for (ItemSalidaDto item : items) {
+                int cantidad = item.getCantidad() != null ? item.getCantidad() : 0;
+                double precio = item.getPrecio() != null ? item.getPrecio() : 0.0;
+                itemsTable.addCell(crearCeldaTabla(String.valueOf(consecutivo++), fontNormal, TextAlignment.CENTER, ColorConstants.WHITE));
+                itemsTable.addCell(crearCeldaTabla(productoCode(salida, item), fontNormal, TextAlignment.CENTER, ColorConstants.WHITE));
+                itemsTable.addCell(crearCeldaTabla(productoName(salida, item), fontNormal, TextAlignment.LEFT, ColorConstants.WHITE));
+                itemsTable.addCell(crearCeldaTabla(unidadMedida(salida, item), fontNormal, TextAlignment.CENTER, ColorConstants.WHITE));
+                itemsTable.addCell(crearCeldaTabla(String.valueOf(cantidad), fontNormal, TextAlignment.CENTER, ColorConstants.WHITE));
+                itemsTable.addCell(crearCeldaTabla(String.format("$%.2f", precio), fontNormal, TextAlignment.RIGHT, ColorConstants.WHITE));
+                itemsTable.addCell(crearCeldaTabla(String.format("$%.2f", cantidad * precio), fontNormal, TextAlignment.RIGHT, ColorConstants.WHITE));
+            }
+        }
 
         // Fila de TOTAL
         itemsTable.addCell(new Cell(1, 6)
@@ -498,6 +502,19 @@ public class FacturaPdfService {
         return new Cell().add(new Paragraph(texto).setFont(font).setFontSize(8))
                 .setBackgroundColor(HEADER_BG).setFontColor(ColorConstants.WHITE)
                 .setTextAlignment(TextAlignment.CENTER).setBorder(new SolidBorder(BORDER_COLOR, 1)).setPadding(4);
+    }
+
+    private String productoCode(SalidaDto salida, ItemSalidaDto item) {
+        return item.getProductoCode() != null ? item.getProductoCode() : salida.getProductoCode();
+    }
+
+    private String productoName(SalidaDto salida, ItemSalidaDto item) {
+        return item.getProductoName() != null ? item.getProductoName() : salida.getProductoName();
+    }
+
+    private String unidadMedida(SalidaDto salida, ItemSalidaDto item) {
+        return item.getUnidadMedida() != null ? item.getUnidadMedida()
+                : (salida.getUnidadMedida() != null ? salida.getUnidadMedida() : "UND");
     }
 
     private String valor(String texto) {
