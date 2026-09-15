@@ -10,11 +10,14 @@ import com.kynsoft.report.domain.dto.ResumenMovimientosDto;
 import com.kynsoft.report.domain.dto.TipoMovimientoStock;
 import com.kynsoft.report.domain.dto.reportes.ReporteMovimientosConsolidadoDto;
 import com.kynsoft.report.domain.services.IMovimientoStockService;
+import com.kynsoft.report.infrastructure.services.MovimientoStockPdfService;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -29,9 +32,12 @@ import java.util.UUID;
 public class MovimientoStockController {
 
     private final IMovimientoStockService movimientoStockService;
+    private final MovimientoStockPdfService movimientoStockPdfService;
 
-    public MovimientoStockController(IMovimientoStockService movimientoStockService) {
+    public MovimientoStockController(IMovimientoStockService movimientoStockService,
+                                     MovimientoStockPdfService movimientoStockPdfService) {
         this.movimientoStockService = movimientoStockService;
+        this.movimientoStockPdfService = movimientoStockPdfService;
     }
 
     @PostMapping("/ajuste")
@@ -70,6 +76,21 @@ public class MovimientoStockController {
         ReporteMovimientosConsolidadoDto consolidado = movimientoStockService.getConsolidadoMovimientos(
                 fechaInicio, fechaFin, fincaId);
         return ResponseEntity.ok(consolidado);
+    }
+
+    @GetMapping(value = "/consolidado/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> descargarConsolidadoPdf(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin,
+            @RequestParam(required = false) UUID fincaId) throws Exception {
+        ReporteMovimientosConsolidadoDto consolidado = movimientoStockService.getConsolidadoMovimientos(
+                fechaInicio, fechaFin, fincaId);
+        byte[] pdf = movimientoStockPdfService.generar(consolidado);
+        String filename = "Reporte_movimientos_por_destino_" + fechaInicio + "_" + fechaFin + ".pdf";
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdf);
     }
 
     @GetMapping("/{id}")
