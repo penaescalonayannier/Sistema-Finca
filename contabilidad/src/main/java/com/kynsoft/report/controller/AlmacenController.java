@@ -22,6 +22,9 @@ import com.kynsoft.report.applications.command.almacenproducto.entrada.EntradaAl
 import com.kynsoft.report.applications.command.almacenproducto.salida.SalidaAlmacenCommand;
 import com.kynsoft.report.applications.command.almacenproducto.salida.SalidaAlmacenMessage;
 import com.kynsoft.report.applications.command.almacenproducto.salida.SalidaAlmacenRequest;
+import com.kynsoft.report.applications.command.almacenproducto.salidamultiple.SalidaMultipleAlmacenCommand;
+import com.kynsoft.report.applications.command.almacenproducto.salidamultiple.SalidaMultipleAlmacenMessage;
+import com.kynsoft.report.applications.command.almacenproducto.salidamultiple.SalidaMultipleAlmacenRequest;
 import com.kynsoft.report.applications.command.almacenproducto.transferencia.TransferenciaAlmacenCommand;
 import com.kynsoft.report.applications.command.almacenproducto.transferencia.TransferenciaAlmacenMessage;
 import com.kynsoft.report.applications.command.almacenproducto.transferencia.TransferenciaAlmacenRequest;
@@ -186,6 +189,15 @@ public class AlmacenController {
         request.setAlmacenFincaProductoId(request.getAlmacenFincaProductoId());
         SalidaAlmacenCommand command = SalidaAlmacenCommand.fromRequest(request);
         SalidaAlmacenMessage response = mediator.send(command);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{almacenId}/salida-multiple")
+    public ResponseEntity<SalidaMultipleAlmacenMessage> salidaMultiple(
+            @PathVariable UUID almacenId,
+            @RequestBody SalidaMultipleAlmacenRequest request) {
+        SalidaMultipleAlmacenCommand command = SalidaMultipleAlmacenCommand.fromRequest(almacenId, request);
+        SalidaMultipleAlmacenMessage response = mediator.send(command);
         return ResponseEntity.ok(response);
     }
 

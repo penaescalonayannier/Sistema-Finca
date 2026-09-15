@@ -11,6 +11,7 @@ import com.kynsoft.report.applications.query.responseObject.SalidaResponse;
 import com.kynsoft.report.domain.dto.DeudaTrabajadorDetalleDto;
 import com.kynsoft.report.domain.dto.DestinoSalida;
 import com.kynsoft.report.domain.dto.ItemSalidaDto;
+import com.kynsoft.report.domain.dto.LineaSalidaMultipleAlmacenDto;
 import com.kynsoft.report.domain.dto.SalidaDto;
 import com.kynsoft.report.domain.dto.TipoMovimiento;
 import com.kynsoft.report.domain.dto.TipoMovimientoStock;
@@ -45,6 +46,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -181,7 +185,19 @@ public class SalidaServiceImpl implements ISalidaService {
                     .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
                             DomainErrorMessage.BUSINESS_NOT_FOUND,
                             new ErrorField("almacenFincaProductoId", "No se encontró el producto en el almacén."))));
-            afp.setStock(Math.max(0, afp.getStock() - cantidadTotal));
+            int stockAlmacen = afp.getStock() == null ? 0 : afp.getStock();
+            if (!Boolean.TRUE.equals(afp.getActivo()) || !afp.getFincaProducto().getId().equals(dto.getFincaProductoId())) {
+                throw new BusinessNotFoundException(new GlobalBusinessException(
+                        DomainErrorMessage.BUSINESS_NOT_FOUND,
+                        new ErrorField("almacenFincaProductoId", "El producto no está activo en el almacén indicado.")));
+            }
+            if (stockAlmacen < cantidadTotal) {
+                throw new BusinessNotFoundException(new GlobalBusinessException(
+                        DomainErrorMessage.BUSINESS_NOT_FOUND,
+                        new ErrorField("cantidad", "Stock insuficiente en el almacén. Stock actual: " + stockAlmacen
+                                + ", Cantidad solicitada: " + cantidadTotal)));
+            }
+            afp.setStock(stockAlmacen - cantidadTotal);
             almacenFincaProductoWriteRepository.save(afp);
         }
 
@@ -201,6 +217,75 @@ public class SalidaServiceImpl implements ISalidaService {
         );
 
         return salida.getId();
+    }
+
+    /**
+     * Registra varias salidas de un mismo almacén como una sola operación atómica.
+     * Cada línea conserva su documento de salida, por lo que la trazabilidad,
+     * la contabilidad y el kardex siguen el flujo estándar ya existente.
+     */
+    @Override
+    @Transactional
+    public List<UUID> createMultipleFromAlmacen(UUID almacenId, DestinoSalida destino, String observaciones,
+                                                List<LineaSalidaMultipleAlmacenDto> lineas) {
+        if (almacenId == null) {
+            throw validationError("almacenId", "Debe indicar el almacén de origen.");
+        }
+        if (destino == null) {
+            throw validationError("destino", "Debe seleccionar el destino de la salida.");
+        }
+        if (destino == DestinoSalida.TRABAJADORES) {
+            throw validationError("destino", "Las salidas para trabajadores se registran por producto para identificar al trabajador y su deuda.");
+        }
+        if (lineas == null || lineas.isEmpty()) {
+            throw validationError("lineas", "Debe seleccionar al menos un producto.");
+        }
+
+        Set<UUID> productosEnSalida = new HashSet<>();
+        for (LineaSalidaMultipleAlmacenDto linea : lineas) {
+            if (linea == null || linea.getAlmacenFincaProductoId() == null) {
+                throw validationError("lineas", "Cada línea debe indicar el producto del almacén.");
+            }
+            if (linea.getCantidad() == null || linea.getCantidad() <= 0) {
+                throw validationError("cantidad", "La cantidad de cada producto debe ser mayor que cero.");
+            }
+            if (!productosEnSalida.add(linea.getAlmacenFincaProductoId())) {
+                throw validationError("lineas", "No puede repetir un producto en la misma salida múltiple.");
+            }
+
+            AlmacenFincaProducto afp = almacenFincaProductoReadRepository.findById(linea.getAlmacenFincaProductoId())
+                    .orElseThrow(() -> validationError("almacenFincaProductoId", "No se encontró uno de los productos seleccionados."));
+            if (!Boolean.TRUE.equals(afp.getActivo()) || !almacenId.equals(afp.getAlmacen().getId())) {
+                throw validationError("almacenFincaProductoId", "Uno de los productos no pertenece al almacén seleccionado.");
+            }
+            int stockDisponible = afp.getStock() == null ? 0 : afp.getStock();
+            if (stockDisponible < linea.getCantidad()) {
+                throw validationError("cantidad", "Stock insuficiente de " + afp.getFincaProducto().getProducto().getName()
+                        + ". Disponible: " + stockDisponible + ", solicitado: " + linea.getCantidad());
+            }
+        }
+
+        List<UUID> salidaIds = new ArrayList<>();
+        for (LineaSalidaMultipleAlmacenDto linea : lineas) {
+            AlmacenFincaProducto afp = almacenFincaProductoReadRepository.findById(linea.getAlmacenFincaProductoId())
+                    .orElseThrow(() -> validationError("almacenFincaProductoId", "No se encontró uno de los productos seleccionados."));
+            SalidaDto salida = SalidaDto.builder()
+                    .destino(destino)
+                    .fincaProductoId(afp.getFincaProducto().getId())
+                    .almacenFincaProductoId(afp.getId())
+                    .observaciones(observaciones)
+                    .build();
+            ItemSalidaDto item = ItemSalidaDto.builder()
+                    .cantidad(linea.getCantidad())
+                    .build();
+            salidaIds.add(create(salida, List.of(item)));
+        }
+        return salidaIds;
+    }
+
+    private BusinessNotFoundException validationError(String field, String message) {
+        return new BusinessNotFoundException(new GlobalBusinessException(
+                DomainErrorMessage.BUSINESS_NOT_FOUND, new ErrorField(field, message)));
     }
 
     @Override
