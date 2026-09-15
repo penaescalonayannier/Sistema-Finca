@@ -23,5 +23,6 @@ public class ProductoDto {
     private Double priceComedor;//Comedor
     private Integer stock;
     private Boolean active;
-    private String unidadMedida;
+    private UnidadMedida unidadMedida;
+    private TipoProducto tipoProducto;
 }

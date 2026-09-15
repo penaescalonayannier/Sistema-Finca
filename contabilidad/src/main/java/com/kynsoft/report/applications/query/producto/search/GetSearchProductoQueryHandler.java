@@ -1,7 +1,7 @@
 package com.kynsoft.report.applications.query.producto.search;
 
-import com.kynsof.share.core.domain.bus.query.IQueryHandler;
-import com.kynsof.share.core.domain.response.PaginatedResponse;
+import com.kynsoft.share.core.domain.bus.query.IQueryHandler;
+import com.kynsoft.share.core.domain.response.PaginatedResponse;
 import com.kynsoft.report.domain.services.IProductoService;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +17,6 @@ public class GetSearchProductoQueryHandler
 
     @Override
     public PaginatedResponse handle(GetSearchProductoQuery query) {
-        return service.search(query.getPageable(), query.getFilter());
+        return service.search(query.getPageable(), query.getFilter(), query.getQuery());
     }
 }

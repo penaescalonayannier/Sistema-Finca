@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.command.labor.create;
 
-import com.kynsof.share.core.domain.bus.command.ICommandHandler;
+import com.kynsoft.share.core.domain.bus.command.ICommandHandler;
 import com.kynsoft.report.domain.dto.LaborDto;
 import com.kynsoft.report.domain.services.ILaborService;
 import lombok.AllArgsConstructor;

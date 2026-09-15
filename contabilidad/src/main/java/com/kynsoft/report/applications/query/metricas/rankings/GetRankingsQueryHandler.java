@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.query.metricas.rankings;
 
-import com.kynsof.share.core.domain.bus.query.IQueryHandler;
+import com.kynsoft.share.core.domain.bus.query.IQueryHandler;
 import com.kynsoft.report.applications.query.responseObject.RankingsListResponse;
 import com.kynsoft.report.domain.services.IReportesMetricasService;
 import lombok.AllArgsConstructor;

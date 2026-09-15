@@ -1,7 +1,7 @@
 package com.kynsoft.report.domain.services;
 
-import com.kynsof.share.core.domain.request.FilterCriteria;
-import com.kynsof.share.core.domain.response.PaginatedResponse;
+import com.kynsoft.share.core.domain.request.FilterCriteria;
+import com.kynsoft.share.core.domain.response.PaginatedResponse;
 import com.kynsoft.report.domain.dto.ProductoDto;
 import org.springframework.data.domain.Pageable;
 
@@ -19,4 +19,6 @@ public interface IProductoService {
     ProductoDto findById(UUID id);
 
     PaginatedResponse search(Pageable pageable, List<FilterCriteria> filterCriteria);
+
+    PaginatedResponse search(Pageable pageable, List<FilterCriteria> filterCriteria, String query);
 }

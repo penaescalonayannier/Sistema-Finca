@@ -1,10 +1,10 @@
 package com.kynsoft.report.controller;
 
-import com.kynsof.share.core.domain.bus.command.ICommandMessage;
-import com.kynsof.share.core.domain.request.PageableUtil;
-import com.kynsof.share.core.domain.request.SearchRequest;
-import com.kynsof.share.core.domain.response.PaginatedResponse;
-import com.kynsof.share.core.infrastructure.bus.IMediator;
+import com.kynsoft.share.core.domain.bus.command.ICommandMessage;
+import com.kynsoft.share.core.domain.request.PageableUtil;
+import com.kynsoft.share.core.domain.request.SearchRequest;
+import com.kynsoft.share.core.domain.response.PaginatedResponse;
+import com.kynsoft.share.core.infrastructure.bus.IMediator;
 import com.kynsoft.report.applications.command.report.cuenta110.create.CreateCuenta110Command;
 import com.kynsoft.report.applications.command.report.cuenta110.create.CreateCuenta110Message;
 import com.kynsoft.report.applications.command.report.cuenta110.create.CreateCuenta110Request;

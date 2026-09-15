@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.query.report.estadoCuenta.previewXml;
 
-import com.kynsof.share.core.domain.bus.query.IQueryHandler;
+import com.kynsoft.share.core.domain.bus.query.IQueryHandler;
 import com.kynsoft.report.domain.dto.EstadoCuentaDto;
 import com.kynsoft.report.infrastructure.util.XmlParserUtil;
 import org.springframework.stereotype.Component;

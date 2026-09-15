@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.command.trabajadordia.create;
 
-import com.kynsof.share.core.domain.bus.command.ICommandHandler;
+import com.kynsoft.share.core.domain.bus.command.ICommandHandler;
 import com.kynsoft.report.domain.dto.TrabajadorDiaDto;
 import com.kynsoft.report.domain.services.ITrabajadorDiaService;
 import lombok.AllArgsConstructor;

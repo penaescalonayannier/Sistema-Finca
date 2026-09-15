@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.command.variedad.create;
 
-import com.kynsof.share.core.domain.bus.command.ICommandHandler;
+import com.kynsoft.share.core.domain.bus.command.ICommandHandler;
 import com.kynsoft.report.domain.dto.VariedadDto;
 import com.kynsoft.report.domain.services.IVariedadService;
 import lombok.AllArgsConstructor;

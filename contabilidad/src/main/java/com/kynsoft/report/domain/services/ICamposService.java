@@ -1,7 +1,7 @@
 package com.kynsoft.report.domain.services;
 
-import com.kynsof.share.core.domain.request.FilterCriteria;
-import com.kynsof.share.core.domain.response.PaginatedResponse;
+import com.kynsoft.share.core.domain.request.FilterCriteria;
+import com.kynsoft.share.core.domain.response.PaginatedResponse;
 import com.kynsoft.report.domain.dto.CampoDto;
 import org.springframework.data.domain.Pageable;
 
@@ -19,4 +19,8 @@ public interface ICamposService {
     CampoDto findById(UUID id);
 
     PaginatedResponse search(Pageable pageable, List<FilterCriteria> filterCriteria);
+
+    int calcularDepreciacion(List<UUID> campoIds, Integer meses);
+
+    List<CampoDto> findByBloqueId(UUID bloqueId);
 }

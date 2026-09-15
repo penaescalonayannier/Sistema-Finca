@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.query.bloque.getById;
 
-import com.kynsof.share.core.domain.bus.query.IQueryHandler;
+import com.kynsoft.share.core.domain.bus.query.IQueryHandler;
 import com.kynsoft.report.applications.query.responseObject.BloqueResponse;
 import com.kynsoft.report.domain.dto.BloqueDto;
 import com.kynsoft.report.domain.services.IBloqueService;

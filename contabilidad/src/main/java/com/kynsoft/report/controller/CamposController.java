@@ -1,14 +1,17 @@
 package com.kynsoft.report.controller;
 
-import com.kynsof.share.core.domain.request.PageableUtil;
-import com.kynsof.share.core.domain.request.SearchRequest;
-import com.kynsof.share.core.domain.response.PaginatedResponse;
-import com.kynsof.share.core.infrastructure.bus.IMediator;
+import com.kynsoft.share.core.domain.request.PageableUtil;
+import com.kynsoft.share.core.domain.request.SearchRequest;
+import com.kynsoft.share.core.domain.response.PaginatedResponse;
+import com.kynsoft.share.core.infrastructure.bus.IMediator;
 import com.kynsoft.report.applications.command.campos.create.CreateCamposCommand;
 import com.kynsoft.report.applications.command.campos.create.CreateCamposMessage;
 import com.kynsoft.report.applications.command.campos.create.CreateCamposRequest;
 import com.kynsoft.report.applications.command.campos.delete.DeleteCamposCommand;
 import com.kynsoft.report.applications.command.campos.delete.DeleteCamposMessage;
+import com.kynsoft.report.applications.command.campos.depreciar.CalcularDepreciacionCommand;
+import com.kynsoft.report.applications.command.campos.depreciar.CalcularDepreciacionMessage;
+import com.kynsoft.report.applications.command.campos.depreciar.CalcularDepreciacionRequest;
 import com.kynsoft.report.applications.command.campos.update.UpdateCamposCommand;
 import com.kynsoft.report.applications.command.campos.update.UpdateCamposMessage;
 import com.kynsoft.report.applications.command.campos.update.UpdateCamposRequest;
@@ -65,5 +68,12 @@ public class CamposController {
         GetSearchCamposQuery query = new GetSearchCamposQuery(pageable, request.getFilter(), request.getQuery());
         PaginatedResponse data = mediator.send(query);
         return ResponseEntity.ok(data);
+    }
+
+    @PostMapping("/depreciar")
+    public ResponseEntity<?> calcularDepreciacion(@RequestBody CalcularDepreciacionRequest request) {
+        CalcularDepreciacionCommand command = CalcularDepreciacionCommand.fromRequest(request);
+        CalcularDepreciacionMessage response = mediator.send(command);
+        return ResponseEntity.ok(response);
     }
 }

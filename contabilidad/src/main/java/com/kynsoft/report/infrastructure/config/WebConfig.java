@@ -16,9 +16,12 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins(
-                    "http://localhost:8080",
-                    "http://localhost:5173",
+                // Usar allowedOriginPatterns para soportar wildcards con credentials
+                .allowedOriginPatterns(
+                    "http://localhost:*",
+                    "http://127.0.0.1:*",
+                    "http://192.168.*.*:*",
+                    "http://10.*.*.*:*",
                     "https://medinec-admin.kynsoft.net"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")

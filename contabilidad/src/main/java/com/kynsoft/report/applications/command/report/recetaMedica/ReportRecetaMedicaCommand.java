@@ -1,7 +1,7 @@
 package com.kynsoft.report.applications.command.report.recetaMedica;
 
-import com.kynsof.share.core.domain.bus.command.ICommand;
-import com.kynsof.share.core.domain.bus.command.ICommandMessage;
+import com.kynsoft.share.core.domain.bus.command.ICommand;
+import com.kynsoft.share.core.domain.bus.command.ICommandMessage;
 import com.kynsoft.report.domain.dto.report.clinicalHistorySummary.DiagnosesDto;
 import com.kynsoft.report.domain.dto.report.clinicalHistorySummary.MedicationDto;
 import com.kynsoft.report.domain.dto.report.confColor.Conf;

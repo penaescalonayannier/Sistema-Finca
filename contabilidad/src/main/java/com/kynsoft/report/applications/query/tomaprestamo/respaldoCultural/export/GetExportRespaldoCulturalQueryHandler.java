@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.query.tomaprestamo.respaldoCultural.export;
 
-import com.kynsof.share.core.domain.bus.query.IQueryHandler;
+import com.kynsoft.share.core.domain.bus.query.IQueryHandler;
 import com.kynsoft.report.applications.query.report.estadoCuenta.export.Response;
 import com.kynsoft.report.domain.dto.PrestamoDto;
 import com.kynsoft.report.domain.dto.TomaPrestamoDto;

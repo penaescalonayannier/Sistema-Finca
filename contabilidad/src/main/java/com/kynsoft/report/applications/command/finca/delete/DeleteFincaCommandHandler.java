@@ -1,6 +1,7 @@
 package com.kynsoft.report.applications.command.finca.delete;
 
-import com.kynsof.share.core.domain.bus.command.ICommandHandler;
+import com.kynsoft.share.core.domain.bus.command.ICommandHandler;
+import com.kynsoft.report.domain.dto.DeleteFincaResponse;
 import com.kynsoft.report.domain.services.IFincaService;
 import org.springframework.stereotype.Component;
 
@@ -15,6 +16,7 @@ public class DeleteFincaCommandHandler implements ICommandHandler<DeleteFincaCom
 
     @Override
     public void handle(DeleteFincaCommand command) {
-        serviceImpl.delete(command.getId());
+        DeleteFincaResponse response = serviceImpl.delete(command.getId());
+        command.setAdvertencias(response.getAdvertencias());
     }
 }

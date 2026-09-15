@@ -1,9 +1,9 @@
 package com.kynsoft.report.controller;
 
-import com.kynsof.share.core.domain.request.PageableUtil;
-import com.kynsof.share.core.domain.request.SearchRequest;
-import com.kynsof.share.core.domain.response.PaginatedResponse;
-import com.kynsof.share.core.infrastructure.bus.IMediator;
+import com.kynsoft.share.core.domain.request.PageableUtil;
+import com.kynsoft.share.core.domain.request.SearchRequest;
+import com.kynsoft.share.core.domain.response.PaginatedResponse;
+import com.kynsoft.share.core.infrastructure.bus.IMediator;
 import com.kynsoft.report.applications.command.CreateEvaluacionCommand;
 import com.kynsoft.report.applications.command.DeleteEvaluacionCommand;
 import com.kynsoft.report.applications.command.UpdateEvaluacionCommand;
@@ -15,13 +15,18 @@ import com.kynsoft.report.applications.command.message.UpdateEvaluacionMessage;
 import com.kynsoft.report.applications.query.GetEvaluacionQuery;
 import com.kynsoft.report.applications.query.SearchEvaluacionQuery;
 import com.kynsoft.report.applications.query.responseObject.EvaluacionResponse;
+import com.kynsoft.report.domain.dto.EvaluacionDto;
 import com.kynsoft.report.domain.dto.GrupoDto;
+import com.kynsoft.report.domain.dto.TrabajadorDto;
+import com.kynsoft.report.domain.services.IEvaluacionService;
 import com.kynsoft.report.domain.services.IGrupoService;
+import com.kynsoft.report.domain.services.ITrabajadorService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -32,10 +37,15 @@ public class EvaluacionController {
 
     private final IMediator mediator;
     private final IGrupoService grupoService;
+    private final IEvaluacionService evaluacionService;
+    private final ITrabajadorService trabajadorService;
 
-    public EvaluacionController(IMediator mediator, IGrupoService grupoService) {
+    public EvaluacionController(IMediator mediator, IGrupoService grupoService,
+                               IEvaluacionService evaluacionService, ITrabajadorService trabajadorService) {
         this.mediator = mediator;
         this.grupoService = grupoService;
+        this.evaluacionService = evaluacionService;
+        this.trabajadorService = trabajadorService;
     }
 
     @PostMapping("")
@@ -184,5 +194,307 @@ public class EvaluacionController {
         SearchEvaluacionQuery query = new SearchEvaluacionQuery(pageable, request.getFilter());
         PaginatedResponse data = mediator.send(query);
         return ResponseEntity.ok(data);
+    }
+
+    @GetMapping("/por-periodo")
+    public ResponseEntity<?> getByPeriodo(@RequestParam String mes, @RequestParam Integer year) {
+        try {
+            java.util.List<EvaluacionDto> evaluaciones = evaluacionService.findByMesAndYear(mes, year);
+
+            java.util.List<java.util.Map<String, Object>> resultado = evaluaciones.stream().map(e -> {
+                java.util.Map<String, Object> map = new java.util.HashMap<>();
+                map.put("id", e.getId());
+                map.put("trabajadorId", e.getTrabajadorId());
+                map.put("jefeId", e.getJefeId());
+                map.put("grupoId", e.getGrupoId());
+                map.put("mes", e.getMes());
+                map.put("year", e.getYear());
+                map.put("calificacion", e.getCalificacion());
+                map.put("comentarios", e.getComentarios());
+                map.put("fechaEvaluacion", e.getFechaEvaluacion());
+
+                // Get worker name
+                try {
+                    TrabajadorDto trabajador = trabajadorService.findById(e.getTrabajadorId());
+                    map.put("trabajadorNombre", trabajador.getNombre());
+                    map.put("trabajadorRuc", trabajador.getRuc());
+                    map.put("trabajadorCargo", trabajador.getCargoName());
+                } catch (Exception ex) {
+                    map.put("trabajadorNombre", "Sin nombre");
+                    map.put("trabajadorRuc", null);
+                    map.put("trabajadorCargo", null);
+                }
+
+                return map;
+            }).collect(Collectors.toList());
+
+            java.util.Map<String, Object> response = new java.util.HashMap<>();
+            response.put("data", resultado);
+            response.put("total", resultado.size());
+            response.put("mes", mes);
+            response.put("year", year);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            java.util.Map<String, Object> errorResponse = new java.util.HashMap<>();
+            errorResponse.put("data", new java.util.ArrayList<>());
+            errorResponse.put("error", e.getMessage());
+            return ResponseEntity.ok(errorResponse);
+        }
+    }
+
+    @GetMapping("/consolidado-mensual")
+    public ResponseEntity<?> getConsolidadoMensual(@RequestParam String mes, @RequestParam Integer year) {
+        try {
+            java.util.List<EvaluacionDto> evaluaciones = evaluacionService.findByMesAndYear(mes, year);
+
+            // Group by trabajadorId and calculate stats
+            java.util.Map<UUID, java.util.List<EvaluacionDto>> porTrabajador = evaluaciones.stream()
+                    .collect(Collectors.groupingBy(EvaluacionDto::getTrabajadorId));
+
+            java.util.List<java.util.Map<String, Object>> consolidado = new java.util.ArrayList<>();
+
+            for (java.util.Map.Entry<UUID, java.util.List<EvaluacionDto>> entry : porTrabajador.entrySet()) {
+                java.util.Map<String, Object> item = new java.util.HashMap<>();
+                java.util.List<EvaluacionDto> evals = entry.getValue();
+                EvaluacionDto firstEval = evals.get(0);
+
+                item.put("trabajadorId", entry.getKey());
+                item.put("calificacion", firstEval.getCalificacion());
+                item.put("comentarios", firstEval.getComentarios());
+
+                try {
+                    TrabajadorDto trabajador = trabajadorService.findById(entry.getKey());
+                    item.put("trabajadorNombre", trabajador.getNombre());
+                    item.put("trabajadorRuc", trabajador.getRuc());
+                    item.put("trabajadorCargo", trabajador.getCargoName());
+                    item.put("grupoId", trabajador.getGrupoId());
+                    item.put("grupoNombre", trabajador.getGrupoNombre() != null ? trabajador.getGrupoNombre() : "Sin Grupo");
+                } catch (Exception ex) {
+                    item.put("trabajadorNombre", "Sin nombre");
+                    item.put("trabajadorRuc", null);
+                    item.put("trabajadorCargo", null);
+                    item.put("grupoId", null);
+                    item.put("grupoNombre", "Sin Grupo");
+                }
+
+                consolidado.add(item);
+            }
+
+            // Sort by grupo then by name
+            consolidado.sort((a, b) -> {
+                String grupoA = (String) a.getOrDefault("grupoNombre", "Sin Grupo");
+                String grupoB = (String) b.getOrDefault("grupoNombre", "Sin Grupo");
+                int grupoCompare = grupoA.compareToIgnoreCase(grupoB);
+                if (grupoCompare != 0) return grupoCompare;
+
+                String nameA = (String) a.getOrDefault("trabajadorNombre", "");
+                String nameB = (String) b.getOrDefault("trabajadorNombre", "");
+                return nameA.compareToIgnoreCase(nameB);
+            });
+
+            // Calculate summary stats
+            double promedioGeneral = consolidado.stream()
+                    .mapToInt(m -> (Integer) m.getOrDefault("calificacion", 0))
+                    .average()
+                    .orElse(0.0);
+
+            long superiores = consolidado.stream()
+                    .filter(m -> ((Integer) m.getOrDefault("calificacion", 0)) >= 4)
+                    .count();
+            long adecuados = consolidado.stream()
+                    .filter(m -> ((Integer) m.getOrDefault("calificacion", 0)) == 3)
+                    .count();
+            long deficientes = consolidado.stream()
+                    .filter(m -> ((Integer) m.getOrDefault("calificacion", 0)) <= 2)
+                    .count();
+
+            java.util.Map<String, Object> response = new java.util.HashMap<>();
+            response.put("data", consolidado);
+            response.put("total", consolidado.size());
+            response.put("mes", mes);
+            response.put("year", year);
+            response.put("promedioGeneral", Math.round(promedioGeneral * 100.0) / 100.0);
+            response.put("superiores", superiores);
+            response.put("adecuados", adecuados);
+            response.put("deficientes", deficientes);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            java.util.Map<String, Object> errorResponse = new java.util.HashMap<>();
+            errorResponse.put("data", new java.util.ArrayList<>());
+            errorResponse.put("error", e.getMessage());
+            return ResponseEntity.ok(errorResponse);
+        }
+    }
+
+    @GetMapping("/consolidado-trimestral")
+    public ResponseEntity<?> getConsolidadoTrimestral(
+            @RequestParam Integer year,
+            @RequestParam String mesInicio,
+            @RequestParam String mesFin) {
+        try {
+            // Get list of months in range
+            java.util.List<String> mesesOrdenados = Arrays.asList(
+                "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+                "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+            );
+
+            int indexInicio = mesesOrdenados.indexOf(mesInicio);
+            int indexFin = mesesOrdenados.indexOf(mesFin);
+
+            if (indexInicio == -1 || indexFin == -1) {
+                java.util.Map<String, Object> errorResponse = new java.util.HashMap<>();
+                errorResponse.put("error", "Mes inválido");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+
+            java.util.List<String> mesesRango = new java.util.ArrayList<>();
+            for (int i = indexInicio; i <= indexFin; i++) {
+                mesesRango.add(mesesOrdenados.get(i));
+            }
+
+            java.util.List<EvaluacionDto> evaluaciones = evaluacionService.findByYearAndMeses(year, mesesRango);
+
+            // Group by trabajadorId
+            java.util.Map<UUID, java.util.List<EvaluacionDto>> porTrabajador = evaluaciones.stream()
+                    .collect(Collectors.groupingBy(EvaluacionDto::getTrabajadorId));
+
+            java.util.List<java.util.Map<String, Object>> consolidado = new java.util.ArrayList<>();
+
+            for (java.util.Map.Entry<UUID, java.util.List<EvaluacionDto>> entry : porTrabajador.entrySet()) {
+                java.util.Map<String, Object> item = new java.util.HashMap<>();
+                java.util.List<EvaluacionDto> evals = entry.getValue();
+
+                item.put("trabajadorId", entry.getKey());
+
+                // Calculate average
+                double promedio = evals.stream()
+                        .mapToInt(EvaluacionDto::getCalificacion)
+                        .average()
+                        .orElse(0.0);
+                item.put("promedioCalificacion", Math.round(promedio * 100.0) / 100.0);
+                item.put("cantidadEvaluaciones", evals.size());
+
+                // Details per month
+                java.util.Map<String, Integer> porMes = new java.util.HashMap<>();
+                for (EvaluacionDto e : evals) {
+                    porMes.put(e.getMes(), e.getCalificacion());
+                }
+                item.put("calificacionesPorMes", porMes);
+
+                try {
+                    TrabajadorDto trabajador = trabajadorService.findById(entry.getKey());
+                    item.put("trabajadorNombre", trabajador.getNombre());
+                    item.put("trabajadorRuc", trabajador.getRuc());
+                    item.put("trabajadorCargo", trabajador.getCargoName());
+                    item.put("grupoId", trabajador.getGrupoId());
+                    item.put("grupoNombre", trabajador.getGrupoNombre() != null ? trabajador.getGrupoNombre() : "Sin Grupo");
+                } catch (Exception ex) {
+                    item.put("trabajadorNombre", "Sin nombre");
+                    item.put("trabajadorRuc", null);
+                    item.put("trabajadorCargo", null);
+                    item.put("grupoId", null);
+                    item.put("grupoNombre", "Sin Grupo");
+                }
+
+                consolidado.add(item);
+            }
+
+            // Sort by grupo then by name
+            consolidado.sort((a, b) -> {
+                String grupoA = (String) a.getOrDefault("grupoNombre", "Sin Grupo");
+                String grupoB = (String) b.getOrDefault("grupoNombre", "Sin Grupo");
+                int grupoCompare = grupoA.compareToIgnoreCase(grupoB);
+                if (grupoCompare != 0) return grupoCompare;
+
+                String nameA = (String) a.getOrDefault("trabajadorNombre", "");
+                String nameB = (String) b.getOrDefault("trabajadorNombre", "");
+                return nameA.compareToIgnoreCase(nameB);
+            });
+
+            // Calculate summary stats
+            double promedioGeneral = consolidado.stream()
+                    .mapToDouble(m -> (Double) m.getOrDefault("promedioCalificacion", 0.0))
+                    .average()
+                    .orElse(0.0);
+
+            java.util.Map<String, Object> response = new java.util.HashMap<>();
+            response.put("data", consolidado);
+            response.put("total", consolidado.size());
+            response.put("year", year);
+            response.put("mesInicio", mesInicio);
+            response.put("mesFin", mesFin);
+            response.put("meses", mesesRango);
+            response.put("promedioGeneral", Math.round(promedioGeneral * 100.0) / 100.0);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            java.util.Map<String, Object> errorResponse = new java.util.HashMap<>();
+            errorResponse.put("data", new java.util.ArrayList<>());
+            errorResponse.put("error", e.getMessage());
+            return ResponseEntity.ok(errorResponse);
+        }
+    }
+
+    @GetMapping("/trabajadores-para-evaluar")
+    public ResponseEntity<?> getTrabajadoresParaEvaluar() {
+        try {
+            java.util.List<TrabajadorDto> trabajadores = trabajadorService.findAllActivos();
+
+            java.util.List<java.util.Map<String, Object>> resultado = trabajadores.stream().map(t -> {
+                java.util.Map<String, Object> map = new java.util.HashMap<>();
+                map.put("id", t.getId());
+                map.put("nombre", t.getNombre());
+                map.put("ruc", t.getRuc());
+                map.put("cargo", t.getCargoName());
+                map.put("grupoId", t.getGrupoId());
+                map.put("grupoNombre", t.getGrupoNombre());
+                map.put("fincaId", t.getFincaId());
+                map.put("fincaNombre", t.getFincaName());
+                return map;
+            }).collect(Collectors.toList());
+
+            // Sort by name
+            resultado.sort((a, b) -> {
+                String nameA = (String) a.getOrDefault("nombre", "");
+                String nameB = (String) b.getOrDefault("nombre", "");
+                return nameA.compareToIgnoreCase(nameB);
+            });
+
+            java.util.Map<String, Object> response = new java.util.HashMap<>();
+            response.put("data", resultado);
+            response.put("total", resultado.size());
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            java.util.Map<String, Object> errorResponse = new java.util.HashMap<>();
+            errorResponse.put("data", new java.util.ArrayList<>());
+            errorResponse.put("error", e.getMessage());
+            return ResponseEntity.ok(errorResponse);
+        }
+    }
+
+    @GetMapping("/anos-disponibles")
+    public ResponseEntity<?> getAnosDisponibles() {
+        try {
+            java.util.List<Integer> years = evaluacionService.findDistinctYears();
+            if (years.isEmpty()) {
+                years = Arrays.asList(java.time.Year.now().getValue());
+            }
+            return ResponseEntity.ok(years);
+        } catch (Exception e) {
+            return ResponseEntity.ok(Arrays.asList(java.time.Year.now().getValue()));
+        }
+    }
+
+    @GetMapping("/meses-disponibles")
+    public ResponseEntity<?> getMesesDisponibles(@RequestParam Integer year) {
+        try {
+            java.util.List<String> meses = evaluacionService.findDistinctMesesByYear(year);
+            return ResponseEntity.ok(meses);
+        } catch (Exception e) {
+            return ResponseEntity.ok(new java.util.ArrayList<>());
+        }
     }
 }

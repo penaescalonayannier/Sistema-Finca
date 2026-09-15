@@ -1,6 +1,6 @@
 package com.kynsoft.report.controller;
 
-import com.kynsof.share.core.infrastructure.bus.IMediator;
+import com.kynsoft.share.core.infrastructure.bus.IMediator;
 import com.kynsoft.report.applications.command.trabajadordia.create.CreateTrabajadorDiaCommand;
 import com.kynsoft.report.applications.command.trabajadordia.create.CreateTrabajadorDiaMessage;
 import com.kynsoft.report.applications.command.trabajadordia.create.CreateTrabajadorDiaRequest;

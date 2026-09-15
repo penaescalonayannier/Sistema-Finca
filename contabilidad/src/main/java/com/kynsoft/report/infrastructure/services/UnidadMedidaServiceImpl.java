@@ -1,12 +1,12 @@
 package com.kynsoft.report.infrastructure.services;
 
-import com.kynsof.share.core.domain.exception.BusinessNotFoundException;
-import com.kynsof.share.core.domain.exception.DomainErrorMessage;
-import com.kynsof.share.core.domain.exception.GlobalBusinessException;
-import com.kynsof.share.core.domain.request.FilterCriteria;
-import com.kynsof.share.core.domain.response.ErrorField;
-import com.kynsof.share.core.domain.response.PaginatedResponse;
-import com.kynsof.share.core.infrastructure.specifications.GenericSpecificationsBuilder;
+import com.kynsoft.share.core.domain.exception.BusinessNotFoundException;
+import com.kynsoft.share.core.domain.exception.DomainErrorMessage;
+import com.kynsoft.share.core.domain.exception.GlobalBusinessException;
+import com.kynsoft.share.core.domain.request.FilterCriteria;
+import com.kynsoft.share.core.domain.response.ErrorField;
+import com.kynsoft.share.core.domain.response.PaginatedResponse;
+import com.kynsoft.share.core.infrastructure.specifications.GenericSpecificationsBuilder;
 import com.kynsoft.report.applications.query.responseObject.UnidadMedidaResponse;
 import com.kynsoft.report.domain.dto.UnidadMedidaDto;
 import com.kynsoft.report.domain.services.IUnidadMedidaService;

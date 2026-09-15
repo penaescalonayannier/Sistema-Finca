@@ -1,8 +1,12 @@
 package com.kynsoft.report.infrastructure.entity;
 
 import com.kynsoft.report.domain.dto.ProductoDto;
+import com.kynsoft.report.domain.dto.TipoProducto;
+import com.kynsoft.report.domain.dto.UnidadMedida;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.util.UUID;
@@ -29,8 +33,9 @@ public class Producto {
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
-    @Column(name = "unidad_medida", nullable = false, length = 100)
-    private String unidadMedida;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "unidad_medida", nullable = false)
+    private UnidadMedida unidadMedida;
 
     @Column(name = "description", length = 500)
     private String description;
@@ -50,17 +55,22 @@ public class Producto {
     @Column(name = "active")
     private Boolean active;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_producto", nullable = false)
+    private TipoProducto tipoProducto;
+
     public Producto(ProductoDto dto) {
         this.id = dto.getId();
         this.code = dto.getCode();
         this.name = dto.getName();
         this.description = dto.getDescription();
         this.price = dto.getPrice();
-        this.price = dto.getPriceTrabajador();
-        this.price = dto.getPriceComedor();
+        this.priceTrabajador = dto.getPriceTrabajador();
+        this.priceComedor = dto.getPriceComedor();
         this.stock = dto.getStock();
         this.active = dto.getActive();
         this.unidadMedida = dto.getUnidadMedida();
+        this.tipoProducto = dto.getTipoProducto();
     }
 
     public ProductoDto toAggregate() {
@@ -76,6 +86,7 @@ public class Producto {
                 .stock(stock)
                 .active(active)
                 .unidadMedida(unidadMedida)
+                .tipoProducto(tipoProducto)
                 .build();
     }
 }

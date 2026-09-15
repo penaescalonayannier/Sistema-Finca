@@ -1,0 +1,16 @@
+code,name,description,price,priceTrabajador,priceComedor,unidadMedida,stock,active
+PROD001,Fertilizante NPK,Fertilizante para cultivos,150.50,140.00,135.00,KG,100,true
+PROD002,Semilla de Maiz,Semilla certificada,25.00,23.00,22.00,UNIDAD,500,true
+PROD003,Herbicida Glifosato,Control de malezas,85.00,80.00,75.00,LITRO,50,true
+PROD004,Abono Organico,Compost natural,45.00,42.00,40.00,KG,200,true
+PROD005,Insecticida Cipermetrina,Control de plagas,120.00,115.00,110.00,LITRO,30,true
+PROD006,Semilla de Frijol,Frijol negro certificado,18.50,17.00,16.00,KG,300,true
+PROD007,Machete Tramontina,Herramienta de corte,95.00,90.00,85.00,UNIDAD,25,true
+PROD008,Guantes de Trabajo,Guantes de cuero,12.00,11.00,10.00,PAR,100,true
+PROD009,Botas de Hule,Botas para campo,55.00,52.00,50.00,PAR,40,true
+PROD010,Saco de Yute,Para almacenamiento,8.00,7.50,7.00,UNIDAD,150,true
+PROD011,Alambre de Puas,Rollo de 200m,180.00,170.00,165.00,ROLLO,20,true
+PROD012,Poste de Madera,Poste tratado 2.5m,35.00,33.00,30.00,UNIDAD,80,true
+PROD013,Manguera de Riego,Manguera 1 pulgada,65.00,62.00,60.00,METRO,500,true
+PROD014,Azucar Morena,Azucar para trabajadores,28.00,26.00,24.00,KG,100,true
+PROD015,Arroz,Arroz grano largo,22.00,20.00,18.00,KG,200,true

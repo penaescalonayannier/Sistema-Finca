@@ -219,26 +219,19 @@ public class ReporteConsolidadoPdfServiceImpl implements IReporteConsolidadoPdfS
                             .setPadding(1));
                     
                     // Días del mes
-                    int totalHoras = 0;
                     for (int dia = 1; dia <= diasDelMes; dia++) {
                         String horas = horasPorDia.getOrDefault(dia, "");
                         table.addCell(new Cell()
                                 .add(new Paragraph(horas).setFont(font).setFontSize(5))
                                 .setTextAlignment(TextAlignment.CENTER)
                                 .setPadding(1));
-
-                        if (horas != null && !horas.isEmpty()) {
-                            try {
-                                totalHoras += Integer.parseInt(horas);
-                            } catch (NumberFormatException e) {
-                                // Ignorar
-                            }
-                        }
                     }
-                    
-                    // Total
+
+                    // Total - usar el valor precalculado del DTO para consistencia
+                    int totalHorasTrabajador = trabajador.getTotalHoras() != null
+                            ? trabajador.getTotalHoras().intValue() : 0;
                     table.addCell(new Cell()
-                            .add(new Paragraph(String.valueOf(totalHoras)).setFont(boldFont).setFontSize(6))
+                            .add(new Paragraph(String.valueOf(totalHorasTrabajador)).setFont(boldFont).setFontSize(6))
                             .setTextAlignment(TextAlignment.CENTER)
                             .setPadding(1));
                 }
@@ -261,11 +254,7 @@ public class ReporteConsolidadoPdfServiceImpl implements IReporteConsolidadoPdfS
                         }
                         String horas = horasPorDia.getOrDefault(dia, "");
                         if (horas != null && !horas.isEmpty()) {
-                            try {
-                                totalDia += Integer.parseInt(horas);
-                            } catch (NumberFormatException e) {
-                                // Ignorar
-                            }
+                            totalDia += convertirHorasANumero(horas);
                         }
                     }
                     table.addCell(new Cell()
@@ -354,6 +343,21 @@ public class ReporteConsolidadoPdfServiceImpl implements IReporteConsolidadoPdfS
             case 6: return "S";
             case 7: return "D";
             default: return "";
+        }
+    }
+
+    private int convertirHorasANumero(String horas) {
+        try {
+            if (horas.contains(":")) {
+                String[] partes = horas.split(":");
+                int horasInt = Integer.parseInt(partes[0]);
+                int minutosInt = partes.length > 1 ? Integer.parseInt(partes[1]) : 0;
+                return horasInt + (minutosInt > 0 ? 1 : 0);
+            } else {
+                return Integer.parseInt(horas);
+            }
+        } catch (Exception e) {
+            return 0;
         }
     }
 }

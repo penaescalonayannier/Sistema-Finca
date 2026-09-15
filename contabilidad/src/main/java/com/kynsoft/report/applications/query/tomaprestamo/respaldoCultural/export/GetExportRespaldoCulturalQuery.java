@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.query.tomaprestamo.respaldoCultural.export;
 
-import com.kynsof.share.core.domain.bus.query.IQuery;
+import com.kynsoft.share.core.domain.bus.query.IQuery;
 import lombok.Builder;
 import lombok.Getter;
 

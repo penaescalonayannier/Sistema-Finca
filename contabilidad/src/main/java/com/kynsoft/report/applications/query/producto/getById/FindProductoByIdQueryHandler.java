@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.query.producto.getById;
 
-import com.kynsof.share.core.domain.bus.query.IQueryHandler;
+import com.kynsoft.share.core.domain.bus.query.IQueryHandler;
 import com.kynsoft.report.applications.query.responseObject.ProductoResponse;
 import com.kynsoft.report.domain.dto.ProductoDto;
 import com.kynsoft.report.domain.services.IProductoService;

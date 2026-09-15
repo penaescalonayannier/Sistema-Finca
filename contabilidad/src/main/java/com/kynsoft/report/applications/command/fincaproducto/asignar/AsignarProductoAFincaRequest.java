@@ -11,4 +11,5 @@ public class AsignarProductoAFincaRequest {
     private UUID fincaId;
     private UUID productoId;
     private Integer stock;
+    private Integer stockMinimo;
 }

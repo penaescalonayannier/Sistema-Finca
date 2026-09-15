@@ -1,5 +1,7 @@
 package com.kynsoft.report.applications.command.producto.create;
 
+import com.kynsoft.report.domain.dto.TipoProducto;
+import com.kynsoft.report.domain.dto.UnidadMedida;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,9 +12,10 @@ public class CreateProductoRequest {
     private String name;
     private String description;
     private Double price;
-    private Double priceTrabajador;//Trabajador
-    private Double priceComedor;//Comedor
+    private Double priceTrabajador;
+    private Double priceComedor;
     private Integer stock;
     private Boolean active;
-    private String unidadMedida;
+    private UnidadMedida unidadMedida;
+    private TipoProducto tipoProducto;
 }

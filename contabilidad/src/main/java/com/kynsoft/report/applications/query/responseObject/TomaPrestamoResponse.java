@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.query.responseObject;
 
-import com.kynsof.share.core.domain.bus.query.IResponse;
+import com.kynsoft.share.core.domain.bus.query.IResponse;
 import com.kynsoft.report.domain.dto.TomaPrestamoDto;
 import com.kynsoft.report.domain.dto.enumerativos.TipoTomaPrestamo;
 import java.time.LocalDate;

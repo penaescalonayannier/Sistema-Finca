@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.query.cargo.get;
 
-import com.kynsof.share.core.domain.bus.query.IQueryHandler;
+import com.kynsoft.share.core.domain.bus.query.IQueryHandler;
 import com.kynsoft.report.applications.query.responseObject.CargoResponse;
 import com.kynsoft.report.domain.dto.CargoDto;
 import com.kynsoft.report.domain.services.ICargoService;

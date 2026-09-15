@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.query.reporte.consolidadoPorResponsable;
 
-import com.kynsof.share.core.domain.bus.query.IQuery;
+import com.kynsoft.share.core.domain.bus.query.IQuery;
 
 public class GetReporteConsolidadoPorResponsableQuery implements IQuery {
     private final String year;

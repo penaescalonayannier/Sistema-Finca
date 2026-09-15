@@ -1,7 +1,7 @@
 package com.kynsoft.report.applications.command.prestamo.update;
 
-import com.kynsof.share.core.domain.bus.command.ICommand;
-import com.kynsof.share.core.domain.bus.command.ICommandMessage;
+import com.kynsoft.share.core.domain.bus.command.ICommand;
+import com.kynsoft.share.core.domain.bus.command.ICommandMessage;
 import lombok.Getter;
 import lombok.Setter;
 

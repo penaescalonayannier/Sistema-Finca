@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.query.report.cuenta110.getImporte;
 
-import com.kynsof.share.core.domain.bus.query.IQueryHandler;
+import com.kynsoft.share.core.domain.bus.query.IQueryHandler;
 import com.kynsoft.report.applications.query.responseObject.Cuenta110EfectivoBancoResponse;
 import com.kynsoft.report.domain.dto.Cuenta110EfectivoBancoDto;
 import com.kynsoft.report.domain.services.ICuenta110EfectivoBancoService;

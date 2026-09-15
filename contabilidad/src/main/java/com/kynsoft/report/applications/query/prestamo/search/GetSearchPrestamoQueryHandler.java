@@ -1,7 +1,7 @@
 package com.kynsoft.report.applications.query.prestamo.search;
 
-import com.kynsof.share.core.domain.bus.query.IQueryHandler;
-import com.kynsof.share.core.domain.response.PaginatedResponse;
+import com.kynsoft.share.core.domain.bus.query.IQueryHandler;
+import com.kynsoft.share.core.domain.response.PaginatedResponse;
 import com.kynsoft.report.domain.services.IPrestamoService;
 import org.springframework.stereotype.Component;
 

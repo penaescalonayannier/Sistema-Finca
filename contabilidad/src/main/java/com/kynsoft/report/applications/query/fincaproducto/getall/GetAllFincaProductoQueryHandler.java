@@ -1,8 +1,8 @@
 package com.kynsoft.report.applications.query.fincaproducto.getall;
 
-import com.kynsof.share.core.domain.bus.query.IQueryHandler;
-import com.kynsof.share.core.domain.response.PaginatedResponse;
-import com.kynsof.share.core.infrastructure.specifications.GenericSpecificationsBuilder;
+import com.kynsoft.share.core.domain.bus.query.IQueryHandler;
+import com.kynsoft.share.core.domain.response.PaginatedResponse;
+import com.kynsoft.share.core.infrastructure.specifications.GenericSpecificationsBuilder;
 import com.kynsoft.report.applications.query.responseObject.FincaProductoResponse;
 import com.kynsoft.report.infrastructure.entity.FincaProducto;
 import com.kynsoft.report.infrastructure.repository.query.FincaProductoReadDataJPARepository;
@@ -28,17 +28,26 @@ public class GetAllFincaProductoQueryHandler
         Page<FincaProducto> data = repositoryQuery.findAll(specifications, query.getPageable());
 
         List<FincaProductoResponse> responses = data.getContent().stream()
-                .map(fp -> new FincaProductoResponse(
-                fp.getId(),
-                fp.getFinca().getId(),
-                fp.getFinca().getCode(),
-                fp.getFinca().getName(),
-                fp.getProducto().getId(),
-                fp.getProducto().getCode(),
-                fp.getProducto().getName(),
-                fp.getProducto().getPrice(),
-                fp.getStock()
-        ))
+                .map(fp -> {
+                    FincaProductoResponse response = new FincaProductoResponse();
+                    response.setId(fp.getId());
+                    response.setFincaId(fp.getFinca().getId());
+                    response.setFincaCode(fp.getFinca().getCode());
+                    response.setFincaName(fp.getFinca().getName());
+                    response.setProductoId(fp.getProducto().getId());
+                    response.setProductoCode(fp.getProducto().getCode());
+                    response.setProductoName(fp.getProducto().getName());
+                    response.setProductoPrice(fp.getProducto().getPrice());
+                    response.setProductoTipo(fp.getProducto().getTipoProducto());
+                    response.setStock(fp.getStock());
+                    response.setStockMinimo(fp.getStockMinimo());
+                    response.setActivo(fp.getActivo());
+                    // Calcular alerta de stock bajo
+                    boolean alerta = fp.getStockMinimo() != null && fp.getStockMinimo() > 0
+                            && fp.getStock() != null && fp.getStock() <= fp.getStockMinimo();
+                    response.setAlertaStockBajo(alerta);
+                    return response;
+                })
                 .collect(Collectors.toList());
 
         return new PaginatedResponse(

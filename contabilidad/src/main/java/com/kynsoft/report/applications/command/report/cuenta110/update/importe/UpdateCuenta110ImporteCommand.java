@@ -4,8 +4,8 @@
  */
 package com.kynsoft.report.applications.command.report.cuenta110.update.importe;
 
-import com.kynsof.share.core.domain.bus.command.ICommand;
-import com.kynsof.share.core.domain.bus.command.ICommandMessage;
+import com.kynsoft.share.core.domain.bus.command.ICommand;
+import com.kynsoft.share.core.domain.bus.command.ICommandMessage;
 import com.kynsoft.report.applications.command.report.cuenta110.update.UpdateCuenta110Message;
 import lombok.Getter;
 

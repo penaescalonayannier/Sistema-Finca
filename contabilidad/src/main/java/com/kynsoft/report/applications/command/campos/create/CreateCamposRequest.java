@@ -1,5 +1,6 @@
 package com.kynsoft.report.applications.command.campos.create;
 
+import java.time.LocalDate;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,4 +16,11 @@ public class CreateCamposRequest {
     private Double poblacion;
     private String destino;
     private Double rendimiento;
+    private Double valorAdquisicion;
+    private Double depreciacionAcumulada;
+    private Double valorResidual;
+    private Integer anosCepa;
+    private Double tasaDepreciacionAnual;
+    private Integer vidaUtilAnios;
+    private LocalDate fechaInicioDepreciacion;
 }

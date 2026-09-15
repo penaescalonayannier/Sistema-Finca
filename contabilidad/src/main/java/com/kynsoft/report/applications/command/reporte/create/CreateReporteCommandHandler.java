@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.command.reporte.create;
 
-import com.kynsof.share.core.domain.bus.command.ICommandHandler;
+import com.kynsoft.share.core.domain.bus.command.ICommandHandler;
 import com.kynsoft.report.domain.dto.ReporteDto;
 import com.kynsoft.report.domain.dto.TrabajadorDto;
 import com.kynsoft.report.domain.services.IReporteService;
@@ -38,6 +38,9 @@ public class CreateReporteCommandHandler implements ICommandHandler<CreateReport
             throw new IllegalArgumentException("Error al obtener el trabajador responsable: " + e.getMessage());
         }
 
+        // Generar código automáticamente con formato: año_mes_consecutivo
+        String codigoGenerado = reportService.generateCodigo(command.getYear(), command.getMes());
+
         reportService.create(ReporteDto.builder()
                 .id(command.getId())
                 .bloque(command.getBloque())
@@ -45,7 +48,7 @@ public class CreateReporteCommandHandler implements ICommandHandler<CreateReport
                 .area(command.getArea())
                 .norma(command.getNorma())
                 .fecha(command.getFecha())
-                .codigo(command.getCodigo())
+                .codigo(codigoGenerado)
                 .year(command.getYear())
                 .mes(command.getMes())
                 .trabajadorResponsableId(command.getTrabajadorResponsableId())

@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.query.report.estadoCuenta.getByDateRange;
 
-import com.kynsof.share.core.domain.bus.query.IQueryHandler;
+import com.kynsoft.share.core.domain.bus.query.IQueryHandler;
 import com.kynsoft.report.applications.query.responseObject.EstadoCuentaByDateRangeResponse;
 import com.kynsoft.report.applications.query.responseObject.EstadoCuentaResponse;
 import com.kynsoft.report.domain.dto.EstadoCuentaDto;

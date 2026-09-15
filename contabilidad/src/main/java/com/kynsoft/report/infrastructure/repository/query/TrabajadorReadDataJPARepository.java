@@ -6,10 +6,30 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.UUID;
 
+@Transactional(readOnly = true, transactionManager = "readTransactionManager")
 public interface TrabajadorReadDataJPARepository extends JpaRepository<Trabajador, UUID>, JpaSpecificationExecutor<Trabajador> {
     @Override
     Page<Trabajador> findAll(Specification specification, Pageable pageable);
+
+    Optional<Trabajador> findByRuc(String ruc);
+
+    Long countByFincaIdAndActivoTrue(UUID fincaId);
+
+    Page<Trabajador> findByFincaIdAndActivoTrue(UUID fincaId, Pageable pageable);
+
+    @Query("SELECT t FROM Trabajador t LEFT JOIN FETCH t.finca LEFT JOIN FETCH t.grupo LEFT JOIN FETCH t.cargo WHERE t.id = :id")
+    Optional<Trabajador> findByIdWithRelations(@Param("id") UUID id);
+
+    @Query("SELECT t FROM Trabajador t LEFT JOIN FETCH t.finca LEFT JOIN FETCH t.grupo LEFT JOIN FETCH t.cargo WHERE t.activo = true ORDER BY t.nombre")
+    java.util.List<Trabajador> findAllActivosWithRelations();
+
+    @Query("SELECT t FROM Trabajador t LEFT JOIN FETCH t.finca LEFT JOIN FETCH t.grupo LEFT JOIN FETCH t.cargo WHERE t.activo = true AND t.fincaId = :fincaId ORDER BY t.nombre")
+    java.util.List<Trabajador> findAllActivosWithRelationsByFincaId(@Param("fincaId") UUID fincaId);
 }

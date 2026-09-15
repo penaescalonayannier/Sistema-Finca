@@ -1,7 +1,9 @@
 package com.kynsoft.report.applications.query.responseObject;
 
-import com.kynsof.share.core.domain.bus.query.IResponse;
+import com.kynsoft.share.core.domain.bus.query.IResponse;
 import com.kynsoft.report.domain.dto.ProductoDto;
+import com.kynsoft.report.domain.dto.TipoProducto;
+import com.kynsoft.report.domain.dto.UnidadMedida;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,11 +21,12 @@ public class ProductoResponse implements IResponse {
     private String name;
     private String description;
     private Double price;
-    private Double priceTrabajador;//Trabajador
-    private Double priceComedor;//Comedor
+    private Double priceTrabajador;
+    private Double priceComedor;
     private Integer stock;
     private Boolean active;
-    private String unidadMedida;
+    private UnidadMedida unidadMedida;
+    private TipoProducto tipoProducto;
 
     public ProductoResponse(ProductoDto dto) {
         this.id = dto.getId();
@@ -31,10 +34,11 @@ public class ProductoResponse implements IResponse {
         this.name = dto.getName();
         this.description = dto.getDescription();
         this.price = dto.getPrice();
-        this.price = dto.getPriceTrabajador();
-        this.price = dto.getPriceComedor();
+        this.priceTrabajador = dto.getPriceTrabajador();
+        this.priceComedor = dto.getPriceComedor();
         this.stock = dto.getStock();
         this.active = dto.getActive();
         this.unidadMedida = dto.getUnidadMedida();
+        this.tipoProducto = dto.getTipoProducto();
     }
 }

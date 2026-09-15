@@ -2,201 +2,158 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Overview
+## Descripción del Proyecto
 
-**Sistema Finca** (Farm System) is a full-stack application with two main components:
+**Sistema Finca** es un sistema de gestión agrícola que administra:
 
-1. **Backend (contabilidad/)**: Spring Boot 3.3 microservice for report generation and accounting operations
-2. **Frontend (mi-proyecto-vue/mi-proyecto/)**: Vue 3 + TypeScript web application for account management
+- **Fincas** con áreas, trabajadores responsables e inventarios de productos
+- **Trabajadores** organizados por grupos y cargos, asignados a fincas
+- **Productos** con precios diferenciados (general, trabajador, comedor) y control de stock
+- **Reportes** de trabajo agrícola por bloque, campo y área
+- **Salidas** seguimiento de distribuciones de productos a trabajadores o comedor
+- **Deudas** control de deudas y pagos de trabajadores
+- **Producción terminada** registro de producción agrícola completada
 
-The system generates PDF reports, manages accounting data, and provides a web interface for viewing/editing account statements. It integrates with Keycloak for authentication and uses PostgreSQL for data persistence.
+El sistema usa arquitectura CQRS con rutas separadas de lectura/escritura.
 
-## Project Structure
-
-```
-Sistema Finca/
-├── contabilidad/                 # Spring Boot backend (Java 21, Maven)
-│   ├── src/main/java/           # Main source code
-│   │   └── com/kynsoft/report/  # Application packages
-│   ├── src/main/resources/      # Configuration and templates
-│   ├── pom.xml                  # Maven configuration
-│   ├── CLAUDE.md                # Backend-specific guidance
-│   └── Dockerfile               # Container configuration
-│
-└── mi-proyecto-vue/mi-proyecto/  # Vue 3 frontend (TypeScript)
-    ├── src/                     # Vue source code
-    │   ├── components/          # Vue components
-    │   ├── views/              # Page-level components
-    │   ├── services/           # HTTP services
-    │   ├── types/              # TypeScript interfaces
-    │   └── router/             # Route configuration
-    ├── package.json            # NPM dependencies
-    ├── CLAUDE.md               # Frontend-specific guidance
-    └── vue.config.js           # Build configuration
-```
-
-## Architecture Overview
-
-### CQRS Pattern
-Both projects leverage Command Query Responsibility Segregation:
-- **Commands**: Write operations (Create, Update, Delete)
-- **Queries**: Read operations
-- **Handlers**: `ICommandHandler` and `IQueryHandler` interfaces dispatch operations
-- **Mediator**: `IMediator` routes commands/queries to appropriate handlers
-
-### Data Flow
-1. Frontend (Vue) sends HTTP requests to backend REST endpoints
-2. Backend controller receives request and dispatches via `IMediator`
-3. Command/Query handlers process business logic
-4. Data persisted to PostgreSQL (separate read/write schemas for CQRS)
-5. Frontend receives JSON response and updates UI
-
-### Key Technologies
-- **Backend**: Spring Boot 3.3, Spring Data JPA, Apache PDFBox, JasperReports, Keycloak
-- **Frontend**: Vue 3, Composition API, TypeScript, Axios, Vue Router
-- **Database**: PostgreSQL with separate read/write datasources
-- **Cache**: Redis
-- **Container**: Docker
-- **Auth**: Keycloak OAuth2/JWT (kynsoft realm)
-
-## Backend Commands
-
-Navigate to `contabilidad/` directory before running:
+## Inicio Rápido
 
 ```bash
-# Build (skip tests)
-./mvnw clean package -DskipTests
+# Iniciar todo (backend + frontend)
+./start-all.sh
 
-# Run locally (requires PostgreSQL on localhost:5432)
-./mvnw spring-boot:run
+# O iniciar individualmente:
+# Backend (puerto 9908)
+cd contabilidad && ./start-dev.sh
 
-# Run tests
-./mvnw test
-
-# Run single test
-./mvnw test -Dtest=TestClassName
-
-# Docker build (requires PACKAGE_TOKEN for private Maven repository)
-docker build --build-arg PACKAGE_TOKEN=<token> -t report:1.0.0 .
+# Frontend (puerto 8080)
+cd mi-proyecto-vue/mi-proyecto && npm run serve
 ```
 
-**Ports**: Dev profile (9908) | Docker (9909)
-
-## Frontend Commands
-
-Navigate to `mi-proyecto-vue/mi-proyecto/` directory before running:
+## Comandos Backend (contabilidad/)
 
 ```bash
-# Install dependencies
-npm install
-
-# Development server with hot-reload (runs on http://localhost:8080)
-npm run serve
-
-# Production build
-npm run build
-
-# Lint and auto-fix
-npm run lint
+./mvnw spring-boot:run              # Ejecutar con perfil dev
+./mvnw clean package -DskipTests    # Construir JAR
+./mvnw test                         # Ejecutar todos los tests
+./mvnw test -Dtest=NombreClaseTest  # Ejecutar un test específico
 ```
 
-## Connecting Frontend and Backend
+**Base de datos**: PostgreSQL en `localhost:5432/store` (usuario: postgres, contraseña: postgres)
 
-The frontend is configured to proxy API requests to the backend:
+## Comandos Frontend (mi-proyecto-vue/mi-proyecto/)
 
-- **Development**: Frontend runs on `http://localhost:8080`, proxies to `http://localhost:9908/api/*`
-- **Production**: Build targets backend URL (configured in environment)
+```bash
+npm run serve      # Servidor dev con hot-reload
+npm run build      # Build de producción
+npm run lint       # Lint y corrección automática
+npm run type-check # Solo verificación TypeScript
+```
 
-Configuration in `vue.config.js` handles automatic request routing for `/api/*` paths.
+## Arquitectura
 
-## Key Endpoints
+### Patrón CQRS
 
-### Account Statement Management
-- `POST /api/estado-cuenta` - Create account statement
-- `GET /api/estado-cuenta/{id}` - Retrieve by ID
-- `POST /api/estado-cuenta/search` - Search with pagination and filters
-- `GET /api/estado-cuenta/export` - Export to Excel
-- `POST /api/estado-cuenta/upload-xml` - Import from XML
+Tanto backend como frontend siguen Command Query Responsibility Segregation:
 
-### Report Generation
-- `POST /api/report/receta-medica` - Generate medical prescription PDF
+**Backend** (`com.kynsoft.report`):
+- `applications/command/{entidad}/` — Handlers de Create, Update, Delete
+- `applications/query/{entidad}/` — Handlers de Search, GetById, GetAll
+- `IMediator` enruta comandos/queries a los handlers
 
-## Frontend Component Architecture
+**Base de datos**: Datasources separados para lectura/escritura:
+- Ruta de escritura: `infrastructure/repository/command/`
+- Ruta de lectura: `infrastructure/repository/query/`
 
-### Core Services
-- `EstadoCuentaService.ts` - Central API client for account operations
-- Handles CRUD, search, pagination, filtering, and file uploads
+### Capas del Backend
 
-### Main Views/Components
-- `EstadoCuentaList.vue` - List, search, and filter accounts
-- `CrearEstadoCuenta.vue` - Create new account statement
-- `EditarEstadoCuenta.vue` - Edit existing account
-- `UploadXmlView.vue` - Import accounts from XML
+| Capa | Ruta | Propósito |
+|------|------|-----------|
+| Controller | `controller/` | Endpoints REST |
+| Application | `applications/command/`, `applications/query/` | Handlers CQRS |
+| Domain | `domain/dto/`, `domain/services/` | Interfaces de lógica de negocio |
+| Infrastructure | `infrastructure/entity/`, `infrastructure/services/` | Entidades JPA, implementaciones |
 
-### Type System
-- `src/types/EstadoCuenta.ts` - TypeScript interfaces for:
-  - `EstadoCuenta` - Main entity
-  - `SearchFilter` - Filter criteria
-  - `SearchRequest` - Paginated search query
-  - `PagedResponse<T>` - Generic paginated response
+### Estructura Frontend
 
-### Search API Contract
+| Ruta | Propósito |
+|------|-----------|
+| `src/services/` | Clientes HTTP por entidad (FincaService, TrabajadorService, etc.) |
+| `src/views/` | Componentes de página (LoginView, HomeView, GerencialDashboard) |
+| `src/components/` | Componentes UI reutilizables |
+| `src/types/` | Interfaces TypeScript |
+
+### Entidades Principales
+
+```
+Finca
+  ├── Trabajadores — agrupados por Grupo y Cargo
+  ├── FincaProducto (inventario por producto)
+  └── Reportes (reportes de trabajo)
+
+Producto
+  ├── price, priceTrabajador, priceComedor
+  ├── tipoProducto (PRODUCCION, INSUMO)
+  └── unidadMedida (KG, UNIDAD, LIBRA, etc.)
+
+Salida (Distribución)
+  ├── tipo (TRABAJADOR, COMEDOR)
+  ├── items → trabajadores con cantidades
+  └── crea registros DeudaTrabajador
+```
+
+### Endpoints Principales
+
+| Entidad | Ruta Base |
+|---------|-----------|
+| Fincas | `/api/finca` |
+| Trabajadores | `/api/trabajadores` |
+| Productos | `/api/producto` |
+| FincaProducto | `/api/finca-producto` |
+| Salidas | `/api/salida` |
+| Reportes | `/api/reporte` |
+| Deudas | `/api/deuda-trabajador` |
+| Auth | `/api/auth/login` |
+
+### Patrón de Búsqueda
+
+Todos los endpoints de búsqueda siguen el mismo contrato:
+
 ```typescript
+POST /api/{entidad}/search
 {
-  filter: SearchFilter[],     // Array of filter conditions
-  query: string,              // Text search
-  pageSize: number,           // Results per page
-  page: number,               // Current page (0-indexed)
-  sortBy: string,             // Sort field
-  sortType: 'ASC' | 'DESC'   // Sort direction
+  filter: [{ property: string, operator: string, value: string }],
+  query: string,
+  pageSize: number,
+  page: number,
+  sortBy: string,
+  sortType: 'ASC' | 'DESC'
 }
 ```
 
-## Backend Package Structure
+## Autenticación
 
-### Applications Layer
-- `applications/command/` - Command handlers (Create, Update, Delete operations)
-- `applications/query/` - Query handlers (Read operations)
+- **JWT Local**: `/api/auth/login` retorna token JWT
+- **Keycloak** (opcional): OAuth2/JWT para realm `kynsoft`
+- El frontend guarda el token y lo incluye en header `Authorization: Bearer`
 
-### Domain Layer
-- `domain/dto/` - Data transfer objects
-- `domain/services/` - Service interfaces
-- `domain/entities/` - JPA entities
+## Dependencias Externas
 
-### Infrastructure Layer
-- `infrastructure/repository/command/` - Write repository implementations
-- `infrastructure/repository/query/` - Read repository implementations
-- `infrastructure/services/` - Service implementations
-- `infrastructure/services/reporte/` - PDF components (HeaderDrawer, FooterDrawer, TableSectionDrawer)
+- **PostgreSQL**: Base de datos principal
+- **Redis**: Cache (opcional en desarrollo)
+- **Keycloak**: Proveedor OAuth2 (opcional, fallback a JWT local)
+- **AWS S3/CloudFront**: Almacenamiento de archivos (imágenes, documentos)
 
-### Controller Layer
-- `controller/` - REST endpoints handling HTTP requests
+## Migraciones de Base de Datos
 
-### Configuration
-- `PostgresDBWriteConfiguration` - Write datasource (CQRS write path)
-- `PostgresDBReadConfiguration` - Read datasource (CQRS read path)
+Scripts SQL en `contabilidad/src/main/resources/db/migration/`:
+- V1: movimiento_stock, configuracion_numeracion
+- V2: campos de recibo en pago_deuda
+- V3: stock_maximo para finca_producto
+- V4: tablas usuario y auditoria
 
-## External Integrations
+## Preferencias de Usuario
 
-- **Keycloak**: OAuth2/JWT auth for `kynsoft` realm
-- **AWS S3/CloudFront**: Image and document storage
-- **Eureka**: Service discovery registration
-- **Redis**: Caching layer for performance
-- **Spring Cloud Config**: External configuration management (optional)
-
-## User Preferences
-
-**From existing CLAUDE.md files:**
-- Execute tasks directly without asking for confirmation
-- Make autonomous decisions based on context and best practices
-- Act proactively when requirements are unclear
-
-## Development Notes
-
-- Java 21 required for backend
-- Node.js 14+ required for frontend
-- Both projects use git for version control (separate repos)
-- Maven wrapper (`./mvnw`) included for Java builds
-- NPM for Node.js dependency management
-- TypeScript for frontend type safety (Composition API with `<script setup lang="ts">`)
-- ESLint configured for code quality enforcement
+- Ejecutar tareas directamente sin pedir confirmación
+- Tomar decisiones autónomas basadas en contexto y mejores prácticas
+- Actuar proactivamente cuando los requisitos no estén claros

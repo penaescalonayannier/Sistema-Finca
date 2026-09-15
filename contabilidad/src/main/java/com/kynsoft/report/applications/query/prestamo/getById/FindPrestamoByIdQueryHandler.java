@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.query.prestamo.getById;
 
-import com.kynsof.share.core.domain.bus.query.IQueryHandler;
+import com.kynsoft.share.core.domain.bus.query.IQueryHandler;
 import com.kynsoft.report.applications.query.responseObject.PrestamoResponse;
 import com.kynsoft.report.domain.dto.PrestamoDto;
 import com.kynsoft.report.domain.services.IPrestamoService;

@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.command.instrumentoTrabajo.delete;
 
-import com.kynsof.share.core.domain.bus.command.ICommandHandler;
+import com.kynsoft.share.core.domain.bus.command.ICommandHandler;
 import com.kynsoft.report.domain.services.IInstrumentoTrabajoService;
 import org.springframework.stereotype.Component;
 

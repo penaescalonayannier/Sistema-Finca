@@ -1,8 +1,10 @@
 package com.kynsoft.report.domain.services;
 
-import com.kynsof.share.core.domain.request.FilterCriteria;
-import com.kynsof.share.core.domain.response.PaginatedResponse;
+import com.kynsoft.share.core.domain.request.FilterCriteria;
+import com.kynsoft.share.core.domain.response.PaginatedResponse;
+import com.kynsoft.report.domain.dto.DeleteFincaResponse;
 import com.kynsoft.report.domain.dto.FincaDto;
+import com.kynsoft.report.domain.dto.FincaResumenDto;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
@@ -14,11 +16,21 @@ public interface IFincaService {
 
     void update(FincaDto object);
 
-    void delete(UUID id);
+    DeleteFincaResponse delete(UUID id);
+
+    void reactivar(UUID id);
+
+    void asignarResponsable(UUID fincaId, UUID responsableId);
 
     FincaDto findById(UUID id);
 
     FincaDto findByCode(String code);
 
     PaginatedResponse search(Pageable pageable, List<FilterCriteria> filterCriteria);
+
+    Long countTrabajadoresByFincaId(UUID fincaId);
+
+    Long countProductosByFincaId(UUID fincaId);
+
+    FincaResumenDto getResumen(UUID fincaId);
 }

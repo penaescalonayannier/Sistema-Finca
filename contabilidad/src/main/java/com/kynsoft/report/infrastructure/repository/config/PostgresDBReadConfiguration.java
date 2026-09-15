@@ -14,11 +14,17 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.sql.DataSource;
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 @EnableTransactionManagement
-@EnableJpaRepositories(entityManagerFactoryRef = "readEntityManagerFactory", transactionManagerRef = "readTransactionManager", basePackages = {
-        "com.kynsoft.report.infrastructure.repository.query" })
+@EnableJpaRepositories(
+        entityManagerFactoryRef = "readEntityManagerFactory",
+        transactionManagerRef = "readTransactionManager",
+        basePackages = {"com.kynsoft.report.infrastructure.repository.query"},
+        enableDefaultTransactions = true
+)
 public class PostgresDBReadConfiguration {
 
     @Bean(name = "readDataSourceProperties")
@@ -36,14 +42,21 @@ public class PostgresDBReadConfiguration {
     @Bean(name = "readEntityManagerFactory")
     public LocalContainerEntityManagerFactoryBean entityManagerFactoryBean(EntityManagerFactoryBuilder builder,
             @Qualifier("readDataSource") DataSource dataSource) {
+        Map<String, Object> properties = new HashMap<>();
+        properties.put("hibernate.connection.handling_mode", "DELAYED_ACQUISITION_AND_RELEASE_AFTER_TRANSACTION");
+
         return builder.dataSource(dataSource)
                 .packages("com.kynsoft.report.infrastructure.entity")
-                .persistenceUnit("ReadDB").build();
+                .persistenceUnit("ReadDB")
+                .properties(properties)
+                .build();
     }
 
     @Bean(name = "readTransactionManager")
     public PlatformTransactionManager transactionManager(
             @Qualifier("readEntityManagerFactory") EntityManagerFactory entityManagerFactory) {
-        return new JpaTransactionManager(entityManagerFactory);
+        JpaTransactionManager transactionManager = new JpaTransactionManager(entityManagerFactory);
+        transactionManager.setDefaultTimeout(30);
+        return transactionManager;
     }
 }

@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.query.trabajadorReporte.getByReporte;
 
-import com.kynsof.share.core.domain.bus.query.IQueryHandler;
+import com.kynsoft.share.core.domain.bus.query.IQueryHandler;
 import com.kynsoft.report.applications.query.responseObject.TrabajadorReporteDetailListResponse;
 import com.kynsoft.report.applications.query.responseObject.TrabajadorReporteDetailResponse;
 import com.kynsoft.report.infrastructure.entity.TrabajadorReporte;

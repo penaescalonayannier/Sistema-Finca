@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.query.responseObject;
 
-import com.kynsof.share.core.domain.bus.query.IResponse;
+import com.kynsoft.share.core.domain.bus.query.IResponse;
 import com.kynsoft.report.domain.dto.PrestamoDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

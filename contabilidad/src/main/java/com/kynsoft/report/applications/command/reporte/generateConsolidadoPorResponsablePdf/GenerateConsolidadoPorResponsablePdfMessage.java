@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.command.reporte.generateConsolidadoPorResponsablePdf;
 
-import com.kynsof.share.core.domain.bus.command.ICommandMessage;
+import com.kynsoft.share.core.domain.bus.command.ICommandMessage;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;

@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.query;
 
-import com.kynsof.share.core.domain.bus.query.IQueryHandler;
+import com.kynsoft.share.core.domain.bus.query.IQueryHandler;
 import com.kynsoft.report.applications.query.responseObject.EvaluacionResponse;
 import com.kynsoft.report.domain.dto.EvaluacionDto;
 import com.kynsoft.report.domain.services.IEvaluacionService;

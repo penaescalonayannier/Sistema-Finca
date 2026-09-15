@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.query.trabajador.export;
 
-import com.kynsof.share.core.domain.bus.query.IQuery;
+import com.kynsoft.share.core.domain.bus.query.IQuery;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

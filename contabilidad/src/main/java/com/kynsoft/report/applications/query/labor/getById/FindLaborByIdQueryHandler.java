@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.query.labor.getById;
 
-import com.kynsof.share.core.domain.bus.query.IQueryHandler;
+import com.kynsoft.share.core.domain.bus.query.IQueryHandler;
 import com.kynsoft.report.applications.query.responseObject.LaborResponse;
 import com.kynsoft.report.domain.dto.LaborDto;
 import com.kynsoft.report.domain.services.ILaborService;

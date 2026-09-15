@@ -1,7 +1,7 @@
 package com.kynsoft.report.applications.query.tomaprestamo.search;
 
-import com.kynsof.share.core.domain.bus.query.IQuery;
-import com.kynsof.share.core.domain.request.FilterCriteria;
+import com.kynsoft.share.core.domain.bus.query.IQuery;
+import com.kynsoft.share.core.domain.request.FilterCriteria;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.data.domain.Pageable;

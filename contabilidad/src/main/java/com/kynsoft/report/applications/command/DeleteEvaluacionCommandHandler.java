@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.command;
 
-import com.kynsof.share.core.domain.bus.command.ICommandHandler;
+import com.kynsoft.share.core.domain.bus.command.ICommandHandler;
 import com.kynsoft.report.applications.command.message.DeleteEvaluacionMessage;
 import com.kynsoft.report.domain.services.IEvaluacionService;
 import org.springframework.stereotype.Component;

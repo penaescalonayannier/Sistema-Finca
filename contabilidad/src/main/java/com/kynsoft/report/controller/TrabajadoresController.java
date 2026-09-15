@@ -1,16 +1,21 @@
 package com.kynsoft.report.controller;
 
-import com.kynsof.share.core.domain.bus.command.ICommandMessage;
-import com.kynsof.share.core.domain.request.PageableUtil;
-import com.kynsof.share.core.domain.request.SearchRequest;
-import com.kynsof.share.core.domain.response.PaginatedResponse;
-import com.kynsof.share.core.infrastructure.bus.IMediator;
+import com.kynsoft.share.core.domain.bus.command.ICommandMessage;
+import com.kynsoft.share.core.domain.request.PageableUtil;
+import com.kynsoft.share.core.domain.request.SearchRequest;
+import com.kynsoft.share.core.domain.response.PaginatedResponse;
+import com.kynsoft.share.core.infrastructure.bus.IMediator;
 import com.kynsoft.report.applications.command.report.trabajador.upload.ImportTrabajadorCsvCommand;
 import com.kynsoft.report.applications.command.trabajador.create.CreateTrabajadorCommand;
 import com.kynsoft.report.applications.command.trabajador.create.CreateTrabajadorMessage;
 import com.kynsoft.report.applications.command.trabajador.create.CreateTrabajadorRequest;
 import com.kynsoft.report.applications.command.trabajador.delete.DeleteTrabajadorCommand;
 import com.kynsoft.report.applications.command.trabajador.delete.DeleteTrabajadorMessage;
+import com.kynsoft.report.applications.command.trabajador.reactivar.ReactivarTrabajadorCommand;
+import com.kynsoft.report.applications.command.trabajador.reactivar.ReactivarTrabajadorMessage;
+import com.kynsoft.report.applications.command.trabajador.transferir.TransferirTrabajadorCommand;
+import com.kynsoft.report.applications.command.trabajador.transferir.TransferirTrabajadorMessage;
+import com.kynsoft.report.applications.command.trabajador.transferir.TransferirTrabajadorRequest;
 import com.kynsoft.report.applications.command.trabajador.update.UpdateTrabajadorCommand;
 import com.kynsoft.report.applications.command.trabajador.update.UpdateTrabajadorMessage;
 import com.kynsoft.report.applications.command.trabajador.update.UpdateTrabajadorRequest;
@@ -24,7 +29,11 @@ import com.kynsoft.report.applications.query.report.estadoCuenta.export.Response
 import com.kynsoft.report.applications.query.responseObject.TrabajadorResponse;
 import com.kynsoft.report.applications.query.trabajador.export.GetExportNominaTrabajadorQuery;
 import com.kynsoft.report.applications.query.trabajador.getById.FindTrabajadorByIdQuery;
+import com.kynsoft.report.applications.query.trabajador.porFinca.GetTrabajadoresPorFincaQuery;
+import com.kynsoft.report.applications.query.trabajador.porGrupo.GetTrabajadoresPorGrupoQuery;
 import com.kynsoft.report.applications.query.trabajador.search.GetSearchTrabajadorQuery;
+import com.kynsoft.report.domain.dto.DeleteTrabajadorResponse;
+import com.kynsoft.report.domain.services.ITrabajadorService;
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
@@ -42,9 +51,11 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 public class TrabajadoresController {
 
     private final IMediator mediator;
+    private final ITrabajadorService trabajadorService;
 
-    public TrabajadoresController(IMediator mediator) {
+    public TrabajadoresController(IMediator mediator, ITrabajadorService trabajadorService) {
         this.mediator = mediator;
+        this.trabajadorService = trabajadorService;
     }
 
     @PostMapping("")
@@ -78,6 +89,12 @@ public class TrabajadoresController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/{id}/preview-desactivacion")
+    public ResponseEntity<DeleteTrabajadorResponse> previewDesactivacion(@PathVariable UUID id) {
+        DeleteTrabajadorResponse response = trabajadorService.previewDesactivacion(id);
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/search")
     public ResponseEntity<PaginatedResponse> search(@RequestBody SearchRequest request) {
         Pageable pageable = PageableUtil.createPageable(request);
@@ -100,6 +117,38 @@ public class TrabajadoresController {
         AsignarGrupoTrabajadorCommand command = AsignarGrupoTrabajadorCommand.fromRequest(request);
         AsignarGrupoTrabajadorMessage response = mediator.send(command);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{id}/reactivar")
+    public ResponseEntity<?> reactivar(@PathVariable UUID id) {
+        ReactivarTrabajadorCommand command = new ReactivarTrabajadorCommand(id);
+        ReactivarTrabajadorMessage response = mediator.send(command);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{id}/transferir")
+    public ResponseEntity<?> transferir(@PathVariable UUID id, @RequestBody TransferirTrabajadorRequest request) {
+        TransferirTrabajadorCommand command = TransferirTrabajadorCommand.fromRequest(request, id);
+        TransferirTrabajadorMessage response = mediator.send(command);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/por-finca/{fincaId}")
+    public ResponseEntity<PaginatedResponse> findByFinca(@PathVariable UUID fincaId,
+                                                         @RequestParam(defaultValue = "0") int page,
+                                                         @RequestParam(defaultValue = "20") int pageSize) {
+        GetTrabajadoresPorFincaQuery query = new GetTrabajadoresPorFincaQuery(fincaId, page, pageSize);
+        PaginatedResponse data = mediator.send(query);
+        return ResponseEntity.ok(data);
+    }
+
+    @GetMapping("/por-grupo/{grupoId}")
+    public ResponseEntity<PaginatedResponse> findByGrupo(@PathVariable UUID grupoId,
+                                                         @RequestParam(defaultValue = "0") int page,
+                                                         @RequestParam(defaultValue = "20") int pageSize) {
+        GetTrabajadoresPorGrupoQuery query = new GetTrabajadoresPorGrupoQuery(grupoId, page, pageSize);
+        PaginatedResponse data = mediator.send(query);
+        return ResponseEntity.ok(data);
     }
 
     @PostMapping("/import-csv")

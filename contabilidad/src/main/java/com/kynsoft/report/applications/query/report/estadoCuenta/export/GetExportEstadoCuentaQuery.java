@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.query.report.estadoCuenta.export;
 
-import com.kynsof.share.core.domain.bus.query.IQuery;
+import com.kynsoft.share.core.domain.bus.query.IQuery;
 import java.time.LocalDate;
 import lombok.Getter;
 

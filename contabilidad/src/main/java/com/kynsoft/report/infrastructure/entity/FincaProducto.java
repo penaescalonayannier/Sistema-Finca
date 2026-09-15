@@ -1,5 +1,6 @@
 package com.kynsoft.report.infrastructure.entity;
 
+import com.kynsoft.report.domain.dto.EstadoStock;
 import com.kynsoft.report.domain.dto.FincaProductoDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -31,9 +32,21 @@ public class FincaProducto {
     @Column(name = "stock", nullable = false)
     private Integer stock;
 
+    @Column(name = "stock_minimo", nullable = false)
+    private Integer stockMinimo = 0;
+
+    @Column(name = "stock_maximo")
+    private Integer stockMaximo;
+
+    @Column(name = "activo", nullable = false)
+    private Boolean activo = true;
+
     public FincaProducto(FincaProductoDto dto) {
         this.id = dto.getId();
         this.stock = dto.getStock();
+        this.stockMinimo = dto.getStockMinimo() != null ? dto.getStockMinimo() : 0;
+        this.stockMaximo = dto.getStockMaximo();
+        this.activo = dto.getActivo() != null ? dto.getActivo() : true;
     }
 
     public FincaProductoDto toAggregate() {
@@ -42,6 +55,17 @@ public class FincaProducto {
                 .fincaId(finca != null ? finca.getId() : null)
                 .productoId(producto != null ? producto.getId() : null)
                 .stock(stock)
+                .stockMinimo(stockMinimo)
+                .stockMaximo(stockMaximo)
+                .estadoStock(getEstadoStock())
+                .activo(activo)
                 .build();
+    }
+
+    public EstadoStock getEstadoStock() {
+        if (stock == null || stock == 0) return EstadoStock.CRITICO;
+        if (stockMinimo != null && stockMinimo > 0 && stock < stockMinimo) return EstadoStock.BAJO;
+        if (stockMaximo != null && stock > stockMaximo) return EstadoStock.EXCESO;
+        return EstadoStock.NORMAL;
     }
 }

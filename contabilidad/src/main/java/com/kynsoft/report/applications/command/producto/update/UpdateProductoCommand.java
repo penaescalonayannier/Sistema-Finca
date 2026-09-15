@@ -1,7 +1,9 @@
 package com.kynsoft.report.applications.command.producto.update;
 
-import com.kynsof.share.core.domain.bus.command.ICommand;
-import com.kynsof.share.core.domain.bus.command.ICommandMessage;
+import com.kynsoft.share.core.domain.bus.command.ICommand;
+import com.kynsoft.share.core.domain.bus.command.ICommandMessage;
+import com.kynsoft.report.domain.dto.TipoProducto;
+import com.kynsoft.report.domain.dto.UnidadMedida;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,11 +19,12 @@ public class UpdateProductoCommand implements ICommand {
     private String name;
     private String description;
     private Double price;
-    private Double priceTrabajador;//Trabajador
-    private Double priceComedor;//Comedor
+    private Double priceTrabajador;
+    private Double priceComedor;
     private Integer stock;
     private Boolean active;
-    private String unidadMedida;
+    private UnidadMedida unidadMedida;
+    private TipoProducto tipoProducto;
 
     public static UpdateProductoCommand fromRequest(UpdateProductoRequest request, UUID id) {
         return new UpdateProductoCommand(
@@ -34,7 +37,8 @@ public class UpdateProductoCommand implements ICommand {
                 request.getPriceComedor(),
                 request.getStock(),
                 request.getActive(),
-                request.getUnidadMedida()
+                request.getUnidadMedida(),
+                request.getTipoProducto()
         );
     }
 

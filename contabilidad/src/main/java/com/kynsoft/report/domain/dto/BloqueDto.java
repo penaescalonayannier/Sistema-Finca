@@ -14,4 +14,6 @@ public class BloqueDto {
     private UUID id;
     private String code;
     private String name;
+    private UUID fincaId;
+    private String fincaNombre;
 }

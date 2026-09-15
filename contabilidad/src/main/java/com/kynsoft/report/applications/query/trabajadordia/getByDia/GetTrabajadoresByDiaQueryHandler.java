@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.query.trabajadordia.getByDia;
 
-import com.kynsof.share.core.domain.bus.query.IQueryHandler;
+import com.kynsoft.share.core.domain.bus.query.IQueryHandler;
 import com.kynsoft.report.applications.query.responseObject.TrabajadorDiaListResponse;
 import com.kynsoft.report.applications.query.responseObject.TrabajadorDiaResponse;
 import com.kynsoft.report.domain.dto.TrabajadorDiaDto;

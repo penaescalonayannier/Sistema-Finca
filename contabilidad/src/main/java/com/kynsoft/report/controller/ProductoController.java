@@ -1,9 +1,9 @@
 package com.kynsoft.report.controller;
 
-import com.kynsof.share.core.domain.request.PageableUtil;
-import com.kynsof.share.core.domain.request.SearchRequest;
-import com.kynsof.share.core.domain.response.PaginatedResponse;
-import com.kynsof.share.core.infrastructure.bus.IMediator;
+import com.kynsoft.share.core.domain.request.PageableUtil;
+import com.kynsoft.share.core.domain.request.SearchRequest;
+import com.kynsoft.share.core.domain.response.PaginatedResponse;
+import com.kynsoft.share.core.infrastructure.bus.IMediator;
 import com.kynsoft.report.applications.command.producto.create.CreateProductoCommand;
 import com.kynsoft.report.applications.command.producto.create.CreateProductoMessage;
 import com.kynsoft.report.applications.command.producto.create.CreateProductoRequest;
@@ -15,9 +15,12 @@ import com.kynsoft.report.applications.command.producto.update.UpdateProductoReq
 import com.kynsoft.report.applications.query.producto.getById.FindProductoByIdQuery;
 import com.kynsoft.report.applications.query.producto.search.GetSearchProductoQuery;
 import com.kynsoft.report.applications.query.responseObject.ProductoResponse;
+import com.kynsoft.report.applications.command.producto.importexcel.ImportProductoExcelCommand;
+import com.kynsoft.report.applications.command.producto.importexcel.ImportProductoExcelMessage;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
@@ -65,5 +68,37 @@ public class ProductoController {
         GetSearchProductoQuery query = new GetSearchProductoQuery(pageable, request.getFilter(), request.getQuery());
         PaginatedResponse data = mediator.send(query);
         return ResponseEntity.ok(data);
+    }
+
+    @PostMapping("/import-excel")
+    public ResponseEntity<ImportProductoExcelMessage> importExcel(@RequestParam("file") MultipartFile file) {
+        try {
+            if (file.isEmpty()) {
+                ImportProductoExcelMessage errorMessage = new ImportProductoExcelMessage();
+                errorMessage.getErrores().add("El archivo está vacío");
+                errorMessage.setTotalErrores(1);
+                return ResponseEntity.badRequest().body(errorMessage);
+            }
+
+            String fileName = file.getOriginalFilename();
+            if (fileName == null || (!fileName.endsWith(".xlsx") && !fileName.endsWith(".xls"))) {
+                ImportProductoExcelMessage errorMessage = new ImportProductoExcelMessage();
+                errorMessage.getErrores().add("El archivo debe ser un Excel (.xlsx o .xls)");
+                errorMessage.setTotalErrores(1);
+                return ResponseEntity.badRequest().body(errorMessage);
+            }
+
+            ImportProductoExcelCommand command = new ImportProductoExcelCommand(
+                    file.getInputStream(),
+                    fileName
+            );
+            ImportProductoExcelMessage response = mediator.send(command);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            ImportProductoExcelMessage errorMessage = new ImportProductoExcelMessage();
+            errorMessage.getErrores().add("Error al procesar el archivo: " + e.getMessage());
+            errorMessage.setTotalErrores(1);
+            return ResponseEntity.internalServerError().body(errorMessage);
+        }
     }
 }

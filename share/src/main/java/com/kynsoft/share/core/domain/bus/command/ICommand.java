@@ -1,0 +1,5 @@
+package com.kynsoft.share.core.domain.bus.command;
+
+public interface ICommand {
+    ICommandMessage getMessage();
+}

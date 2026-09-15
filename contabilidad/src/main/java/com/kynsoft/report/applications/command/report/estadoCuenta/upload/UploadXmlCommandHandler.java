@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.command.report.estadoCuenta.upload;
 
-import com.kynsof.share.core.domain.bus.command.ICommandHandler;
+import com.kynsoft.share.core.domain.bus.command.ICommandHandler;
 import com.kynsoft.report.domain.dto.EstadoCuentaDto;
 import com.kynsoft.report.domain.dto.Cuenta110EfectivoBancoDto; // Importar el DTO de la cuenta 110
 import com.kynsoft.report.domain.services.IEstadoCuentaService;

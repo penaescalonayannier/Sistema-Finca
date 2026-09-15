@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.command.campos.create;
 
-import com.kynsof.share.core.domain.bus.command.ICommandHandler;
+import com.kynsoft.share.core.domain.bus.command.ICommandHandler;
 import com.kynsoft.report.domain.dto.BloqueDto;
 import com.kynsoft.report.domain.dto.CampoDto;
 import com.kynsoft.report.domain.dto.CepaDto;
@@ -37,6 +37,13 @@ public class CreateCamposCommandHandler implements ICommandHandler<CreateCamposC
                 .poblacion(command.getPoblacion())
                 .destino(command.getDestino())
                 .rendimiento(command.getRendimiento())
+                .valorAdquisicion(command.getValorAdquisicion())
+                .depreciacionAcumulada(command.getDepreciacionAcumulada())
+                .valorResidual(command.getValorResidual())
+                .anosCepa(command.getAnosCepa())
+                .tasaDepreciacionAnual(command.getTasaDepreciacionAnual())
+                .vidaUtilAnios(command.getVidaUtilAnios())
+                .fechaInicioDepreciacion(command.getFechaInicioDepreciacion())
                 .build());
     }
 }

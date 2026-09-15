@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.command.campos.update;
 
-import com.kynsof.share.core.domain.bus.command.ICommandHandler;
+import com.kynsoft.share.core.domain.bus.command.ICommandHandler;
 import com.kynsoft.report.domain.dto.BloqueDto;
 import com.kynsoft.report.domain.dto.CampoDto;
 import com.kynsoft.report.domain.dto.CepaDto;
@@ -40,6 +40,14 @@ public class UpdateCamposCommandHandler implements ICommandHandler<UpdateCamposC
                 .poblacion(command.getPoblacion())
                 .destino(command.getDestino())
                 .rendimiento(command.getRendimiento())
+                .valorAdquisicion(command.getValorAdquisicion())
+                .depreciacionAcumulada(command.getDepreciacionAcumulada())
+                .valorResidual(command.getValorResidual())
+                .anosCepa(command.getAnosCepa())
+                .tasaDepreciacionAnual(command.getTasaDepreciacionAnual())
+                .vidaUtilAnios(command.getVidaUtilAnios())
+                .fechaInicioDepreciacion(command.getFechaInicioDepreciacion())
+                .fechaUltimaDepreciacion(dto.getFechaUltimaDepreciacion())
                 .build();
 
         // 3. Llamar al servicio para persistir la actualización

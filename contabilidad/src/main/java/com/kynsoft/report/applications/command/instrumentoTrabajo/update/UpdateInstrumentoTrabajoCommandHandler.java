@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.command.instrumentoTrabajo.update;
 
-import com.kynsof.share.core.domain.bus.command.ICommandHandler;
+import com.kynsoft.share.core.domain.bus.command.ICommandHandler;
 import com.kynsoft.report.domain.dto.InstrumentoTrabajoDto;
 import com.kynsoft.report.domain.services.IInstrumentoTrabajoService;
 import lombok.AllArgsConstructor;

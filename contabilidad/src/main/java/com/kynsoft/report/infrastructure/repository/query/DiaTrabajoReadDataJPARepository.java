@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@Transactional(readOnly = true, transactionManager = "readTransactionManager")
 public interface DiaTrabajoReadDataJPARepository 
     extends JpaRepository<DiaTrabajo, UUID>, JpaSpecificationExecutor<DiaTrabajo> {
     
@@ -30,6 +32,7 @@ public interface DiaTrabajoReadDataJPARepository
            "LEFT JOIN FETCH dt.trabajadores td " +
            "LEFT JOIN FETCH td.trabajador t " +
            "WHERE dt.reporte.id = :reporteId " +
+           "AND dt.reporte.activo = true " +
            "ORDER BY dt.fecha ASC")
     List<DiaTrabajo> findByReporteIdWithTrabajadores(@Param("reporteId") UUID reporteId);
     
@@ -38,6 +41,7 @@ public interface DiaTrabajoReadDataJPARepository
            "LEFT JOIN FETCH dt.trabajadores td " +
            "LEFT JOIN FETCH td.trabajador t " +
            "WHERE dt.reporte.year = :year AND dt.reporte.mes = :mes " +
+           "AND dt.reporte.activo = true " +
            "ORDER BY dt.fecha ASC")
     List<DiaTrabajo> findByYearAndMesWithTrabajadores(
         @Param("year") String year,

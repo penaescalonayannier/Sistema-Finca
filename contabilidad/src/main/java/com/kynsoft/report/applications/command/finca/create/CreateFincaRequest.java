@@ -9,4 +9,7 @@ public class CreateFincaRequest {
     private String code;
     private String name;
     private String description;
+    private String direccion;
+    private String telefono;
+    private Double area;
 }

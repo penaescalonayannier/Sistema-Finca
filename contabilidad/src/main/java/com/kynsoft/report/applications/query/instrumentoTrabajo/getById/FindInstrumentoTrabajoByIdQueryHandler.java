@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.query.instrumentoTrabajo.getById;
 
-import com.kynsof.share.core.domain.bus.query.IQueryHandler;
+import com.kynsoft.share.core.domain.bus.query.IQueryHandler;
 import com.kynsoft.report.applications.query.responseObject.InstrumentoTrabajoResponse;
 import com.kynsoft.report.domain.dto.InstrumentoTrabajoDto;
 import com.kynsoft.report.domain.services.IInstrumentoTrabajoService;

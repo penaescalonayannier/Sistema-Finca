@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.query.metricas.ausentismo;
 
-import com.kynsof.share.core.domain.bus.query.IQueryHandler;
+import com.kynsoft.share.core.domain.bus.query.IQueryHandler;
 import com.kynsoft.report.applications.query.responseObject.AbsentismoListResponse;
 import com.kynsoft.report.domain.services.IReportesMetricasService;
 import lombok.AllArgsConstructor;

@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.command.trabajadorReporte.update;
 
-import com.kynsof.share.core.domain.bus.command.ICommandHandler;
+import com.kynsoft.share.core.domain.bus.command.ICommandHandler;
 import com.kynsoft.report.domain.dto.TrabajadorReporteDto;
 import com.kynsoft.report.domain.services.ITrabajadorReporteService;
 import lombok.AllArgsConstructor;

@@ -1,12 +1,12 @@
 package com.kynsoft.report.infrastructure.services;
 
-import com.kynsof.share.core.domain.exception.BusinessNotFoundException;
-import com.kynsof.share.core.domain.exception.DomainErrorMessage;
-import com.kynsof.share.core.domain.exception.GlobalBusinessException;
-import com.kynsof.share.core.domain.request.FilterCriteria;
-import com.kynsof.share.core.domain.response.ErrorField;
-import com.kynsof.share.core.domain.response.PaginatedResponse;
-import com.kynsof.share.core.infrastructure.specifications.GenericSpecificationsBuilder;
+import com.kynsoft.share.core.domain.exception.BusinessNotFoundException;
+import com.kynsoft.share.core.domain.exception.DomainErrorMessage;
+import com.kynsoft.share.core.domain.exception.GlobalBusinessException;
+import com.kynsoft.share.core.domain.request.FilterCriteria;
+import com.kynsoft.share.core.domain.response.ErrorField;
+import com.kynsoft.share.core.domain.response.PaginatedResponse;
+import com.kynsoft.share.core.infrastructure.specifications.GenericSpecificationsBuilder;
 import com.kynsoft.report.applications.query.responseObject.ReporteResponse;
 import com.kynsoft.report.domain.dto.ReporteConsolidadoDto;
 import com.kynsoft.report.domain.dto.ReporteConsolidadoPorResponsablePdfDto;
@@ -21,6 +21,7 @@ import com.kynsoft.report.infrastructure.entity.TrabajadorDia;
 import com.kynsoft.report.infrastructure.repository.command.ReporteWriteDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.DiaTrabajoReadDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.ReporteReadDataJPARepository;
+import com.kynsoft.report.infrastructure.security.TenantSpecification;
 import java.time.YearMonth;
 import java.util.Collections;
 import java.util.Comparator;
@@ -29,6 +30,7 @@ import java.util.LinkedHashMap;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -36,6 +38,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class ReporteServiceImpl implements IReporteService {
 
     private final ReporteWriteDataJPARepository repositoryCommand;
@@ -81,18 +84,14 @@ public class ReporteServiceImpl implements IReporteService {
 
     @Override
     public void delete(UUID id) {
-        try {
-            // Verificar que el producto exista antes de eliminar
-            repositoryQuery.findById(id)
-                    .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
-                    DomainErrorMessage.BUSINESS_NOT_FOUND,
-                    new ErrorField("id", "Reporte not found."))));
-            repositoryCommand.deleteById(id);
-        } catch (Exception e) {
-            throw new BusinessNotFoundException(new GlobalBusinessException(
-                    DomainErrorMessage.NOT_DELETE,
-                    new ErrorField("id", "Element cannot be deleted as it has a related element.")));
-        }
+        Reporte reporte = repositoryQuery.findById(id)
+                .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
+                DomainErrorMessage.BUSINESS_NOT_FOUND,
+                new ErrorField("id", "Reporte not found."))));
+
+        // Soft delete: marcar como inactivo
+        reporte.setActivo(false);
+        repositoryCommand.save(reporte);
     }
 
     @Override
@@ -106,8 +105,17 @@ public class ReporteServiceImpl implements IReporteService {
 
     @Override
     public PaginatedResponse search(Pageable pageable, List<FilterCriteria> filterCriteria) {
-        GenericSpecificationsBuilder<Producto> specifications = new GenericSpecificationsBuilder<>(filterCriteria);
-        Page<Reporte> data = repositoryQuery.findAll(specifications, pageable);
+        // Construir especificación base con filtros del usuario
+        GenericSpecificationsBuilder<Reporte> specifications = new GenericSpecificationsBuilder<>(filterCriteria);
+
+        // Agregar filtro de activos por defecto y filtro de tenant
+        org.springframework.data.jpa.domain.Specification<Reporte> activoSpec = (root, query, cb) -> cb.equal(root.get("activo"), true);
+        org.springframework.data.jpa.domain.Specification<Reporte> combinedSpec = org.springframework.data.jpa.domain.Specification
+                .where(specifications)
+                .and(activoSpec)
+                .and(TenantSpecification.byFincaDirecta());
+
+        Page<Reporte> data = repositoryQuery.findAll(combinedSpec, pageable);
         return createPaginatedResponse(data);
     }
 
@@ -316,11 +324,8 @@ public class ReporteServiceImpl implements IReporteService {
     private double calcularTotalHoras(Map<Integer, String> horasPorDia) {
         return horasPorDia.values().stream()
                 .mapToDouble(h -> {
-                    try {
-                        return Double.parseDouble(h);
-                    } catch (NumberFormatException e) {
-                        return 0.0;
-                    }
+                    if (h == null || h.isEmpty()) return 0.0;
+                    return (double) convertirHorasANumero(h);
                 })
                 .sum();
     }
@@ -404,5 +409,35 @@ public class ReporteServiceImpl implements IReporteService {
                 this.horasPorDia.put(i, "");
             }
         }
+    }
+
+    @Override
+    public String generateCodigo(String year, String mes) {
+        int mesNumero = getMonthNumber(mes);
+        String mesFormateado = String.format("%02d", mesNumero);
+
+        // Buscar el máximo código existente (activos e inactivos)
+        String maxCodigo = repositoryQuery.findMaxCodigoByYearAndMes(year, mes);
+
+        long consecutivo = 1;
+        if (maxCodigo != null) {
+            // Extraer el consecutivo del código: año_mes_XX
+            String[] partes = maxCodigo.split("_");
+            if (partes.length == 3) {
+                consecutivo = Long.parseLong(partes[2]) + 1;
+            }
+        }
+
+        // Formato: año_mes_consecutivo (ej: 2026_08_01)
+        return year + "_" + mesFormateado + "_" + String.format("%02d", consecutivo);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ReporteDto> getReportesPorTrabajador(UUID trabajadorId, String year, String mes) {
+        List<Reporte> reportes = repositoryQuery.findByTrabajadorIdAndYearAndMes(trabajadorId, year, mes);
+        return reportes.stream()
+                .map(Reporte::toAggregate)
+                .collect(Collectors.toList());
     }
 }

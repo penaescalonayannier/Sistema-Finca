@@ -1,7 +1,7 @@
 package com.kynsoft.report.applications.command;
 
-import com.kynsof.share.core.domain.bus.command.ICommand;
-import com.kynsof.share.core.domain.bus.command.ICommandMessage;
+import com.kynsoft.share.core.domain.bus.command.ICommand;
+import com.kynsoft.share.core.domain.bus.command.ICommandMessage;
 import com.kynsoft.report.applications.command.message.CreateEvaluacionMessage;
 import java.util.UUID;
 import lombok.Getter;

@@ -1,0 +1,9 @@
+.git
+.gitignore
+*.md
+.idea
+.vscode
+*.iml
+src
+target/*
+!target/contabilidad-1.0.0.jar

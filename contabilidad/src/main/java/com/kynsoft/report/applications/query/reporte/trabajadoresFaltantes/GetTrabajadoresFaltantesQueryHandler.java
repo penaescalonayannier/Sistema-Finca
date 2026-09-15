@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.query.reporte.trabajadoresFaltantes;
 
-import com.kynsof.share.core.domain.bus.query.IQueryHandler;
+import com.kynsoft.share.core.domain.bus.query.IQueryHandler;
 import com.kynsoft.report.applications.query.responseObject.TrabajadoresFaltantesListResponse;
 import com.kynsoft.report.applications.query.responseObject.TrabajadoresFaltantesResponse;
 import com.kynsoft.report.infrastructure.entity.DiaTrabajo;

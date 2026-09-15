@@ -1,9 +1,9 @@
 package com.kynsoft.report.controller;
 
-import com.kynsof.share.core.domain.request.PageableUtil;
-import com.kynsof.share.core.domain.request.SearchRequest;
-import com.kynsof.share.core.domain.response.PaginatedResponse;
-import com.kynsof.share.core.infrastructure.bus.IMediator;
+import com.kynsoft.share.core.domain.request.PageableUtil;
+import com.kynsoft.share.core.domain.request.SearchRequest;
+import com.kynsoft.share.core.domain.response.PaginatedResponse;
+import com.kynsoft.share.core.infrastructure.bus.IMediator;
 import com.kynsoft.report.applications.command.diatrabajo.create.CreateDiaTrabajoCommand;
 import com.kynsoft.report.applications.command.diatrabajo.create.CreateDiaTrabajoMessage;
 import com.kynsoft.report.applications.command.diatrabajo.create.CreateDiaTrabajoRequest;
@@ -40,17 +40,33 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import com.kynsoft.report.domain.services.IReporteService;
+import com.kynsoft.report.infrastructure.services.PrenominaExcelService;
 
 @RestController
 @RequestMapping("/api/reporte")
 public class ReporteController {
 
     private final IMediator mediator;
+    private final IReporteService reporteService;
+    private final PrenominaExcelService prenominaExcelService;
 
-    public ReporteController(IMediator mediator) {
+    public ReporteController(IMediator mediator, IReporteService reporteService, PrenominaExcelService prenominaExcelService) {
         this.mediator = mediator;
+        this.reporteService = reporteService;
+        this.prenominaExcelService = prenominaExcelService;
+    }
+
+    // ==================== OBTENER PRÓXIMO CÓDIGO DISPONIBLE ====================
+    @GetMapping("/next-codigo")
+    public ResponseEntity<Map<String, String>> getNextCodigo(
+            @RequestParam String year,
+            @RequestParam String mes) {
+        String codigo = reporteService.generateCodigo(year, mes);
+        return ResponseEntity.ok(Map.of("codigo", codigo));
     }
 
     @PostMapping("")
@@ -280,6 +296,45 @@ public class ReporteController {
         return ResponseEntity.ok(response);
     }
 
+    // ==================== ESCRIBIR HORAS EN PRENÓMINA EXCEL Y DESCARGAR ====================
+    @PostMapping(value = "/consolidado/escribir-prenomina", produces = "application/vnd.ms-excel")
+    public ResponseEntity<?> escribirHorasPrenomina(
+            @RequestBody Map<String, Double> horasPorRuc,
+            @RequestParam(required = false, defaultValue = "PRENOMINA_HORAS") String nombreArchivo) {
+        try {
+            PrenominaExcelService.WriteResult resultado = prenominaExcelService.escribirHorasEnPrenomina(horasPorRuc);
+
+            byte[] excelBytes = resultado.getArchivoBytes();
+
+            if (excelBytes == null || excelBytes.length == 0) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(Map.of("error", "El archivo generado está vacío"));
+            }
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + nombreArchivo + ".xls");
+            headers.add(HttpHeaders.CONTENT_TYPE, "application/vnd.ms-excel");
+            headers.add("X-Actualizados", String.valueOf(resultado.getActualizados()));
+            headers.add("X-No-Encontrados", String.valueOf(resultado.getNoEncontrados()));
+            headers.add("X-Total", String.valueOf(resultado.getTotalEnConsolidado()));
+            headers.add("Access-Control-Expose-Headers", "X-Actualizados, X-No-Encontrados, X-Total");
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .contentLength(excelBytes.length)
+                    .body(excelBytes);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                    .body(Map.of(
+                        "success", false,
+                        "error", "Error al escribir en el archivo de prenómina: " + e.getMessage()
+                    ));
+        }
+    }
+
     // ==================== TRABAJADORES NO REPORTADOS EN CONSOLIDADO ====================
     @GetMapping("/consolidado/trabajadores-faltantes")
     public ResponseEntity<TrabajadoresFaltantesListResponse> getTrabajadoresFaltantes(
@@ -289,5 +344,19 @@ public class ReporteController {
             new com.kynsoft.report.applications.query.reporte.trabajadoresFaltantes.GetTrabajadoresFaltantesQuery(year, mes);
         TrabajadoresFaltantesListResponse response = mediator.send(query);
         return ResponseEntity.ok(response);
+    }
+
+    // ==================== REPORTES POR TRABAJADOR (para modal en consolidado) ====================
+    @GetMapping("/por-trabajador/{trabajadorId}")
+    public ResponseEntity<List<ReporteResponse>> getReportesPorTrabajador(
+            @PathVariable UUID trabajadorId,
+            @RequestParam String year,
+            @RequestParam String mes) {
+        List<com.kynsoft.report.domain.dto.ReporteDto> reportes =
+            reporteService.getReportesPorTrabajador(trabajadorId, year, mes);
+        List<ReporteResponse> responses = reportes.stream()
+                .map(ReporteResponse::new)
+                .collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(responses);
     }
 }

@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.command.reporte.generatePdf;
 
-import com.kynsof.share.core.domain.bus.command.ICommandHandler;
+import com.kynsoft.share.core.domain.bus.command.ICommandHandler;
 import com.kynsoft.report.domain.dto.DiaTrabajoDto;
 import com.kynsoft.report.domain.dto.ReporteDto;
 import com.kynsoft.report.domain.dto.ReportePdfDto;

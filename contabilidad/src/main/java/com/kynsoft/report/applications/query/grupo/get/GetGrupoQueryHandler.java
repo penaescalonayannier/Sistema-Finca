@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.query.grupo.get;
 
-import com.kynsof.share.core.domain.bus.query.IQueryHandler;
+import com.kynsoft.share.core.domain.bus.query.IQueryHandler;
 import com.kynsoft.report.applications.query.responseObject.GrupoResponse;
 import com.kynsoft.report.domain.dto.GrupoDto;
 import com.kynsoft.report.domain.services.IGrupoService;

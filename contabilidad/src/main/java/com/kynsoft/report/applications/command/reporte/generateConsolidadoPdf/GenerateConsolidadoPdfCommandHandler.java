@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.command.reporte.generateConsolidadoPdf;
 
-import com.kynsof.share.core.domain.bus.command.ICommandHandler;
+import com.kynsoft.share.core.domain.bus.command.ICommandHandler;
 import com.kynsoft.report.domain.dto.ReporteConsolidadoDto;
 import com.kynsoft.report.domain.dto.ReporteConsolidadoPdfDto;
 import com.kynsoft.report.domain.services.IReporteConsolidadoPdfService;

@@ -1,6 +1,6 @@
 package com.kynsoft.report.controller;
 
-import com.kynsof.share.core.infrastructure.bus.IMediator;
+import com.kynsoft.share.core.infrastructure.bus.IMediator;
 import com.kynsoft.report.applications.command.report.recetaMedica.ReportRecetaMedicaCMessage;
 import com.kynsoft.report.applications.command.report.recetaMedica.ReportRecetaMedicaCommand;
 import com.kynsoft.report.applications.command.report.recetaMedica.ReportRecetaMedicaRequest;

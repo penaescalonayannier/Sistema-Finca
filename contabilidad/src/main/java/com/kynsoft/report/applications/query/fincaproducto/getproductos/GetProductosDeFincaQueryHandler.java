@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.query.fincaproducto.getproductos;
 
-import com.kynsof.share.core.domain.bus.query.IQueryHandler;
+import com.kynsoft.share.core.domain.bus.query.IQueryHandler;
 import com.kynsoft.report.applications.query.responseObject.FincaProductoListResponse;
 import com.kynsoft.report.applications.query.responseObject.FincaProductoResponse;
 import com.kynsoft.report.domain.dto.FincaProductoDto;

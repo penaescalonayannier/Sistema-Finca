@@ -1,0 +1,14 @@
+[Unit]
+Description=Sincronización eventual de Sistema Finca
+Wants=network-online.target
+After=network-online.target postgresql.service
+
+[Service]
+Type=oneshot
+User=finca
+WorkingDirectory=/opt/sistema-finca
+Environment=SYNC_CONFIG=/etc/sistema-finca/peers.env
+ExecStart=/opt/sistema-finca/sync/sync-now.sh
+
+[Install]
+WantedBy=multi-user.target

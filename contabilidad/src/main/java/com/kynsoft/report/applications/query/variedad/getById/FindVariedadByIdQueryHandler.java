@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.query.variedad.getById;
 
-import com.kynsof.share.core.domain.bus.query.IQueryHandler;
+import com.kynsoft.share.core.domain.bus.query.IQueryHandler;
 import com.kynsoft.report.applications.query.responseObject.VariedadResponse;
 import com.kynsoft.report.domain.dto.VariedadDto;
 import com.kynsoft.report.domain.services.IVariedadService;

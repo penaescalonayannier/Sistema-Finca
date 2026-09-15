@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.query.reporte.trabajadoresExcedidos;
 
-import com.kynsof.share.core.domain.bus.query.IQueryHandler;
+import com.kynsoft.share.core.domain.bus.query.IQueryHandler;
 import com.kynsoft.report.applications.query.responseObject.TrabajadorHorasExcedidasListResponse;
 import com.kynsoft.report.applications.query.responseObject.TrabajadorHorasExcedidasResponse;
 import com.kynsoft.report.infrastructure.entity.DiaTrabajo;
@@ -10,7 +10,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
-import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -34,38 +33,58 @@ public class GetTrabajadoresConHorasExcedidasQueryHandler
             return new TrabajadorHorasExcedidasListResponse(Collections.emptyList());
         }
 
-        // Mapa para agrupar trabajadores con horas excedidas: trabajadorId -> Datos
-        Map<String, TrabajadorExcedidoData> trabajadoresExcedidos = new HashMap<>();
+        // Paso 1: Consolidar horas por trabajador y fecha
+        // Estructura: trabajadorId -> { fecha -> horasTotales }
+        Map<String, Map<LocalDate, Double>> horasPorTrabajadorYFecha = new HashMap<>();
+        // Guardar datos del trabajador: trabajadorId -> TrabajadorInfo
+        Map<String, TrabajadorInfo> trabajadoresInfo = new HashMap<>();
 
-        // Procesar cada día
         for (DiaTrabajo dia : dias) {
-            // Procesar cada trabajador del día
+            LocalDate fecha = dia.getFecha();
+
             for (TrabajadorDia td : dia.getTrabajadores()) {
                 String horasStr = td.getHoras();
 
                 if (horasStr != null && !horasStr.isEmpty()) {
                     double horas = convertirHorasANumero(horasStr);
+                    String trabajadorId = td.getTrabajador().getId().toString();
 
-                    // Si las horas exceden 8, agregar al registro
-                    if (horas > 8.0) {
-                        String trabajadorId = td.getTrabajador().getId().toString();
+                    // Guardar info del trabajador si no existe
+                    trabajadoresInfo.computeIfAbsent(trabajadorId, k -> new TrabajadorInfo(
+                            trabajadorId,
+                            td.getTrabajador().getNombre(),
+                            td.getTrabajador().getRuc(),
+                            td.getTrabajador().getCargo() != null ? td.getTrabajador().getCargo().getName() : null
+                    ));
 
-                        TrabajadorExcedidoData data = trabajadoresExcedidos.computeIfAbsent(
-                                trabajadorId,
-                                k -> new TrabajadorExcedidoData(
-                                        trabajadorId,
-                                        td.getTrabajador().getNombre(),
-                                        td.getTrabajador().getRuc(),
-                                        td.getTrabajador().getCargo() != null ? td.getTrabajador().getCargo().getName() : null
-                                )
-                        );
+                    // Sumar horas para este trabajador en esta fecha
+                    horasPorTrabajadorYFecha
+                            .computeIfAbsent(trabajadorId, k -> new HashMap<>())
+                            .merge(fecha, horas, Double::sum);
+                }
+            }
+        }
 
-                        // Agregar el día excedido
-                        data.diasExcedidos.add(new DiaExcedido(
-                                formatearFecha(dia.getFecha()),
-                                horas
-                        ));
-                    }
+        // Paso 2: Identificar trabajadores con días excedidos (horas totales > 8)
+        Map<String, TrabajadorExcedidoData> trabajadoresExcedidos = new HashMap<>();
+
+        for (Map.Entry<String, Map<LocalDate, Double>> entry : horasPorTrabajadorYFecha.entrySet()) {
+            String trabajadorId = entry.getKey();
+            Map<LocalDate, Double> horasPorFecha = entry.getValue();
+
+            for (Map.Entry<LocalDate, Double> fechaEntry : horasPorFecha.entrySet()) {
+                LocalDate fecha = fechaEntry.getKey();
+                double horasTotales = fechaEntry.getValue();
+
+                if (horasTotales > 8.0) {
+                    TrabajadorInfo info = trabajadoresInfo.get(trabajadorId);
+
+                    TrabajadorExcedidoData data = trabajadoresExcedidos.computeIfAbsent(
+                            trabajadorId,
+                            k -> new TrabajadorExcedidoData(info.trabajadorId, info.nombre, info.ruc, info.cargo)
+                    );
+
+                    data.diasExcedidos.add(new DiaExcedido(formatearFecha(fecha), horasTotales));
                 }
             }
         }
@@ -78,6 +97,7 @@ public class GetTrabajadoresConHorasExcedidasQueryHandler
                         data.ruc,
                         data.cargo,
                         data.diasExcedidos.stream()
+                                .sorted(Comparator.comparing(d -> d.fecha))
                                 .map(d -> new TrabajadorHorasExcedidasResponse.DiaExcedidoResponse(d.fecha, d.horas))
                                 .collect(Collectors.toList())
                 ))
@@ -98,6 +118,21 @@ public class GetTrabajadoresConHorasExcedidasQueryHandler
     private String formatearFecha(LocalDate fecha) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         return fecha.format(formatter);
+    }
+
+    // Clase interna para almacenar info básica del trabajador
+    private static class TrabajadorInfo {
+        String trabajadorId;
+        String nombre;
+        String ruc;
+        String cargo;
+
+        TrabajadorInfo(String trabajadorId, String nombre, String ruc, String cargo) {
+            this.trabajadorId = trabajadorId;
+            this.nombre = nombre;
+            this.ruc = ruc;
+            this.cargo = cargo;
+        }
     }
 
     // Clase interna para almacenar datos temporales

@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.command.bloque.update;
 
-import com.kynsof.share.core.domain.bus.command.ICommandHandler;
+import com.kynsoft.share.core.domain.bus.command.ICommandHandler;
 import com.kynsoft.report.domain.dto.BloqueDto;
 import com.kynsoft.report.domain.services.IBloqueService;
 import lombok.AllArgsConstructor;
@@ -22,6 +22,7 @@ public class UpdateBloqueCommandHandler implements ICommandHandler<UpdateBloqueC
                 .id(dto.getId())
                 .code(command.getCode())
                 .name(command.getName())
+                .fincaId(command.getFincaId())
                 .build();
 
         // 3. Llamar al servicio para persistir la actualización

@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.query.unidadmedida.getById;
 
-import com.kynsof.share.core.domain.bus.query.IQueryHandler;
+import com.kynsoft.share.core.domain.bus.query.IQueryHandler;
 import com.kynsoft.report.applications.query.responseObject.UnidadMedidaResponse;
 import com.kynsoft.report.domain.dto.UnidadMedidaDto;
 import com.kynsoft.report.domain.services.IUnidadMedidaService;

@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.command.report.cuenta110.update.importe;
 
-import com.kynsof.share.core.domain.bus.command.ICommandHandler;
+import com.kynsoft.share.core.domain.bus.command.ICommandHandler;
 import com.kynsoft.report.domain.dto.Cuenta110EfectivoBancoDto;
 import com.kynsoft.report.domain.services.ICuenta110EfectivoBancoService;
 import org.springframework.stereotype.Component;

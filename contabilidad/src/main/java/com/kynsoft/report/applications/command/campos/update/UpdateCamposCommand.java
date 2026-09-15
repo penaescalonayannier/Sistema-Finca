@@ -1,10 +1,11 @@
 package com.kynsoft.report.applications.command.campos.update;
 
-import com.kynsof.share.core.domain.bus.command.ICommand;
-import com.kynsof.share.core.domain.bus.command.ICommandMessage;
+import com.kynsoft.share.core.domain.bus.command.ICommand;
+import com.kynsoft.share.core.domain.bus.command.ICommandMessage;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 
@@ -21,6 +22,13 @@ public class UpdateCamposCommand implements ICommand {
     private Double poblacion;
     private String destino;
     private Double rendimiento;
+    private Double valorAdquisicion;
+    private Double depreciacionAcumulada;
+    private Double valorResidual;
+    private Integer anosCepa;
+    private Double tasaDepreciacionAnual;
+    private Integer vidaUtilAnios;
+    private LocalDate fechaInicioDepreciacion;
 
     public static UpdateCamposCommand fromRequest(UpdateCamposRequest request, UUID id) {
         return new UpdateCamposCommand(
@@ -32,7 +40,14 @@ public class UpdateCamposCommand implements ICommand {
                 request.getArea(),
                 request.getPoblacion(),
                 request.getDestino(),
-                request.getRendimiento()
+                request.getRendimiento(),
+                request.getValorAdquisicion(),
+                request.getDepreciacionAcumulada(),
+                request.getValorResidual(),
+                request.getAnosCepa(),
+                request.getTasaDepreciacionAnual(),
+                request.getVidaUtilAnios(),
+                request.getFechaInicioDepreciacion()
         );
     }
 

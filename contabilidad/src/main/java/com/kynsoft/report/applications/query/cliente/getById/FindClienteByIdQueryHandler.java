@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.query.cliente.getById;
 
-import com.kynsof.share.core.domain.bus.query.IQueryHandler;
+import com.kynsoft.share.core.domain.bus.query.IQueryHandler;
 import com.kynsoft.report.applications.query.responseObject.ClienteResponse;
 import com.kynsoft.report.domain.dto.ClienteDto;
 import com.kynsoft.report.domain.services.IClienteService;

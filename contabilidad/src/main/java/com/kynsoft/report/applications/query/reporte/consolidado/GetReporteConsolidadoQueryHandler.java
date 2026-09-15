@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.query.reporte.consolidado;
 
-import com.kynsof.share.core.domain.bus.query.IQueryHandler;
+import com.kynsoft.share.core.domain.bus.query.IQueryHandler;
 import com.kynsoft.report.applications.query.responseObject.ReporteConsolidadoResponse;
 import com.kynsoft.report.applications.query.responseObject.TrabajadorConsolidadoResponse;
 import com.kynsoft.report.infrastructure.entity.DiaTrabajo;

@@ -1,6 +1,6 @@
 package com.kynsoft.report.applications.query.reporte.consolidadoPorResponsable;
 
-import com.kynsof.share.core.domain.bus.query.IQueryHandler;
+import com.kynsoft.share.core.domain.bus.query.IQueryHandler;
 import com.kynsoft.report.applications.query.responseObject.ReporteConsolidadoPorResponsableResponse;
 import com.kynsoft.report.applications.query.responseObject.TrabajadorConsolidadoResponse;
 import com.kynsoft.report.domain.dto.ResponsableConsolidadoDto;
@@ -162,11 +162,8 @@ public class GetReporteConsolidadoPorResponsableQueryHandler
     private double calcularTotalHoras(Map<Integer, String> horasPorDia) {
         return horasPorDia.values().stream()
                 .mapToDouble(h -> {
-                    try {
-                        return Double.parseDouble(h);
-                    } catch (NumberFormatException e) {
-                        return 0.0;
-                    }
+                    if (h == null || h.isEmpty()) return 0.0;
+                    return (double) convertirHorasANumero(h);
                 })
                 .sum();
     }
