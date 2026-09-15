@@ -49,6 +49,7 @@ Solo se ejecuta cuando el usuario confirme que no hay personal trabajando con el
 
 El proceso descarga `main`, compila la librería compartida y el backend, ejecuta `npm ci`, sustituye el JAR, reinicia los servicios y consulta `http://127.0.0.1:9908/actuator/health`.
 El propio actualizador se renueva desde GitHub para la siguiente ejecución.
+El frontend se instala con `npm ci --legacy-peer-deps` debido a la incompatibilidad conocida entre sus versiones fijadas de ESLint y el validador de pares de npm 10.
 
 Para verificar después de una actualización:
 

@@ -117,7 +117,7 @@ main() {
     bash "$SOURCE_DIR/contabilidad/mvnw" -f "$SOURCE_DIR/contabilidad/pom.xml" -DskipTests clean package
 
     log "Instalando dependencias del frontend"
-    npm --prefix "$FRONTEND_DIR" ci
+    npm --prefix "$FRONTEND_DIR" ci --legacy-peer-deps
 
     install_backend
 
