@@ -104,6 +104,9 @@ main() {
 
     backup_frontend_environment
     update_repository "$SOURCE_DIR" "$MAIN_REPO_URL"
+
+    # La siguiente ejecución usará la versión del actualizador descargada de GitHub.
+    install -m 755 "$SOURCE_DIR/deploy/update-from-github.sh" "$BASE_DIR/update-from-github.sh"
     update_repository "$FRONTEND_DIR" "$FRONTEND_REPO_URL"
     restore_frontend_environment
 
