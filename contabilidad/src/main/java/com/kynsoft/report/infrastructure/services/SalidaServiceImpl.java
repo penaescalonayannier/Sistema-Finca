@@ -98,6 +98,13 @@ public class SalidaServiceImpl implements ISalidaService {
 
     @Override
     public UUID create(SalidaDto dto, List<ItemSalidaDto> items) {
+        // La entidad Salida usa identificadores UUID asignados por la aplicación.
+        // Las salidas creadas fuera del comando estándar (por ejemplo, una salida múltiple)
+        // también deben recibirlo antes de persistir.
+        if (dto.getId() == null) {
+            dto.setId(UUID.randomUUID());
+        }
+
         // Validar que existe el FincaProducto (con producto cargado para obtener precios)
         FincaProducto fincaProducto = fincaProductoReadRepository.findByIdWithDetails(dto.getFincaProductoId())
                 .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
