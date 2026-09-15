@@ -14,6 +14,7 @@ import com.itextpdf.layout.Document;
 import com.itextpdf.layout.borders.Border;
 import com.itextpdf.layout.borders.SolidBorder;
 import com.itextpdf.layout.element.Cell;
+import com.itextpdf.layout.element.Div;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
 import com.itextpdf.layout.properties.TextAlignment;
@@ -61,7 +62,7 @@ public class FacturaPdfService {
         PdfFont fontNormal = PdfFontFactory.createFont("Helvetica");
 
         // ========== FACTURA/VALE ==========
-        generarPaginaFactura(document, salida, empresa, fontBold, fontNormal);
+        document.add(crearContenidoVale(salida, empresa, fontBold, fontNormal));
 
         // El listado de trabajadores solo corresponde a vales destinados a trabajadores.
         if (salida.getDestino() == DestinoSalida.TRABAJADORES) {
@@ -242,7 +243,9 @@ public class FacturaPdfService {
                         .setMarginBottom(8));
             }
             SalidaDto salida = salidas.get(indice);
-            generarPaginaFactura(document, salida, empresa, fontBold, fontNormal);
+            Div contenidoVale = crearContenidoVale(salida, empresa, fontBold, fontNormal);
+            contenidoVale.setKeepTogether(true);
+            document.add(contenidoVale);
             if (salida.getDestino() == DestinoSalida.TRABAJADORES) {
                 generarPaginaTrabajadores(document, salida, fontBold, fontNormal);
             }
@@ -266,8 +269,9 @@ public class FacturaPdfService {
         return generarFactura(salida, empresa);
     }
 
-    private void generarPaginaFactura(Document document, SalidaDto salida, ConfiguracionEmpresaDto empresa,
-                                       PdfFont fontBold, PdfFont fontNormal) {
+    private Div crearContenidoVale(SalidaDto salida, ConfiguracionEmpresaDto empresa,
+                                   PdfFont fontBold, PdfFont fontNormal) {
+        Div contenido = new Div();
 
         boolean esVale = salida.getTipo() == null || salida.getTipo().name().equals("VALE");
         String tipoDoc = esVale ? "VALE DE ENTREGA O DEVOLUCIÓN" : "FACTURA";
@@ -280,7 +284,7 @@ public class FacturaPdfService {
                 .setTextAlignment(TextAlignment.RIGHT)
                 .setFontColor(TEXT_DARK)
                 .setMarginBottom(2);
-        document.add(modeloParagraph);
+        contenido.add(modeloParagraph);
 
         // Título
         Paragraph titulo = new Paragraph(tipoDoc)
@@ -288,7 +292,7 @@ public class FacturaPdfService {
                 .setFontSize(16)
                 .setTextAlignment(TextAlignment.CENTER)
                 .setMarginBottom(5);
-        document.add(titulo);
+        contenido.add(titulo);
 
         // Número y fecha
         String fecha = salida.getFecha() != null
@@ -299,7 +303,7 @@ public class FacturaPdfService {
                 .setFontSize(10)
                 .setTextAlignment(TextAlignment.CENTER)
                 .setMarginBottom(10);
-        document.add(numeroFecha);
+        contenido.add(numeroFecha);
 
         // Tabla de cabecera (Suministrador y Receptor)
         Table headerTable = new Table(UnitValue.createPercentArray(new float[]{50, 50}))
@@ -330,7 +334,7 @@ public class FacturaPdfService {
         receptorCell.add(crearLineaInfo("Dirección:", "", fontNormal));
         headerTable.addCell(receptorCell);
 
-        document.add(headerTable);
+        contenido.add(headerTable);
 
         // Tabla de items
         Table itemsTable = new Table(UnitValue.createPercentArray(new float[]{6, 10, 32, 12, 13, 13, 14}))
@@ -389,7 +393,7 @@ public class FacturaPdfService {
                 .setBorder(new SolidBorder(BORDER_COLOR, 1))
                 .setPadding(3));
 
-        document.add(itemsTable);
+        contenido.add(itemsTable);
 
         // Firmas (según modelo oficial: Entregado, Transportador, Recibido, Contabilizado)
         Table firmasTable = new Table(UnitValue.createPercentArray(new float[]{25, 25, 25, 25}))
@@ -401,7 +405,8 @@ public class FacturaPdfService {
         firmasTable.addCell(crearCeldaFirma("Recibido", fontBold, fontNormal));
         firmasTable.addCell(crearCeldaFirma("Contabilizado", fontBold, fontNormal));
 
-        document.add(firmasTable);
+        contenido.add(firmasTable);
+        return contenido;
     }
 
     private void generarPaginaTrabajadores(Document document, SalidaDto salida, PdfFont fontBold, PdfFont fontNormal) {
