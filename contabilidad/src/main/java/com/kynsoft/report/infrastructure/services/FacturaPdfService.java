@@ -63,8 +63,10 @@ public class FacturaPdfService {
         // ========== FACTURA/VALE ==========
         generarPaginaFactura(document, salida, empresa, fontBold, fontNormal);
 
-        // ========== LISTADO DE TRABAJADORES ==========
-        generarPaginaTrabajadores(document, salida, fontBold, fontNormal);
+        // El listado de trabajadores solo corresponde a vales destinados a trabajadores.
+        if (salida.getDestino() == DestinoSalida.TRABAJADORES) {
+            generarPaginaTrabajadores(document, salida, fontBold, fontNormal);
+        }
 
         document.close();
         return baos.toByteArray();
@@ -145,10 +147,16 @@ public class FacturaPdfService {
         }
         document.add(resumenTable);
 
-        document.add(new Paragraph("Detalle por trabajador").setFont(fontBold).setFontSize(11).setMarginBottom(4));
-        Table detalleTable = new Table(UnitValue.createPercentArray(new float[]{6, 26, 25, 10, 10, 11, 12}))
+        boolean esDestinoTrabajadores = destino == DestinoSalida.TRABAJADORES;
+        document.add(new Paragraph(esDestinoTrabajadores ? "Detalle por trabajador" : "Detalle de vales")
+                .setFont(fontBold).setFontSize(11).setMarginBottom(4));
+        Table detalleTable = new Table(UnitValue.createPercentArray(esDestinoTrabajadores
+                ? new float[]{6, 26, 25, 10, 10, 11, 12}
+                : new float[]{7, 35, 12, 14, 15, 17}))
                 .setWidth(UnitValue.createPercentValue(100));
-        String[] detalleHeaders = {"No.", "Trabajador", "Producto", "U/M", "Cantidad", "Vale", "Importe"};
+        String[] detalleHeaders = esDestinoTrabajadores
+                ? new String[]{"No.", "Trabajador", "Producto", "U/M", "Cantidad", "Vale", "Importe"}
+                : new String[]{"No.", "Producto", "U/M", "Cantidad", "Vale", "Importe"};
         for (String header : detalleHeaders) {
             detalleTable.addHeaderCell(celdaEncabezado(header, fontBold));
         }
@@ -163,8 +171,10 @@ public class FacturaPdfService {
                 int cantidad = item.getCantidad() != null ? item.getCantidad() : 0;
                 double importe = cantidad * (item.getPrecio() != null ? item.getPrecio() : 0d);
                 detalleTable.addCell(crearCeldaTabla(String.valueOf(consecutivo++), fontNormal, TextAlignment.CENTER, fondo));
-                detalleTable.addCell(crearCeldaTabla(item.getTrabajadorNombre() != null
-                        ? item.getTrabajadorNombre() : "Sin trabajador", fontNormal, TextAlignment.LEFT, fondo));
+                if (esDestinoTrabajadores) {
+                    detalleTable.addCell(crearCeldaTabla(item.getTrabajadorNombre() != null
+                            ? item.getTrabajadorNombre() : "Sin trabajador", fontNormal, TextAlignment.LEFT, fondo));
+                }
                 detalleTable.addCell(crearCeldaTabla(productoName(salida, item), fontNormal, TextAlignment.LEFT, fondo));
                 detalleTable.addCell(crearCeldaTabla(unidadMedida(salida, item), fontNormal, TextAlignment.CENTER, fondo));
                 detalleTable.addCell(crearCeldaTabla(String.valueOf(cantidad), fontNormal, TextAlignment.CENTER, fondo));
