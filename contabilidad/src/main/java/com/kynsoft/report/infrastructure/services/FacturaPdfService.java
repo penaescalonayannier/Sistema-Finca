@@ -315,12 +315,14 @@ public class FacturaPdfService {
                 .setBorder(new SolidBorder(BORDER_COLOR, 1))
                 .setPadding(6);
         suministradorCell.add(new Paragraph("SUMINISTRADOR").setFont(fontBold).setFontSize(9).setMarginBottom(3));
-        suministradorCell.add(crearLineaInfo("Nombre:", empresa.getNombre(), fontNormal));
-        suministradorCell.add(crearLineaInfo("Código:", empresa.getCodigo(), fontNormal));
-        suministradorCell.add(crearLineaInfo("NIT:", empresa.getNit(), fontNormal));
-        suministradorCell.add(crearLineaInfo("Dirección:", empresa.getDireccionCompleta(), fontNormal));
-        suministradorCell.add(crearLineaInfo("Cuenta:", empresa.getCuentaBancaria(), fontNormal));
-        suministradorCell.add(crearLineaInfo("Finca:", salida.getFincaCode() + " " + salida.getFincaName(), fontNormal));
+        Table datosSuministrador = crearTablaDatosDosColumnas();
+        datosSuministrador.addCell(crearCeldaDato("Nombre:", empresa.getNombre(), fontNormal));
+        datosSuministrador.addCell(crearCeldaDato("Dirección:", empresa.getDireccionCompleta(), fontNormal));
+        datosSuministrador.addCell(crearCeldaDato("Código:", empresa.getCodigo(), fontNormal));
+        datosSuministrador.addCell(crearCeldaDato("Cuenta:", empresa.getCuentaBancaria(), fontNormal));
+        datosSuministrador.addCell(crearCeldaDato("NIT:", empresa.getNit(), fontNormal));
+        datosSuministrador.addCell(crearCeldaDato("Finca:", salida.getFincaCode() + " " + salida.getFincaName(), fontNormal));
+        suministradorCell.add(datosSuministrador);
         headerTable.addCell(suministradorCell);
 
         // Receptor
@@ -328,10 +330,12 @@ public class FacturaPdfService {
                 .setBorder(new SolidBorder(BORDER_COLOR, 1))
                 .setPadding(6);
         receptorCell.add(new Paragraph("RECEPTOR").setFont(fontBold).setFontSize(9).setMarginBottom(3));
-        receptorCell.add(crearLineaInfo("Destino:", salida.getDestino() != null ? formatDestino(salida.getDestino().name()) : "", fontNormal));
-        receptorCell.add(crearLineaInfo("Nombre:", "", fontNormal));
-        receptorCell.add(crearLineaInfo("Código:", "", fontNormal));
-        receptorCell.add(crearLineaInfo("Dirección:", "", fontNormal));
+        Table datosReceptor = crearTablaDatosDosColumnas();
+        datosReceptor.addCell(crearCeldaDato("Destino:", salida.getDestino() != null ? formatDestino(salida.getDestino().name()) : "", fontNormal));
+        datosReceptor.addCell(crearCeldaDato("Nombre:", "", fontNormal));
+        datosReceptor.addCell(crearCeldaDato("Código:", "", fontNormal));
+        datosReceptor.addCell(crearCeldaDato("Dirección:", "", fontNormal));
+        receptorCell.add(datosReceptor);
         headerTable.addCell(receptorCell);
 
         contenido.add(headerTable);
@@ -510,6 +514,18 @@ public class FacturaPdfService {
                 .setFont(font)
                 .setFontSize(8)
                 .setMarginBottom(1);
+    }
+
+    private Table crearTablaDatosDosColumnas() {
+        return new Table(UnitValue.createPercentArray(new float[]{50, 50}))
+                .setWidth(UnitValue.createPercentValue(100));
+    }
+
+    private Cell crearCeldaDato(String etiqueta, String valor, PdfFont font) {
+        return new Cell()
+                .setBorder(Border.NO_BORDER)
+                .setPadding(1)
+                .add(crearLineaInfo(etiqueta, valor, font));
     }
 
     private Cell crearCeldaTabla(String texto, PdfFont font, TextAlignment alignment, Color bgColor) {
