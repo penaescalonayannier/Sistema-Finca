@@ -1,5 +1,7 @@
 # Despliegue en PCs Remotas
 
+> La guía vigente para actualizaciones de código es [OPERACION_ACTUALIZACION_GITHUB.md](OPERACION_ACTUALIZACION_GITHUB.md). GitHub es la fuente de verdad del código; las bases de datos de las PC no se reemplazan durante un despliegue.
+
 ## Resumen de PCs del Sistema
 
 | PC | Alias | IP | Usuario SSH | Rol |
