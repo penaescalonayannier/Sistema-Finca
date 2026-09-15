@@ -206,4 +206,42 @@ public class SalidaController {
             return ResponseEntity.internalServerError().build();
         }
     }
+
+    @PostMapping("/vales/individuales/pdf")
+    public ResponseEntity<byte[]> descargarValesIndividuales(@RequestBody ValesConsolidadosRequest request) {
+        if (request.getFecha() == null || request.getSalidaIds() == null || request.getSalidaIds().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        try {
+            List<SalidaDto> valesDelDia = salidaService.findValesActivosPorFecha(request.getFecha());
+            Set<UUID> seleccionados = Set.copyOf(request.getSalidaIds());
+            Map<UUID, SalidaDto> porId = valesDelDia.stream()
+                    .collect(Collectors.toMap(SalidaDto::getId, salida -> salida));
+            if (seleccionados.size() != request.getSalidaIds().size() || !porId.keySet().containsAll(seleccionados)) {
+                return ResponseEntity.badRequest().build();
+            }
+            List<SalidaDto> vales = valesDelDia.stream()
+                    .filter(salida -> seleccionados.contains(salida.getId()))
+                    .collect(Collectors.toList());
+            ConfiguracionEmpresaDto empresa = configuracionEmpresaService.findActive()
+                    .orElse(ConfiguracionEmpresaDto.builder()
+                            .nombre("El Coloso S.A.")
+                            .codigo("")
+                            .nit("")
+                            .direccion("Delicias")
+                            .municipio("Puerto Padre")
+                            .provincia("Las Tunas")
+                            .build());
+            byte[] pdfBytes = facturaPdfService.generarValesIndividuales(vales, empresa);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment", "Vales_individuales_" + request.getFecha() + ".pdf");
+            headers.setContentLength(pdfBytes.length);
+            return ResponseEntity.ok().headers(headers).body(pdfBytes);
+        } catch (Exception e) {
+            log.error("Error al generar PDF individual de vales para {}: {}", request.getFecha(), e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 }

@@ -210,6 +210,28 @@ public class FacturaPdfService {
     }
 
     /**
+     * Une los vales seleccionados respetando el formato individual de cada uno.
+     * Cada vale inicia en páginas nuevas dentro del mismo archivo PDF.
+     */
+    public byte[] generarValesIndividuales(List<SalidaDto> salidas,
+                                            ConfiguracionEmpresaDto empresa) throws Exception {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PdfDocument destinoPdf = new PdfDocument(new PdfWriter(baos));
+        PdfMerger merger = new PdfMerger(destinoPdf);
+        try {
+            for (SalidaDto salida : salidas) {
+                byte[] pdfVale = generarFactura(salida, empresa);
+                try (PdfDocument origen = new PdfDocument(new PdfReader(new ByteArrayInputStream(pdfVale)))) {
+                    merger.merge(origen, 1, origen.getNumberOfPages());
+                }
+            }
+        } finally {
+            merger.close();
+        }
+        return baos.toByteArray();
+    }
+
+    /**
      * Método legacy para compatibilidad hacia atrás.
      */
     public byte[] generarFactura(SalidaDto salida, String suministradorNombre, String suministradorCodigo,
