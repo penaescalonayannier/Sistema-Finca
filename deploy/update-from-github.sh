@@ -111,10 +111,10 @@ main() {
     restore_frontend_environment
 
     log "Instalando la librería compartida"
-    "$SOURCE_DIR/contabilidad/mvnw" -f "$SOURCE_DIR/share/pom.xml" -DskipTests install
+    bash "$SOURCE_DIR/contabilidad/mvnw" -f "$SOURCE_DIR/share/pom.xml" -DskipTests install
 
     log "Compilando backend"
-    "$SOURCE_DIR/contabilidad/mvnw" -f "$SOURCE_DIR/contabilidad/pom.xml" -DskipTests clean package
+    bash "$SOURCE_DIR/contabilidad/mvnw" -f "$SOURCE_DIR/contabilidad/pom.xml" -DskipTests clean package
 
     log "Instalando dependencias del frontend"
     npm --prefix "$FRONTEND_DIR" ci
