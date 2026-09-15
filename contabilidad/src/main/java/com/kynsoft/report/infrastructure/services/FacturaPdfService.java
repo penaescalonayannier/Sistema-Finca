@@ -17,6 +17,7 @@ import com.itextpdf.layout.element.Cell;
 import com.itextpdf.layout.element.Div;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
+import com.itextpdf.layout.element.Text;
 import com.itextpdf.layout.properties.TextAlignment;
 import com.itextpdf.layout.properties.UnitValue;
 import com.kynsoft.report.domain.dto.ConfiguracionEmpresaDto;
@@ -510,10 +511,12 @@ public class FacturaPdfService {
     }
 
     private Paragraph crearLineaInfo(String etiqueta, String valor, PdfFont font) {
-        return new Paragraph(etiqueta + " " + (valor != null ? valor : ""))
+        return new Paragraph()
                 .setFont(font)
                 .setFontSize(8)
-                .setMarginBottom(1);
+                .setMarginBottom(1)
+                .add(new Text(etiqueta + " ").setBold())
+                .add(new Text(valor != null ? valor : ""));
     }
 
     private Table crearTablaDatosDosColumnas() {
