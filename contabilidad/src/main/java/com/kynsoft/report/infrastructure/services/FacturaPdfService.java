@@ -223,23 +223,31 @@ public class FacturaPdfService {
 
     /**
      * Une los vales seleccionados respetando el formato individual de cada uno.
-     * Cada vale inicia en páginas nuevas dentro del mismo archivo PDF.
+     * No fuerza saltos de página: iText aprovecha el espacio disponible y solo crea
+     * una hoja nueva cuando el siguiente vale ya no cabe.
      */
     public byte[] generarValesIndividuales(List<SalidaDto> salidas,
                                             ConfiguracionEmpresaDto empresa) throws Exception {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        PdfDocument destinoPdf = new PdfDocument(new PdfWriter(baos));
-        PdfMerger merger = new PdfMerger(destinoPdf);
-        try {
-            for (SalidaDto salida : salidas) {
-                byte[] pdfVale = generarFactura(salida, empresa);
-                try (PdfDocument origen = new PdfDocument(new PdfReader(new ByteArrayInputStream(pdfVale)))) {
-                    merger.merge(origen, 1, origen.getNumberOfPages());
-                }
+        Document document = new Document(new PdfDocument(new PdfWriter(baos)), PageSize.LETTER);
+        document.setMargins(24, 30, 24, 30);
+        PdfFont fontBold = PdfFontFactory.createFont("Helvetica-Bold");
+        PdfFont fontNormal = PdfFontFactory.createFont("Helvetica");
+
+        for (int indice = 0; indice < salidas.size(); indice++) {
+            if (indice > 0) {
+                document.add(new Paragraph("")
+                        .setBorderBottom(new SolidBorder(BORDER_COLOR, 0.7f))
+                        .setMarginTop(8)
+                        .setMarginBottom(8));
             }
-        } finally {
-            merger.close();
+            SalidaDto salida = salidas.get(indice);
+            generarPaginaFactura(document, salida, empresa, fontBold, fontNormal);
+            if (salida.getDestino() == DestinoSalida.TRABAJADORES) {
+                generarPaginaTrabajadores(document, salida, fontBold, fontNormal);
+            }
         }
+        document.close();
         return baos.toByteArray();
     }
 
