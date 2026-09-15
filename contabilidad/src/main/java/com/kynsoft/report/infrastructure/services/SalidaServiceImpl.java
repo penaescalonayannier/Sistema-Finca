@@ -237,9 +237,6 @@ public class SalidaServiceImpl implements ISalidaService {
         if (destino == null) {
             throw validationError("destino", "Debe seleccionar el destino de la salida.");
         }
-        if (destino == DestinoSalida.TRABAJADORES) {
-            throw validationError("destino", "Las salidas para trabajadores se registran por producto para identificar al trabajador y su deuda.");
-        }
         if (lineas == null || lineas.isEmpty()) {
             throw validationError("lineas", "Debe seleccionar al menos un producto.");
         }
@@ -253,6 +250,28 @@ public class SalidaServiceImpl implements ISalidaService {
             }
             if (linea.getCantidad() == null || linea.getCantidad() <= 0) {
                 throw validationError("cantidad", "La cantidad de cada producto debe ser mayor que cero.");
+            }
+            if (destino == DestinoSalida.TRABAJADORES) {
+                if (linea.getItems() == null || linea.getItems().isEmpty()) {
+                    throw validationError("items", "Debe indicar los trabajadores que compraron cada producto.");
+                }
+                Set<UUID> trabajadoresProducto = new HashSet<>();
+                int cantidadAsignada = 0;
+                for (ItemSalidaDto comprador : linea.getItems()) {
+                    if (comprador == null || comprador.getTrabajadorId() == null) {
+                        throw validationError("trabajadorId", "Debe seleccionar el trabajador que compró cada producto.");
+                    }
+                    if (comprador.getCantidad() == null || comprador.getCantidad() <= 0) {
+                        throw validationError("cantidad", "La cantidad para cada trabajador debe ser mayor que cero.");
+                    }
+                    if (!trabajadoresProducto.add(comprador.getTrabajadorId())) {
+                        throw validationError("trabajadorId", "No puede repetir un trabajador para el mismo producto.");
+                    }
+                    cantidadAsignada += comprador.getCantidad();
+                }
+                if (cantidadAsignada != linea.getCantidad()) {
+                    throw validationError("cantidad", "La cantidad asignada a los trabajadores debe coincidir con la cantidad del producto.");
+                }
             }
             if (!productosEnSalida.add(linea.getAlmacenFincaProductoId())) {
                 throw validationError("lineas", "No puede repetir un producto en la misma salida múltiple.");
@@ -301,15 +320,54 @@ public class SalidaServiceImpl implements ISalidaService {
                     .orElseThrow(() -> validationError("fincaProductoId", "No se encontró uno de los productos seleccionados."));
             Hibernate.initialize(fincaProducto.getProducto());
             Double precio = obtenerPrecioSegunDestino(fincaProducto, destino);
-            ItemSalidaDto itemDto = ItemSalidaDto.builder()
-                    .id(UUID.randomUUID())
-                    .salidaId(salida.getId())
-                    .fincaProductoId(fincaProducto.getId())
-                    .almacenFincaProductoId(afp.getId())
-                    .cantidad(linea.getCantidad())
-                    .precio(precio)
-                    .build();
-            itemRepositoryCommand.save(new ItemSalida(itemDto));
+            if (destino == DestinoSalida.TRABAJADORES) {
+                for (ItemSalidaDto comprador : linea.getItems()) {
+                    ItemSalidaDto itemDto = ItemSalidaDto.builder()
+                            .id(UUID.randomUUID())
+                            .salidaId(salida.getId())
+                            .fincaProductoId(fincaProducto.getId())
+                            .almacenFincaProductoId(afp.getId())
+                            .trabajadorId(comprador.getTrabajadorId())
+                            .cantidad(comprador.getCantidad())
+                            .precio(precio)
+                            .pagado(Boolean.TRUE.equals(comprador.getPagado()))
+                            .build();
+                    itemRepositoryCommand.save(new ItemSalida(itemDto));
+
+                    Double valorItem = itemDto.getCantidad() * precio;
+                    Boolean yaPago = Boolean.TRUE.equals(itemDto.getPagado());
+                    if (!yaPago) {
+                        deudaTrabajadorService.incrementarDeuda(itemDto.getTrabajadorId(), valorItem);
+                    }
+                    deudaDetalleService.registrar(DeudaTrabajadorDetalleDto.builder()
+                            .id(UUID.randomUUID())
+                            .trabajadorId(itemDto.getTrabajadorId())
+                            .salidaId(salida.getId())
+                            .salidaNumero(salida.getNumero())
+                            .salidaTipo(salida.getTipo())
+                            .productoId(fincaProducto.getProducto().getId())
+                            .productoCodigo(fincaProducto.getProducto().getCode())
+                            .productoNombre(fincaProducto.getProducto().getName())
+                            .cantidad(itemDto.getCantidad())
+                            .precioUnitario(precio)
+                            .importe(valorItem)
+                            .fecha(LocalDateTime.now())
+                            .activo(true)
+                            .pagado(yaPago)
+                            .tipoMovimiento(TipoMovimiento.COMPRA)
+                            .build());
+                }
+            } else {
+                ItemSalidaDto itemDto = ItemSalidaDto.builder()
+                        .id(UUID.randomUUID())
+                        .salidaId(salida.getId())
+                        .fincaProductoId(fincaProducto.getId())
+                        .almacenFincaProductoId(afp.getId())
+                        .cantidad(linea.getCantidad())
+                        .precio(precio)
+                        .build();
+                itemRepositoryCommand.save(new ItemSalida(itemDto));
+            }
 
             int stockAnterior = fincaProducto.getStock();
             int stockNuevo = stockAnterior - linea.getCantidad();

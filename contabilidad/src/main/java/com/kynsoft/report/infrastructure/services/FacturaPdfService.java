@@ -419,7 +419,7 @@ public class FacturaPdfService {
         document.add(new Paragraph("\n").setMarginTop(10));
 
         // Título
-        Paragraph titulo = new Paragraph("LISTADO DE TRABAJADORES")
+        Paragraph titulo = new Paragraph("DETALLE DE COMPRAS DE TRABAJADORES")
                 .setFont(fontBold)
                 .setFontSize(12)
                 .setTextAlignment(TextAlignment.CENTER)
@@ -429,7 +429,7 @@ public class FacturaPdfService {
         // Subtítulo con info de la salida
         String tipoDoc = (salida.getTipo() == null || salida.getTipo().name().equals("VALE")) ? "Vale" : "Factura";
         String destinoStr = salida.getDestino() != null ? formatDestino(salida.getDestino().name()) : "";
-        Paragraph subtitulo = new Paragraph(tipoDoc + ": " + salida.getNumero() + " | Producto: " + salida.getProductoName() + " | Destino: " + destinoStr)
+        Paragraph subtitulo = new Paragraph(tipoDoc + ": " + salida.getNumero() + " | Destino: " + destinoStr)
                 .setFont(fontNormal)
                 .setFontSize(8)
                 .setTextAlignment(TextAlignment.CENTER)
@@ -437,11 +437,11 @@ public class FacturaPdfService {
         document.add(subtitulo);
 
         // Tabla de trabajadores
-        Table table = new Table(UnitValue.createPercentArray(new float[]{8, 47, 15, 15, 15}))
+        Table table = new Table(UnitValue.createPercentArray(new float[]{6, 24, 27, 11, 11, 13, 8}))
                 .setWidth(UnitValue.createPercentValue(100));
 
         // Encabezados
-        String[] headers = {"No.", "Trabajador", "Cantidad", "Precio", "Total"};
+        String[] headers = {"No.", "Producto", "Trabajador", "Cantidad", "Precio", "Total", "Estado"};
         for (String header : headers) {
             table.addHeaderCell(new Cell()
                     .add(new Paragraph(header).setFont(fontBold).setFontSize(8).setFontColor(ColorConstants.WHITE))
@@ -469,17 +469,19 @@ public class FacturaPdfService {
                 alternar = !alternar;
 
                 table.addCell(crearCeldaTabla(String.valueOf(num++), fontNormal, TextAlignment.CENTER, rowBg));
+                table.addCell(crearCeldaTabla(productoName(salida, item), fontNormal, TextAlignment.LEFT, rowBg));
                 table.addCell(crearCeldaTabla(item.getTrabajadorNombre() != null ? item.getTrabajadorNombre() : "", fontNormal, TextAlignment.LEFT, rowBg));
                 table.addCell(crearCeldaTabla(String.valueOf(item.getCantidad()), fontNormal, TextAlignment.CENTER, rowBg));
                 table.addCell(crearCeldaTabla(String.format("$%.2f", precio), fontNormal, TextAlignment.RIGHT, rowBg));
                 table.addCell(crearCeldaTabla(String.format("$%.2f", total), fontNormal, TextAlignment.RIGHT, rowBg));
+                table.addCell(crearCeldaTabla(Boolean.TRUE.equals(item.getPagado()) ? "Pagado" : "Deuda", fontNormal, TextAlignment.CENTER, rowBg));
             }
         }
 
         document.add(table);
 
         // Totales
-        Table totalTable = new Table(UnitValue.createPercentArray(new float[]{55, 15, 15, 15}))
+        Table totalTable = new Table(UnitValue.createPercentArray(new float[]{57, 11, 11, 13, 8}))
                 .setWidth(UnitValue.createPercentValue(100))
                 .setMarginTop(0);
 
@@ -503,6 +505,11 @@ public class FacturaPdfService {
         totalTable.addCell(new Cell()
                 .add(new Paragraph(String.format("$%.2f", totalGeneral)).setFont(fontBold).setFontSize(8).setFontColor(ColorConstants.WHITE))
                 .setTextAlignment(TextAlignment.RIGHT)
+                .setBorder(new SolidBorder(BORDER_COLOR, 1))
+                .setBackgroundColor(HEADER_BG)
+                .setPadding(3));
+        totalTable.addCell(new Cell()
+                .add(new Paragraph("").setFont(fontBold).setFontSize(8))
                 .setBorder(new SolidBorder(BORDER_COLOR, 1))
                 .setBackgroundColor(HEADER_BG)
                 .setPadding(3));

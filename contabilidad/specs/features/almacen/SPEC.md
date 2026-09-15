@@ -93,6 +93,15 @@ Un almacén inactivo puede ser reactivado cambiando activo = true.
 
 ---
 
+### RN-13: Salida múltiple para trabajadores
+La salida múltiple puede tener como destino `TRABAJADORES` y siempre genera un único vale. Por cada producto seleccionado se debe registrar, como mínimo, un comprador con su cantidad y estado de pago.
+
+- La suma de las cantidades de los compradores debe ser exactamente la cantidad salida de ese producto.
+- Un trabajador no puede repetirse dentro del mismo producto.
+- El stock de `AlmacenFincaProducto` y de `FincaProducto` se descuenta una sola vez por el total del producto.
+- Cada comprador genera su propio `ItemSalida`; si no ha pagado, se registra e incrementa su deuda.
+- El PDF del vale detalla producto, trabajador, cantidad, precio, total y estado de pago.
+
 ## API Contract
 
 ### Base URL
@@ -102,6 +111,28 @@ Un almacén inactivo puede ser reactivado cambiando activo = true.
 
 ### Autenticación
 Todos los endpoints requieren usuario autenticado (Bearer Token JWT).
+
+### POST /api/almacen/{almacenId}/salida-multiple
+**Registrar un único vale con varios productos del mismo almacén**
+
+Para destino `TRABAJADORES`, cada línea incluye los compradores del producto:
+
+```json
+{
+  "destino": "TRABAJADORES",
+  "observaciones": "Venta semanal",
+  "lineas": [
+    {
+      "almacenFincaProductoId": "550e8400-e29b-41d4-a716-446655440000",
+      "cantidad": 3,
+      "items": [
+        { "trabajadorId": "660e8400-e29b-41d4-a716-446655440001", "cantidad": 1, "pagado": false },
+        { "trabajadorId": "660e8400-e29b-41d4-a716-446655440002", "cantidad": 2, "pagado": true }
+      ]
+    }
+  ]
+}
+```
 
 ---
 
