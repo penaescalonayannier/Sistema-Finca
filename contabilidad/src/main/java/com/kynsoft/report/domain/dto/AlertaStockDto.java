@@ -20,8 +20,8 @@ public class AlertaStockDto {
     private String productoCode;
     private String productoName;
     private String unidadMedida;
-    private Integer stockActual;
-    private Integer stockMinimo;
-    private Integer deficit;
+    private Double stockActual;
+    private Double stockMinimo;
+    private Double deficit;
     private EstadoStock estado;
 }

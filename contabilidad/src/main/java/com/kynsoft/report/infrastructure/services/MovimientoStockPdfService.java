@@ -60,8 +60,8 @@ public class MovimientoStockPdfService {
 
     private void agregarResumen(Document document, ReporteMovimientosConsolidadoDto reporte,
                                 PdfFont bold, PdfFont normal) {
-        int entradas = valor(reporte.getTotalEntradas());
-        int salidas = valor(reporte.getTotalSalidas());
+        double entradas = valor(reporte.getTotalEntradas());
+        double salidas = valor(reporte.getTotalSalidas());
         Table table = new Table(UnitValue.createPercentArray(new float[]{1, 1, 1})).useAllAvailableWidth();
         table.addCell(celdaResumen("Total entradas", String.valueOf(entradas), bold, normal));
         table.addCell(celdaResumen("Total salidas", String.valueOf(salidas), bold, normal));
@@ -118,7 +118,7 @@ public class MovimientoStockPdfService {
             celda(table, producto.unidad.isBlank() ? "-" : producto.unidad, normal, TextAlignment.CENTER);
             celda(table, String.valueOf(producto.entradas), normal, TextAlignment.RIGHT);
             celda(table, String.valueOf(producto.salidas), normal, TextAlignment.RIGHT);
-            for (String destino : destinos) celda(table, String.valueOf(producto.porDestino.getOrDefault(destino, 0)), normal, TextAlignment.RIGHT);
+            for (String destino : destinos) celda(table, String.valueOf(producto.porDestino.getOrDefault(destino, 0.0)), normal, TextAlignment.RIGHT);
         }
         if (productos.isEmpty()) {
             int columnas = 4 + destinos.size();
@@ -139,9 +139,9 @@ public class MovimientoStockPdfService {
             for (ReporteMovimientosConsolidadoDto.SalidaProductoDetalle detalle : lista(salida.getProductos())) {
                 ProductoResumen producto = resultado.computeIfAbsent(texto(detalle.getProductoCode()),
                         ignored -> new ProductoResumen(texto(detalle.getProductoCode()), texto(detalle.getProductoName()), ""));
-                int cantidad = valor(detalle.getCantidad());
+                double cantidad = valor(detalle.getCantidad());
                 producto.salidas += cantidad;
-                producto.porDestino.merge(destino, cantidad, Integer::sum);
+                producto.porDestino.merge(destino, cantidad, Double::sum);
             }
         }
         return resultado.entrySet().stream().sorted(Map.Entry.comparingByKey(Comparator.naturalOrder()))
@@ -163,8 +163,8 @@ public class MovimientoStockPdfService {
         table.addCell(new Cell().setTextAlignment(alineacion).add(new Paragraph(contenido).setFont(font)));
     }
 
-    private int valor(Integer number) {
-        return number == null ? 0 : number;
+    private double valor(Double number) {
+        return number == null ? 0.0 : number;
     }
 
     private String texto(String value) {
@@ -183,9 +183,9 @@ public class MovimientoStockPdfService {
         private final String codigo;
         private final String nombre;
         private final String unidad;
-        private int entradas;
-        private int salidas;
-        private final Map<String, Integer> porDestino = new LinkedHashMap<>();
+        private double entradas;
+        private double salidas;
+        private final Map<String, Double> porDestino = new LinkedHashMap<>();
 
         private ProductoResumen(String codigo, String nombre, String unidad) {
             this.codigo = codigo;

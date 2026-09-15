@@ -17,8 +17,8 @@ public class UpdateProduccionTerminadaCommand implements ICommand {
     private String observaciones;
 
     // Resultado del servicio
-    private Integer stockAnterior;
-    private Integer stockNuevo;
+    private Double stockAnterior;
+    private Double stockNuevo;
     private Integer ajuste;
 
     public UpdateProduccionTerminadaCommand(

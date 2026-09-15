@@ -27,13 +27,13 @@ public class AlmacenFincaProductoResponse implements IResponse {
     private String productoName;
     private Double productoPrice;
     private UnidadMedida unidadMedida;
-    private Integer stock;
-    private Integer stockMinimo;
-    private Integer stockMaximo;
+    private Double stock;
+    private Double stockMinimo;
+    private Double stockMaximo;
     private EstadoStock estadoStock;
     private Boolean activo;
     private Boolean alertaStockBajo;
-    private Integer deficit;
+    private Double deficit;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 

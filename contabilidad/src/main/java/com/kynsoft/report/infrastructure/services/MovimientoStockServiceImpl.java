@@ -136,9 +136,9 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
                 .fincaId(fincaId)
                 .productoId(productoId)
                 .tipo(tipo)
-                .cantidad(cantidad)
-                .stockAnterior(stockAnterior)
-                .stockNuevo(stockNuevo)
+                .cantidad(cantidad != null ? cantidad.doubleValue() : 0.0)
+                .stockAnterior(stockAnterior != null ? stockAnterior.doubleValue() : 0.0)
+                .stockNuevo(stockNuevo != null ? stockNuevo.doubleValue() : 0.0)
                 .referenciaId(referenciaId)
                 .referenciaTabla(referenciaTabla)
                 .descripcion(descripcion)
@@ -146,6 +146,52 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
                 .fecha(LocalDateTime.now())
                 .build();
 
+        registrar(dto);
+    }
+
+    @Override
+    public void registrarMovimiento(UUID fincaProductoId, UUID fincaId, UUID productoId,
+                                     TipoMovimientoStock tipo, Integer cantidad,
+                                     Double stockAnterior, Double stockNuevo,
+                                     UUID referenciaId, String referenciaTabla, String descripcion) {
+        registrarMovimiento(fincaProductoId, fincaId, productoId, tipo,
+                cantidad != null ? cantidad.doubleValue() : 0.0,
+                stockAnterior, stockNuevo, referenciaId, referenciaTabla, descripcion);
+    }
+
+    @Override
+    public void registrarMovimiento(UUID fincaProductoId, UUID fincaId, UUID productoId,
+                                     TipoMovimientoStock tipo, Double cantidad,
+                                     Double stockAnterior, Double stockNuevo,
+                                     UUID referenciaId, String referenciaTabla, String descripcion) {
+        MovimientoStockDto dto = MovimientoStockDto.builder()
+                .id(UUID.randomUUID())
+                .fincaProductoId(fincaProductoId)
+                .fincaId(fincaId)
+                .productoId(productoId)
+                .tipo(tipo)
+                .cantidad(cantidad)
+                .stockAnterior(stockAnterior)
+                .stockNuevo(stockNuevo)
+                .referenciaId(referenciaId)
+                .referenciaTabla(referenciaTabla)
+                .descripcion(descripcion)
+                .fecha(LocalDateTime.now())
+                .build();
+        registrar(dto);
+    }
+
+    @Override
+    public void registrarMovimiento(UUID fincaProductoId, UUID fincaId, UUID productoId,
+                                     TipoMovimientoStock tipo, Double cantidad,
+                                     Double stockAnterior, Double stockNuevo,
+                                     UUID referenciaId, String referenciaTabla, String descripcion,
+                                     String centroCosto) {
+        MovimientoStockDto dto = MovimientoStockDto.builder()
+                .id(UUID.randomUUID()).fincaProductoId(fincaProductoId).fincaId(fincaId).productoId(productoId)
+                .tipo(tipo).cantidad(cantidad).stockAnterior(stockAnterior).stockNuevo(stockNuevo)
+                .referenciaId(referenciaId).referenciaTabla(referenciaTabla).descripcion(descripcion)
+                .centroCosto(centroCosto).fecha(LocalDateTime.now()).build();
         registrar(dto);
     }
 
@@ -229,7 +275,7 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
 
     @Override
     public MovimientoStockDto crearAjuste(UUID almacenId, UUID fincaProductoId,
-                                           TipoMovimientoStock tipo, Integer cantidad,
+                                           TipoMovimientoStock tipo, Double cantidad,
                                            String observaciones) {
         // Validar tipo de movimiento
         if (tipo != TipoMovimientoStock.ENTRADA_AJUSTE && tipo != TipoMovimientoStock.SALIDA_AJUSTE) {
@@ -263,11 +309,11 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
                         DomainErrorMessage.BUSINESS_NOT_FOUND,
                         new ErrorField("almacenId", "El producto no está disponible en el almacén seleccionado."))));
 
-        Integer stockFincaAnterior = fincaProducto.getStock() != null ? fincaProducto.getStock() : 0;
-        Integer stockAlmacenAnterior = almacenProducto.getStock() != null ? almacenProducto.getStock() : 0;
-        int variacion = tipo == TipoMovimientoStock.ENTRADA_AJUSTE ? cantidad : -cantidad;
-        int stockFincaNuevo = stockFincaAnterior + variacion;
-        int stockAlmacenNuevo = stockAlmacenAnterior + variacion;
+        Double stockFincaAnterior = fincaProducto.getStock() != null ? fincaProducto.getStock() : 0.0;
+        Double stockAlmacenAnterior = almacenProducto.getStock() != null ? almacenProducto.getStock() : 0.0;
+        Double variacion = tipo == TipoMovimientoStock.ENTRADA_AJUSTE ? cantidad : -cantidad;
+        Double stockFincaNuevo = stockFincaAnterior + variacion;
+        Double stockAlmacenNuevo = stockAlmacenAnterior + variacion;
 
         if (stockFincaNuevo < 0) {
             throw new BusinessNotFoundException(new GlobalBusinessException(
@@ -354,20 +400,20 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
     public ResumenMovimientosDto getResumen(UUID fincaId, LocalDateTime fechaInicio, LocalDateTime fechaFin) {
         List<MovimientoStock> movimientos = repositoryQuery.findByFincaIdAndFechaBetween(fincaId, fechaInicio, fechaFin);
 
-        Map<String, Long> entradas = new HashMap<>();
-        Map<String, Long> salidas = new HashMap<>();
-        long totalEntradas = 0;
-        long totalSalidas = 0;
+        Map<String, Double> entradas = new HashMap<>();
+        Map<String, Double> salidas = new HashMap<>();
+        double totalEntradas = 0.0;
+        double totalSalidas = 0.0;
 
         for (MovimientoStock m : movimientos) {
             TipoMovimientoStock tipo = m.getTipo();
-            long cantidad = m.getCantidad();
+            double cantidad = m.getCantidad();
 
             if (tipo.isEntrada()) {
-                entradas.merge(tipo.name(), cantidad, Long::sum);
+                entradas.merge(tipo.name(), cantidad, Double::sum);
                 totalEntradas += cantidad;
             } else if (tipo.isSalida()) {
-                salidas.merge(tipo.name(), cantidad, Long::sum);
+                salidas.merge(tipo.name(), cantidad, Double::sum);
                 totalSalidas += cantidad;
             }
         }
@@ -410,9 +456,9 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
             String productoName = producto != null ? producto.getName() : "";
 
             // Calcular totales
-            long totalEntradas = 0;
-            long totalSalidas = 0;
-            Integer stockInicial = movimientos.get(0).getStockAnterior();
+            double totalEntradas = 0.0;
+            double totalSalidas = 0.0;
+            Double stockInicial = movimientos.get(0).getStockAnterior();
 
             for (MovimientoStock m : movimientos) {
                 if (m.getTipo().isEntrada()) {
@@ -422,7 +468,7 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
                 }
             }
 
-            Integer stockFinal = stockInicial + (int) totalEntradas - (int) totalSalidas;
+            Double stockFinal = stockInicial + totalEntradas - totalSalidas;
 
             result.add(BalanceProductoDto.builder()
                     .fincaProductoId(fincaProductoId)
@@ -478,14 +524,14 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
 
         // Calcular kardex
         List<KardexDto.MovimientoKardexDto> movimientosKardex = new ArrayList<>();
-        Integer stockInicial = movimientos.isEmpty() ? 0 : movimientos.get(0).getStockAnterior();
-        Integer saldoActual = stockInicial;
-        long totalEntradas = 0;
-        long totalSalidas = 0;
+        Double stockInicial = movimientos.isEmpty() ? 0.0 : movimientos.get(0).getStockAnterior();
+        Double saldoActual = stockInicial;
+        double totalEntradas = 0.0;
+        double totalSalidas = 0.0;
 
         for (MovimientoStock m : movimientos) {
-            Integer entrada = 0;
-            Integer salida = 0;
+            Double entrada = 0.0;
+            Double salida = 0.0;
 
             if (m.getTipo().isEntrada()) {
                 entrada = m.getCantidad();
@@ -547,21 +593,21 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
 
         // Crear lista de entradas por producto
         List<ReporteMovimientosConsolidadoDto.EntradaPorProducto> entradasDto = new ArrayList<>();
-        int totalEntradas = 0;
+        double totalEntradas = 0.0;
 
         for (Map.Entry<UUID, List<MovimientoStock>> entry : entradasPorProducto.entrySet()) {
             UUID productoId = entry.getKey();
             List<MovimientoStock> movsProd = entry.getValue();
             Producto producto = productosMap.get(productoId);
 
-            int cantidadTotal = movsProd.stream().mapToInt(MovimientoStock::getCantidad).sum();
+            double cantidadTotal = movsProd.stream().mapToDouble(MovimientoStock::getCantidad).sum();
             totalEntradas += cantidadTotal;
 
             // Agrupar por tipo de entrada
-            Map<TipoMovimientoStock, Integer> porTipo = movsProd.stream()
+            Map<TipoMovimientoStock, Double> porTipo = movsProd.stream()
                     .collect(Collectors.groupingBy(
                             MovimientoStock::getTipo,
-                            Collectors.summingInt(MovimientoStock::getCantidad)));
+                            Collectors.summingDouble(MovimientoStock::getCantidad)));
 
             List<ReporteMovimientosConsolidadoDto.EntradaDetalle> detalles = porTipo.entrySet().stream()
                     .map(e -> ReporteMovimientosConsolidadoDto.EntradaDetalle.builder()
@@ -597,7 +643,7 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
                 .collect(Collectors.groupingBy(Salida::getDestino));
 
         List<ReporteMovimientosConsolidadoDto.SalidaPorDestino> salidasDto = new ArrayList<>();
-        int totalSalidas = 0;
+        double totalSalidas = 0.0;
 
         for (Map.Entry<DestinoSalida, List<Salida>> entry : salidasPorDestino.entrySet()) {
             DestinoSalida destino = entry.getKey();
@@ -607,7 +653,7 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
             List<UUID> salidaIds = salidasDestino.stream().map(Salida::getId).collect(Collectors.toList());
             List<ItemSalida> items = itemSalidaRepository.findBySalidaIdIn(salidaIds);
 
-            int cantidadTotal = items.stream().mapToInt(ItemSalida::getCantidad).sum();
+            double cantidadTotal = items.stream().mapToDouble(ItemSalida::getCantidad).sum();
             double valorTotal = items.stream().mapToDouble(i -> i.getCantidad() * i.getPrecio()).sum();
             totalSalidas += cantidadTotal;
 
@@ -630,7 +676,7 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
                         .filter(i -> salidaIdsProd.contains(i.getSalidaId()))
                         .collect(Collectors.toList());
 
-                int cantProd = itemsProd.stream().mapToInt(ItemSalida::getCantidad).sum();
+                double cantProd = itemsProd.stream().mapToDouble(ItemSalida::getCantidad).sum();
                 double valorProd = itemsProd.stream().mapToDouble(i -> i.getCantidad() * i.getPrecio()).sum();
                 double precioPromedio = cantProd > 0 ? valorProd / cantProd : 0;
 
@@ -656,10 +702,10 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
         salidasDto.sort((a, b) -> b.getCantidadTotal().compareTo(a.getCantidadTotal()));
 
         // 4. Resumen de entradas por tipo
-        Map<TipoMovimientoStock, Integer> entradasPorTipo = entradas.stream()
+        Map<TipoMovimientoStock, Double> entradasPorTipo = entradas.stream()
                 .collect(Collectors.groupingBy(
                         MovimientoStock::getTipo,
-                        Collectors.summingInt(MovimientoStock::getCantidad)));
+                        Collectors.summingDouble(MovimientoStock::getCantidad)));
 
         return ReporteMovimientosConsolidadoDto.builder()
                 .fechaInicio(fechaInicio)

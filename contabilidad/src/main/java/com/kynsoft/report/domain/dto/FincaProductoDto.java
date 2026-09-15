@@ -18,9 +18,9 @@ public class FincaProductoDto {
     private UUID fincaProductoId; // ID real del FincaProducto para operaciones de salida
     private UUID fincaId;
     private UUID productoId;
-    private Integer stock;
-    private Integer stockMinimo;
-    private Integer stockMaximo;
+    private Double stock;
+    private Double stockMinimo;
+    private Double stockMaximo;
     private EstadoStock estadoStock;
 
     // Campos adicionales para mostrar información relacionada
@@ -38,9 +38,9 @@ public class FincaProductoDto {
     }
 
     // Calcula déficit si hay alerta
-    public Integer getDeficit() {
-        if (stockMinimo == null || stockMinimo == 0 || stock == null) return 0;
-        if (stock >= stockMinimo) return 0;
+    public Double getDeficit() {
+        if (stockMinimo == null || stockMinimo == 0.0 || stock == null) return 0.0;
+        if (stock >= stockMinimo) return 0.0;
         return stockMinimo - stock;
     }
 }

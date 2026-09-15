@@ -16,7 +16,7 @@ public class EntradaConduceCommandHandler implements ICommandHandler<EntradaCond
     public void handle(EntradaConduceCommand command) {
         // Get current stock before operation
         FincaProductoDto dto = service.getById(command.getId());
-        Integer stockAnterior = dto.getStock();
+        Double stockAnterior = dto.getStock();
 
         // Perform the entry
         service.entradaConduce(

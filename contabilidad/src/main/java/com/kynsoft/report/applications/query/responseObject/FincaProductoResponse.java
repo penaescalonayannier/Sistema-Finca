@@ -24,8 +24,8 @@ public class FincaProductoResponse implements IResponse {
     private String productoName;
     private Double productoPrice;
     private TipoProducto productoTipo;
-    private Integer stock;
-    private Integer stockMinimo;
+    private Double stock;
+    private Double stockMinimo;
     private Boolean alertaStockBajo;
     private Boolean activo;
 

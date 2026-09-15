@@ -8,11 +8,11 @@ import java.util.UUID;
 @Getter
 public class CreateProduccionTerminadaMessage implements ICommandMessage {
     private final UUID id;
-    private final Integer stockAnterior;
-    private final Integer stockNuevo;
+    private final Double stockAnterior;
+    private final Double stockNuevo;
     private final String command = "CREATE_PRODUCCION_TERMINADA";
 
-    public CreateProduccionTerminadaMessage(UUID id, Integer stockAnterior, Integer stockNuevo) {
+    public CreateProduccionTerminadaMessage(UUID id, Double stockAnterior, Double stockNuevo) {
         this.id = id;
         this.stockAnterior = stockAnterior;
         this.stockNuevo = stockNuevo;

@@ -13,11 +13,11 @@ import java.util.UUID;
 public class AsignarProductoAFincaCommand implements ICommand {
     private UUID fincaId;
     private UUID productoId;
-    private Integer stock;
-    private Integer stockMinimo;
+    private Double stock;
+    private Double stockMinimo;
     private UUID id; // Set by handler after creation
 
-    public AsignarProductoAFincaCommand(UUID fincaId, UUID productoId, Integer stock, Integer stockMinimo) {
+    public AsignarProductoAFincaCommand(UUID fincaId, UUID productoId, Double stock, Double stockMinimo) {
         this.fincaId = fincaId;
         this.productoId = productoId;
         this.stock = stock;

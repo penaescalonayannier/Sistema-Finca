@@ -14,14 +14,14 @@ public class EntradaProduccionMessage implements ICommandMessage {
     private UUID fincaId;
     private UUID productoId;
     private Integer cantidadAgregada;
-    private Integer nuevoStock;
+    private Double nuevoStock;
     private String mensaje;
 
     public EntradaProduccionMessage(UUID fincaId, UUID productoId, Integer cantidadAgregada) {
         this.fincaId = fincaId;
         this.productoId = productoId;
         this.cantidadAgregada = cantidadAgregada;
-        this.nuevoStock = 0;
+        this.nuevoStock = 0.0;
         this.mensaje = "Entrada registrada correctamente";
     }
 }

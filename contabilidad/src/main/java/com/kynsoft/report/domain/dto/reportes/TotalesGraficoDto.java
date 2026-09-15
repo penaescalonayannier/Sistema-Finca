@@ -8,7 +8,7 @@ import lombok.*;
 @Getter
 @Builder
 public class TotalesGraficoDto {
-    private Integer entradas;
-    private Integer salidas;
-    private Integer balance;
+    private Double entradas;
+    private Double salidas;
+    private Double balance;
 }

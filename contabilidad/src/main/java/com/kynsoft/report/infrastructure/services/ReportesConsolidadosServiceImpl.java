@@ -324,10 +324,10 @@ public class ReportesConsolidadosServiceImpl implements IReportesConsolidadosSer
         }
 
         List<ProductoKardexDto> productos = new ArrayList<>();
-        int totalStockInicial = 0;
-        int totalEntradas = 0;
-        int totalSalidas = 0;
-        int totalStockFinal = 0;
+        double totalStockInicial = 0.0;
+        double totalEntradas = 0.0;
+        double totalSalidas = 0.0;
+        double totalStockFinal = 0.0;
 
         for (FincaProducto fp : fincaProductos) {
             List<MovimientoStock> movimientos = movimientoStockRepository
@@ -336,26 +336,26 @@ public class ReportesConsolidadosServiceImpl implements IReportesConsolidadosSer
             if (movimientos.isEmpty()) continue;
 
             // Calculate stock inicial (first movement's stockAnterior)
-            int stockInicial = movimientos.get(0).getStockAnterior();
-            int stockFinal = movimientos.get(movimientos.size() - 1).getStockNuevo();
+            double stockInicial = movimientos.get(0).getStockAnterior();
+            double stockFinal = movimientos.get(movimientos.size() - 1).getStockNuevo();
 
             // Group entradas/salidas
-            Map<String, Integer> entradasPorTipo = new HashMap<>();
-            Map<String, Integer> salidasPorTipo = new HashMap<>();
-            int entradas = 0;
-            int salidas = 0;
+            Map<String, Double> entradasPorTipo = new HashMap<>();
+            Map<String, Double> salidasPorTipo = new HashMap<>();
+            double entradas = 0.0;
+            double salidas = 0.0;
 
             List<MovimientoKardexDto> movimientosDto = new ArrayList<>();
             for (MovimientoStock m : movimientos) {
                 String tipoStr = m.getTipo() != null ? m.getTipo().name() : "OTRO";
-                int cant = m.getCantidad();
+                double cant = m.getCantidad();
 
                 if (isEntrada(m.getTipo())) {
                     entradas += cant;
-                    entradasPorTipo.merge(tipoStr, cant, Integer::sum);
+                    entradasPorTipo.merge(tipoStr, cant, Double::sum);
                 } else {
                     salidas += cant;
-                    salidasPorTipo.merge(tipoStr, cant, Integer::sum);
+                    salidasPorTipo.merge(tipoStr, cant, Double::sum);
                 }
 
                 movimientosDto.add(MovimientoKardexDto.builder()
@@ -438,8 +438,8 @@ public class ReportesConsolidadosServiceImpl implements IReportesConsolidadosSer
 
         // Build time series based on granularity
         List<String> etiquetas = new ArrayList<>();
-        Map<String, Integer> entradasPorPeriodo = new LinkedHashMap<>();
-        Map<String, Integer> salidasPorPeriodo = new LinkedHashMap<>();
+        Map<String, Double> entradasPorPeriodo = new LinkedHashMap<>();
+        Map<String, Double> salidasPorPeriodo = new LinkedHashMap<>();
 
         DateTimeFormatter formatter;
         switch (granularidad) {
@@ -458,8 +458,8 @@ public class ReportesConsolidadosServiceImpl implements IReportesConsolidadosSer
         while (!current.isAfter(fechaFin)) {
             String key = getKey(current, granularidad);
             etiquetas.add(key);
-            entradasPorPeriodo.put(key, 0);
-            salidasPorPeriodo.put(key, 0);
+            entradasPorPeriodo.put(key, 0.0);
+            salidasPorPeriodo.put(key, 0.0);
             current = advanceDate(current, granularidad);
         }
 
@@ -467,24 +467,24 @@ public class ReportesConsolidadosServiceImpl implements IReportesConsolidadosSer
         for (MovimientoStock m : movimientos) {
             String key = getKey(m.getFecha().toLocalDate(), granularidad);
             if (isEntrada(m.getTipo())) {
-                entradasPorPeriodo.merge(key, m.getCantidad(), Integer::sum);
+                entradasPorPeriodo.merge(key, m.getCantidad(), Double::sum);
             } else {
-                salidasPorPeriodo.merge(key, m.getCantidad(), Integer::sum);
+                salidasPorPeriodo.merge(key, m.getCantidad(), Double::sum);
             }
         }
 
         // Remove duplicates from etiquetas while preserving order
         etiquetas = new ArrayList<>(new LinkedHashSet<>(etiquetas));
 
-        List<Integer> entradasDatos = etiquetas.stream()
-                .map(k -> entradasPorPeriodo.getOrDefault(k, 0))
+        List<Double> entradasDatos = etiquetas.stream()
+                .map(k -> entradasPorPeriodo.getOrDefault(k, 0.0))
                 .collect(Collectors.toList());
-        List<Integer> salidasDatos = etiquetas.stream()
-                .map(k -> salidasPorPeriodo.getOrDefault(k, 0))
+        List<Double> salidasDatos = etiquetas.stream()
+                .map(k -> salidasPorPeriodo.getOrDefault(k, 0.0))
                 .collect(Collectors.toList());
 
-        int totalEntradas = entradasDatos.stream().mapToInt(Integer::intValue).sum();
-        int totalSalidas = salidasDatos.stream().mapToInt(Integer::intValue).sum();
+        double totalEntradas = entradasDatos.stream().mapToDouble(Double::doubleValue).sum();
+        double totalSalidas = salidasDatos.stream().mapToDouble(Double::doubleValue).sum();
 
         return ReporteMovimientosGraficoDto.builder()
                 .etiquetas(etiquetas)

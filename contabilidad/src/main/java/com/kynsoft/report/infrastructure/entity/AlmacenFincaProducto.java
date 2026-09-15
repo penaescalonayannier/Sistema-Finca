@@ -31,13 +31,13 @@ public class AlmacenFincaProducto {
     private FincaProducto fincaProducto;
 
     @Column(name = "stock", nullable = false)
-    private Integer stock = 0;
+    private Double stock = 0.0;
 
     @Column(name = "stock_minimo")
-    private Integer stockMinimo = 0;
+    private Double stockMinimo = 0.0;
 
     @Column(name = "stock_maximo")
-    private Integer stockMaximo;
+    private Double stockMaximo;
 
     @Column(name = "activo", nullable = false)
     private Boolean activo = true;
@@ -90,7 +90,7 @@ public class AlmacenFincaProducto {
     }
 
     public EstadoStock getEstadoStock() {
-        if (stock == null || stock == 0) return EstadoStock.CRITICO;
+        if (stock == null || stock == 0.0) return EstadoStock.CRITICO;
         if (stockMinimo != null && stockMinimo > 0 && stock < stockMinimo) return EstadoStock.BAJO;
         if (stockMaximo != null && stock > stockMaximo) return EstadoStock.EXCESO;
         return EstadoStock.NORMAL;

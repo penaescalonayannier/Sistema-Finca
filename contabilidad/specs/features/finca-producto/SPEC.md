@@ -32,8 +32,8 @@ El sistema gestiona:
 | id | UUID | auto | Identificador único |
 | fincaId | UUID | sí | Referencia a la finca |
 | productoId | UUID | sí | Referencia al producto |
-| stock | Integer | sí | Stock actual (>= 0) |
-| stockMinimo | Integer | no | Stock mínimo para alertas (default: 0) |
+| stock | Decimal(19,4) | sí | Stock actual (>= 0) |
+| stockMinimo | Decimal(19,4) | no | Stock mínimo para alertas (default: 0) |
 | activo | Boolean | auto | Estado (true = activo, false = removido) |
 
 ### Campos calculados/derivados
@@ -91,6 +91,9 @@ Todos los movimientos de stock se registran en MovimientoStock con fecha, cantid
 
 ### RN-09: Observaciones en entradas
 Las entradas manuales (factura, conduce, ajuste) deben permitir observaciones para documentar el movimiento.
+
+### RN-10: Existencias decimales
+El stock inicial, los límites y los ajustes aceptan hasta cuatro posiciones decimales. La misma precisión se conserva en almacenes, movimientos y reportes.
 
 ---
 

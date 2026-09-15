@@ -15,7 +15,7 @@ public class SalidaAlmacenCommand implements ICommand {
     private String descripcion;
     private UUID trabajadorId;
     private String destino;
-    private Integer stockNuevo;
+    private Double stockNuevo;
 
     public SalidaAlmacenCommand(UUID almacenFincaProductoId, Integer cantidad,
                                  String descripcion, UUID trabajadorId, String destino) {

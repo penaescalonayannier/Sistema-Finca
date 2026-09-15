@@ -5,12 +5,12 @@ import lombok.Getter;
 
 @Getter
 public class EntradaFacturaMessage implements ICommandMessage {
-    private final Integer stockAnterior;
-    private final Integer stockNuevo;
+    private final Double stockAnterior;
+    private final Double stockNuevo;
     private final Integer cantidad;
     private final String command = "ENTRADA_FACTURA";
 
-    public EntradaFacturaMessage(Integer stockAnterior, Integer stockNuevo, Integer cantidad) {
+    public EntradaFacturaMessage(Double stockAnterior, Double stockNuevo, Integer cantidad) {
         this.stockAnterior = stockAnterior;
         this.stockNuevo = stockNuevo;
         this.cantidad = cantidad;

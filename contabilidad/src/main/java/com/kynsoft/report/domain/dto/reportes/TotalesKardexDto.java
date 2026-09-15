@@ -8,8 +8,8 @@ import lombok.*;
 @Getter
 @Builder
 public class TotalesKardexDto {
-    private Integer stockInicialTotal;
-    private Integer entradasTotal;
-    private Integer salidasTotal;
-    private Integer stockFinalTotal;
+    private Double stockInicialTotal;
+    private Double entradasTotal;
+    private Double salidasTotal;
+    private Double stockFinalTotal;
 }

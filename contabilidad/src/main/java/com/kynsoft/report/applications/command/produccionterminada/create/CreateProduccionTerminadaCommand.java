@@ -21,8 +21,8 @@ public class CreateProduccionTerminadaCommand implements ICommand {
     private String observaciones;
 
     // Resultado del servicio
-    private Integer stockAnterior;
-    private Integer stockNuevo;
+    private Double stockAnterior;
+    private Double stockNuevo;
 
     public CreateProduccionTerminadaCommand(
             UUID fincaId,

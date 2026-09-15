@@ -26,7 +26,7 @@ public class SalidaResponse implements IResponse {
     private String fincaName;
     private String productoCode;
     private String productoName;
-    private Integer stockActual;
+    private Double stockActual;
     private LocalDateTime fecha;
     private String observaciones;
     private Integer cantidadTotal;
@@ -35,7 +35,7 @@ public class SalidaResponse implements IResponse {
     // Constructor sin items (para listados)
     public SalidaResponse(UUID id, TipoSalida tipo, DestinoSalida destino, String numero, UUID fincaProductoId,
                           String fincaCode, String fincaName, String productoCode, String productoName,
-                          Integer stockActual, LocalDateTime fecha, String observaciones, Integer cantidadTotal) {
+                          Double stockActual, LocalDateTime fecha, String observaciones, Integer cantidadTotal) {
         this.id = id;
         this.tipo = tipo;
         this.destino = destino;

@@ -10,6 +10,6 @@ import java.util.Map;
 @Getter
 @Builder
 public class EntradasSalidasDto {
-    private Integer total;
-    private Map<String, Integer> porTipo;
+    private Double total;
+    private Map<String, Double> porTipo;
 }

@@ -59,7 +59,7 @@ public class FincaProductoServiceImpl implements IFincaProductoService {
     }
 
     @Override
-    public UUID asignarProductoAFinca(UUID fincaId, UUID productoId, Integer stock, Integer stockMinimo) {
+    public UUID asignarProductoAFinca(UUID fincaId, UUID productoId, Double stock, Double stockMinimo) {
         // Validar que la finca exista
         Finca finca = fincaRepository.findById(fincaId)
                 .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
@@ -83,10 +83,10 @@ public class FincaProductoServiceImpl implements IFincaProductoService {
                         new ErrorField("productoId", "Producto ya asignado a esta finca.")));
             } else {
                 // Reactivar relación existente (RN-05)
-                Integer stockAnterior = existing.getStock();
+                Double stockAnterior = existing.getStock();
                 existing.setActivo(true);
                 existing.setStock(stock);
-                existing.setStockMinimo(stockMinimo != null ? stockMinimo : 0);
+                existing.setStockMinimo(stockMinimo != null ? stockMinimo : 0.0);
                 repositoryCommand.save(existing);
 
                 // Registrar movimiento de reactivación
@@ -112,7 +112,7 @@ public class FincaProductoServiceImpl implements IFincaProductoService {
         fincaProducto.setFinca(finca);
         fincaProducto.setProducto(producto);
         fincaProducto.setStock(stock);
-        fincaProducto.setStockMinimo(stockMinimo != null ? stockMinimo : 0);
+        fincaProducto.setStockMinimo(stockMinimo != null ? stockMinimo : 0.0);
         fincaProducto.setActivo(true);
 
         repositoryCommand.save(fincaProducto);
@@ -124,8 +124,8 @@ public class FincaProductoServiceImpl implements IFincaProductoService {
                     fincaId,
                     productoId,
                     TipoMovimientoStock.STOCK_INICIAL,
-                    stock,
-                    0,
+                        stock,
+                        0.0,
                     stock,
                     null,
                     null,
@@ -136,13 +136,13 @@ public class FincaProductoServiceImpl implements IFincaProductoService {
     }
 
     @Override
-    public void actualizarConfiguracion(UUID id, Integer stockMinimo) {
+    public void actualizarConfiguracion(UUID id, Double stockMinimo) {
         FincaProducto fincaProducto = repositoryQuery.findById(id)
                 .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
                 DomainErrorMessage.BUSINESS_NOT_FOUND,
                 new ErrorField("id", "Relación no encontrada."))));
 
-        fincaProducto.setStockMinimo(stockMinimo != null ? stockMinimo : 0);
+        fincaProducto.setStockMinimo(stockMinimo != null ? stockMinimo : 0.0);
         repositoryCommand.save(fincaProducto);
     }
 
@@ -156,14 +156,14 @@ public class FincaProductoServiceImpl implements IFincaProductoService {
     }
 
     @Override
-    public void actualizarStock(UUID fincaId, UUID productoId, Integer stock) {
+    public void actualizarStock(UUID fincaId, UUID productoId, Double stock) {
         FincaProducto fincaProducto = repositoryQuery.findByFincaIdAndProductoId(fincaId, productoId)
                 .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
                 DomainErrorMessage.BUSINESS_NOT_FOUND,
                 new ErrorField("fincaId", "Relationship not found."))));
 
-        Integer stockAnterior = fincaProducto.getStock();
-        Integer diferencia = stock - stockAnterior;
+        Double stockAnterior = fincaProducto.getStock();
+        Double diferencia = stock - stockAnterior;
 
         fincaProducto.setStock(stock);
         repositoryCommand.save(fincaProducto);
@@ -260,10 +260,10 @@ public class FincaProductoServiceImpl implements IFincaProductoService {
     }
 
     @Override
-    public Integer obtenerStock(UUID fincaId, UUID productoId) {
+    public Double obtenerStock(UUID fincaId, UUID productoId) {
         return repositoryQuery.findByFincaIdAndProductoId(fincaId, productoId)
                 .map(FincaProducto::getStock)
-                .orElse(0);
+                .orElse(0.0);
     }
 
     @Override
@@ -293,8 +293,8 @@ public class FincaProductoServiceImpl implements IFincaProductoService {
                         DomainErrorMessage.BUSINESS_NOT_FOUND,
                         new ErrorField("fincaId", "El producto no está asignado a esta finca."))));
 
-        Integer stockAnterior = fincaProducto.getStock();
-        Integer nuevoStock = stockAnterior + cantidad;
+        Double stockAnterior = fincaProducto.getStock();
+        Double nuevoStock = stockAnterior + cantidad;
         fincaProducto.setStock(nuevoStock);
         repositoryCommand.save(fincaProducto);
 
@@ -304,7 +304,7 @@ public class FincaProductoServiceImpl implements IFincaProductoService {
                 fincaId,
                 productoId,
                 TipoMovimientoStock.ENTRADA_PRODUCCION,
-                cantidad,
+                cantidad.doubleValue(),
                 stockAnterior,
                 nuevoStock,
                 referenciaId,
@@ -334,8 +334,8 @@ public class FincaProductoServiceImpl implements IFincaProductoService {
                         DomainErrorMessage.BUSINESS_NOT_FOUND,
                         new ErrorField("id", "Relación no encontrada."))));
 
-        Integer stockAnterior = fincaProducto.getStock();
-        Integer nuevoStock = stockAnterior + cantidad;
+        Double stockAnterior = fincaProducto.getStock();
+        Double nuevoStock = stockAnterior + cantidad;
         fincaProducto.setStock(nuevoStock);
         repositoryCommand.save(fincaProducto);
 
@@ -349,7 +349,7 @@ public class FincaProductoServiceImpl implements IFincaProductoService {
                 fincaProducto.getFinca().getId(),
                 fincaProducto.getProducto().getId(),
                 TipoMovimientoStock.ENTRADA_FACTURA,
-                cantidad,
+                cantidad.doubleValue(),
                 stockAnterior,
                 nuevoStock,
                 null,
@@ -371,8 +371,8 @@ public class FincaProductoServiceImpl implements IFincaProductoService {
                         DomainErrorMessage.BUSINESS_NOT_FOUND,
                         new ErrorField("id", "Relación no encontrada."))));
 
-        Integer stockAnterior = fincaProducto.getStock();
-        Integer nuevoStock = stockAnterior + cantidad;
+        Double stockAnterior = fincaProducto.getStock();
+        Double nuevoStock = stockAnterior + cantidad;
         fincaProducto.setStock(nuevoStock);
         repositoryCommand.save(fincaProducto);
 
@@ -382,7 +382,7 @@ public class FincaProductoServiceImpl implements IFincaProductoService {
                 fincaProducto.getFinca().getId(),
                 fincaProducto.getProducto().getId(),
                 TipoMovimientoStock.ENTRADA_CONDUCE,
-                cantidad,
+                cantidad.doubleValue(),
                 stockAnterior,
                 nuevoStock,
                 null,
@@ -392,7 +392,7 @@ public class FincaProductoServiceImpl implements IFincaProductoService {
     }
 
     @Override
-    public void ajusteManual(UUID id, Integer cantidad, String observaciones) {
+    public void ajusteManual(UUID id, Double cantidad, String observaciones) {
         // Validar observaciones obligatorias
         if (observaciones == null || observaciones.trim().isEmpty()) {
             throw new BusinessNotFoundException(new GlobalBusinessException(
@@ -411,8 +411,8 @@ public class FincaProductoServiceImpl implements IFincaProductoService {
                         DomainErrorMessage.BUSINESS_NOT_FOUND,
                         new ErrorField("id", "Relación no encontrada."))));
 
-        Integer stockAnterior = fincaProducto.getStock();
-        Integer nuevoStock = stockAnterior + cantidad;
+        Double stockAnterior = fincaProducto.getStock();
+        Double nuevoStock = stockAnterior + cantidad;
 
         // RN-02: Validar que el stock no quede negativo
         if (nuevoStock < 0) {
@@ -458,8 +458,8 @@ public class FincaProductoServiceImpl implements IFincaProductoService {
                         DomainErrorMessage.BUSINESS_NOT_FOUND,
                         new ErrorField("fincaId", "El producto no está asignado a esta finca."))));
 
-        Integer stockAnterior = fincaProducto.getStock();
-        Integer nuevoStock = stockAnterior - cantidad;
+        Double stockAnterior = fincaProducto.getStock();
+        Double nuevoStock = stockAnterior - cantidad;
         if (nuevoStock < 0) {
             throw new BusinessNotFoundException(new GlobalBusinessException(
                     DomainErrorMessage.BUSINESS_NOT_FOUND,
@@ -474,7 +474,7 @@ public class FincaProductoServiceImpl implements IFincaProductoService {
                 fincaId,
                 productoId,
                 tipo,
-                -cantidad,
+                -cantidad.doubleValue(),
                 stockAnterior,
                 nuevoStock,
                 referenciaId,
@@ -645,7 +645,7 @@ public class FincaProductoServiceImpl implements IFincaProductoService {
     }
 
     @Override
-    public FincaProductoDto actualizarStockMinMax(UUID id, Integer stockMinimo, Integer stockMaximo) {
+    public FincaProductoDto actualizarStockMinMax(UUID id, Double stockMinimo, Double stockMaximo) {
         FincaProducto fincaProducto = repositoryQuery.findByIdWithDetails(id)
                 .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
                         DomainErrorMessage.BUSINESS_NOT_FOUND,

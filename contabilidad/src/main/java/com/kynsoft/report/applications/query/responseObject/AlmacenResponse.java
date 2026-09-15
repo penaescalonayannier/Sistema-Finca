@@ -80,7 +80,7 @@ public class AlmacenResponse implements IResponse {
         private String productoCode;
         private String productoName;
         private Double productoPrice;
-        private Integer stock;
+        private Double stock;
 
         public FincaProductoResponse(FincaProductoDto dto) {
             this.id = dto.getId();

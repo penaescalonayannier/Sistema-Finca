@@ -34,7 +34,7 @@ public class EntradaProduccionCommandHandler implements ICommandHandler<EntradaP
         }
 
         // Obtener el nuevo stock para incluirlo en el mensaje
-        Integer nuevoStock = fincaProductoService.obtenerStock(command.getFincaId(), command.getProductoId());
+        Double nuevoStock = fincaProductoService.obtenerStock(command.getFincaId(), command.getProductoId());
         EntradaProduccionMessage message = (EntradaProduccionMessage) command.getMessage();
         message.setNuevoStock(nuevoStock);
         message.setMensaje("Entrada de " + command.getCantidad() + " unidades registrada. Nuevo stock: " + nuevoStock);

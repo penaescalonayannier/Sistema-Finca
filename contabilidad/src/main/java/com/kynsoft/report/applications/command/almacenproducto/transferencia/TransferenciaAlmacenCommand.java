@@ -14,8 +14,8 @@ public class TransferenciaAlmacenCommand implements ICommand {
     private UUID destinoAlmacenId;
     private Integer cantidad;
     private String observaciones;
-    private Integer stockOrigenNuevo;
-    private Integer stockDestinoNuevo;
+    private Double stockOrigenNuevo;
+    private Double stockDestinoNuevo;
 
     public TransferenciaAlmacenCommand(UUID almacenFincaProductoId, UUID destinoAlmacenId,
                                         Integer cantidad, String observaciones) {

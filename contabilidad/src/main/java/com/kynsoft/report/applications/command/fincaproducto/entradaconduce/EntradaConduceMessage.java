@@ -5,12 +5,12 @@ import lombok.Getter;
 
 @Getter
 public class EntradaConduceMessage implements ICommandMessage {
-    private final Integer stockAnterior;
-    private final Integer stockNuevo;
+    private final Double stockAnterior;
+    private final Double stockNuevo;
     private final Integer cantidad;
     private final String command = "ENTRADA_CONDUCE";
 
-    public EntradaConduceMessage(Integer stockAnterior, Integer stockNuevo, Integer cantidad) {
+    public EntradaConduceMessage(Double stockAnterior, Double stockNuevo, Integer cantidad) {
         this.stockAnterior = stockAnterior;
         this.stockNuevo = stockNuevo;
         this.cantidad = cantidad;

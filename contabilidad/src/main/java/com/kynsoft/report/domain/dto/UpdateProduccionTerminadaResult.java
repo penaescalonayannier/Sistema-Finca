@@ -15,7 +15,7 @@ import java.util.UUID;
 @Builder
 public class UpdateProduccionTerminadaResult {
     private UUID id;
-    private Integer stockAnterior;
-    private Integer stockNuevo;
+    private Double stockAnterior;
+    private Double stockNuevo;
     private Integer ajuste;
 }

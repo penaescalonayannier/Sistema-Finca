@@ -14,15 +14,15 @@ import org.springframework.data.domain.Pageable;
 public interface IFincaProductoService {
 
     // Asignar producto a finca con stock inicial y stockMinimo
-    UUID asignarProductoAFinca(UUID fincaId, UUID productoId, Integer stock, Integer stockMinimo);
+    UUID asignarProductoAFinca(UUID fincaId, UUID productoId, Double stock, Double stockMinimo);
 
     // Actualizar configuración (stockMinimo)
-    void actualizarConfiguracion(UUID id, Integer stockMinimo);
+    void actualizarConfiguracion(UUID id, Double stockMinimo);
 
     // Obtener por ID
     FincaProductoDto getById(UUID id);
 
-    void actualizarStock(UUID fincaId, UUID productoId, Integer stock);
+    void actualizarStock(UUID fincaId, UUID productoId, Double stock);
 
     void removerProductoDeFinca(UUID fincaId, UUID productoId);
 
@@ -34,7 +34,7 @@ public interface IFincaProductoService {
 
     FincaProductoDto obtenerRelacion(UUID fincaId, UUID productoId);
 
-    Integer obtenerStock(UUID fincaId, UUID productoId);
+    Double obtenerStock(UUID fincaId, UUID productoId);
 
     // Entrada de producción: suma cantidad al stock existente
     void entradaProduccion(UUID fincaId, UUID productoId, Integer cantidad, String descripcion);
@@ -52,7 +52,7 @@ public interface IFincaProductoService {
     void entradaConduce(UUID id, Integer cantidad, String observaciones);
 
     // Ajuste manual de stock: requiere observaciones
-    void ajusteManual(UUID id, Integer cantidad, String observaciones);
+    void ajusteManual(UUID id, Double cantidad, String observaciones);
 
     // Salida/Reverso de producción: resta cantidad del stock existente
     void decrementarStock(UUID fincaId, UUID productoId, Integer cantidad);
@@ -71,5 +71,5 @@ public interface IFincaProductoService {
     ResumenAlertasDto getResumenAlertas(UUID fincaId, EstadoStock estado, int limit);
 
     // Actualizar stock mínimo y máximo
-    FincaProductoDto actualizarStockMinMax(UUID id, Integer stockMinimo, Integer stockMaximo);
+    FincaProductoDto actualizarStockMinMax(UUID id, Double stockMinimo, Double stockMaximo);
 }

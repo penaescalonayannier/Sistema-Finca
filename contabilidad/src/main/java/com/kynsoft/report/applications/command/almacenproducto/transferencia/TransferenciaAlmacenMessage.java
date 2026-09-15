@@ -12,7 +12,7 @@ public class TransferenciaAlmacenMessage implements ICommandMessage {
     private UUID almacenOrigenId;
     private UUID almacenDestinoId;
     private Integer cantidad;
-    private Integer stockOrigenNuevo;
-    private Integer stockDestinoNuevo;
+    private Double stockOrigenNuevo;
+    private Double stockDestinoNuevo;
     private final String command = "TRANSFERENCIA_ALMACEN";
 }

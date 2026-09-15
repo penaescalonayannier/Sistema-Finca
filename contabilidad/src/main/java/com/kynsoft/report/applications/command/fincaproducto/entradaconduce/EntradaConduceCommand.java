@@ -13,8 +13,8 @@ public class EntradaConduceCommand implements ICommand {
     private UUID id;
     private Integer cantidad;
     private String observaciones;
-    private Integer stockAnterior;
-    private Integer stockNuevo;
+    private Double stockAnterior;
+    private Double stockNuevo;
 
     public EntradaConduceCommand(UUID id, Integer cantidad, String observaciones) {
         this.id = id;

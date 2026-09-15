@@ -14,8 +14,8 @@ public class EntradaFacturaCommand implements ICommand {
     private Integer cantidad;
     private String numeroFactura;
     private String observaciones;
-    private Integer stockAnterior;
-    private Integer stockNuevo;
+    private Double stockAnterior;
+    private Double stockNuevo;
 
     public EntradaFacturaCommand(UUID id, Integer cantidad, String numeroFactura, String observaciones) {
         this.id = id;

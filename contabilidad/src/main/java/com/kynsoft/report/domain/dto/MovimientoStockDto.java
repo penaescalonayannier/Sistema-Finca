@@ -21,9 +21,9 @@ public class MovimientoStockDto {
     private UUID productoId;
     private UUID almacenId;
     private TipoMovimientoStock tipo;
-    private Integer cantidad;
-    private Integer stockAnterior;
-    private Integer stockNuevo;
+    private Double cantidad;
+    private Double stockAnterior;
+    private Double stockNuevo;
     private UUID referenciaId;
     private String referenciaTabla;
     private String descripcion;

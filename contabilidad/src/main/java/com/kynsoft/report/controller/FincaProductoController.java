@@ -166,8 +166,8 @@ public class FincaProductoController {
     @PatchMapping("/{id}/stock-minmax")
     public ResponseEntity<FincaProductoResponse> actualizarStockMinMax(
             @PathVariable UUID id,
-            @RequestParam(required = false) Integer stockMinimo,
-            @RequestParam(required = false) Integer stockMaximo) {
+            @RequestParam(required = false) Double stockMinimo,
+            @RequestParam(required = false) Double stockMaximo) {
         FincaProductoDto dto = fincaProductoService.actualizarStockMinMax(id, stockMinimo, stockMaximo);
         FincaProductoResponse response = new FincaProductoResponse(dto);
         return ResponseEntity.ok(response);

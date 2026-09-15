@@ -11,12 +11,12 @@ import java.util.UUID;
 @Setter
 public class AjusteStockCommand implements ICommand {
     private UUID id;
-    private Integer cantidad;
+    private Double cantidad;
     private String observaciones;
-    private Integer stockAnterior;
-    private Integer stockNuevo;
+    private Double stockAnterior;
+    private Double stockNuevo;
 
-    public AjusteStockCommand(UUID id, Integer cantidad, String observaciones) {
+    public AjusteStockCommand(UUID id, Double cantidad, String observaciones) {
         this.id = id;
         this.cantidad = cantidad;
         this.observaciones = observaciones;

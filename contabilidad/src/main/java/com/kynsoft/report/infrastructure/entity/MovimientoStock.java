@@ -40,13 +40,13 @@ public class MovimientoStock {
     private TipoMovimientoStock tipo;
 
     @Column(name = "cantidad", nullable = false)
-    private Integer cantidad;
+    private Double cantidad;
 
     @Column(name = "stock_anterior", nullable = false)
-    private Integer stockAnterior;
+    private Double stockAnterior;
 
     @Column(name = "stock_nuevo", nullable = false)
-    private Integer stockNuevo;
+    private Double stockNuevo;
 
     @Column(name = "referencia_id")
     private UUID referenciaId;

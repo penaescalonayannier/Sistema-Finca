@@ -6,6 +6,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class AjusteStockRequest {
-    private Integer cantidad;
+    private Double cantidad;
     private String observaciones;
 }

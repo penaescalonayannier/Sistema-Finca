@@ -151,8 +151,8 @@ public class AlmacenServiceImpl implements IAlmacenService {
         }
 
         // RN-09: No eliminar con stock > 0
-        long stockTotal = almacen.getProductos().stream()
-                .mapToLong(fp -> fp.getStock() != null ? fp.getStock() : 0)
+        double stockTotal = almacen.getProductos().stream()
+                .mapToDouble(fp -> fp.getStock() != null ? fp.getStock() : 0.0)
                 .sum();
         if (stockTotal > 0) {
             throw new BusinessNotFoundException(new GlobalBusinessException(
@@ -321,8 +321,8 @@ public class AlmacenServiceImpl implements IAlmacenService {
         afp.setId(UUID.randomUUID());
         afp.setAlmacen(almacen);
         afp.setFincaProducto(fincaProducto);
-        afp.setStock(0);
-        afp.setStockMinimo(0);
+        afp.setStock(0.0);
+        afp.setStockMinimo(0.0);
         afp.setActivo(true);
         afpWriteRepository.save(afp);
     }

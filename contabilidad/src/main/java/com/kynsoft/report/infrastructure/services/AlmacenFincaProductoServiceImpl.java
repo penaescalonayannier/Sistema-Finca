@@ -84,16 +84,16 @@ public class AlmacenFincaProductoServiceImpl implements IAlmacenFincaProductoSer
         afp.setId(UUID.randomUUID());
         afp.setAlmacen(almacen);
         afp.setFincaProducto(fincaProducto);
-        afp.setStock(stockInicial != null ? stockInicial : 0);
-        afp.setStockMinimo(stockMinimo != null ? stockMinimo : 0);
-        afp.setStockMaximo(stockMaximo);
+        afp.setStock(stockInicial != null ? stockInicial.doubleValue() : 0.0);
+        afp.setStockMinimo(stockMinimo != null ? stockMinimo.doubleValue() : 0.0);
+        afp.setStockMaximo(stockMaximo != null ? stockMaximo.doubleValue() : null);
         afp.setActivo(true);
 
         repositoryCommand.save(afp);
 
         if (stockInicial != null && stockInicial > 0) {
             registrarMovimiento(afp, TipoMovimientoStock.ENTRADA_AJUSTE, stockInicial,
-                    0, stockInicial, "Stock inicial al asignar producto");
+                    0.0, stockInicial.doubleValue(), "Stock inicial al asignar producto");
         }
 
         return afp.getId();
@@ -102,26 +102,26 @@ public class AlmacenFincaProductoServiceImpl implements IAlmacenFincaProductoSer
     @Override
     public void actualizarStock(UUID id, Integer nuevoStock) {
         AlmacenFincaProducto afp = findEntityById(id);
-        Integer stockAnterior = afp.getStock();
-        afp.setStock(nuevoStock);
+        Double stockAnterior = afp.getStock();
+        afp.setStock(nuevoStock.doubleValue());
         repositoryCommand.save(afp);
 
-        int diferencia = nuevoStock - stockAnterior;
+        double diferencia = nuevoStock - stockAnterior;
 
         // Actualizar también el stock total de FincaProducto
         FincaProducto fp = afp.getFincaProducto();
-        fp.setStock(Math.max(0, fp.getStock() + diferencia));
+        fp.setStock(Math.max(0.0, fp.getStock() + diferencia));
         fincaProductoWriteRepository.save(fp);
 
         TipoMovimientoStock tipo = diferencia > 0 ? TipoMovimientoStock.ENTRADA_AJUSTE : TipoMovimientoStock.SALIDA_AJUSTE;
-        registrarMovimiento(afp, tipo, Math.abs(diferencia), stockAnterior, nuevoStock, "Ajuste manual de stock");
+        registrarMovimiento(afp, tipo, diferencia, stockAnterior, nuevoStock.doubleValue(), "Ajuste manual de stock");
     }
 
     @Override
     public void actualizarLimites(UUID id, Integer stockMinimo, Integer stockMaximo) {
         AlmacenFincaProducto afp = findEntityById(id);
-        if (stockMinimo != null) afp.setStockMinimo(stockMinimo);
-        if (stockMaximo != null) afp.setStockMaximo(stockMaximo);
+        if (stockMinimo != null) afp.setStockMinimo(stockMinimo.doubleValue());
+        if (stockMaximo != null) afp.setStockMaximo(stockMaximo.doubleValue());
         repositoryCommand.save(afp);
     }
 
@@ -189,8 +189,8 @@ public class AlmacenFincaProductoServiceImpl implements IAlmacenFincaProductoSer
         validarCantidadPositiva(cantidad);
         AlmacenFincaProducto afp = findEntityById(almacenFincaProductoId);
 
-        Integer stockAnterior = afp.getStock();
-        Integer stockNuevo = stockAnterior + cantidad;
+        Double stockAnterior = afp.getStock();
+        Double stockNuevo = stockAnterior + cantidad;
         afp.setStock(stockNuevo);
         repositoryCommand.save(afp);
 
@@ -211,20 +211,20 @@ public class AlmacenFincaProductoServiceImpl implements IAlmacenFincaProductoSer
         validarCantidadPositiva(cantidad);
         AlmacenFincaProducto afp = findEntityById(almacenFincaProductoId);
 
-        Integer stockAnterior = afp.getStock();
+        Double stockAnterior = afp.getStock();
         if (stockAnterior < cantidad) {
             throw new BusinessNotFoundException(new GlobalBusinessException(
                     DomainErrorMessage.BUSINESS_NOT_FOUND,
                     new ErrorField("cantidad", "Stock insuficiente. Disponible: " + stockAnterior)));
         }
 
-        Integer stockNuevo = stockAnterior - cantidad;
+        Double stockNuevo = stockAnterior - cantidad;
         afp.setStock(stockNuevo);
         repositoryCommand.save(afp);
 
         // Actualizar también el stock total de FincaProducto
         FincaProducto fp = afp.getFincaProducto();
-        fp.setStock(Math.max(0, fp.getStock() - cantidad));
+        fp.setStock(Math.max(0.0, fp.getStock() - cantidad));
         fincaProductoWriteRepository.save(fp);
 
         registrarMovimiento(afp, TipoMovimientoStock.SALIDA_AUTOCONSUMO, cantidad, stockAnterior, stockNuevo, descripcion);
@@ -279,19 +279,19 @@ public class AlmacenFincaProductoServiceImpl implements IAlmacenFincaProductoSer
                     nuevo.setId(UUID.randomUUID());
                     nuevo.setAlmacen(almacenDestino);
                     nuevo.setFincaProducto(origen.getFincaProducto());
-                    nuevo.setStock(0);
-                    nuevo.setStockMinimo(0);
+                    nuevo.setStock(0.0);
+                    nuevo.setStockMinimo(0.0);
                     nuevo.setActivo(true);
                     return repositoryCommand.save(nuevo);
                 });
 
-        Integer stockAnteriorOrigen = origen.getStock();
-        Integer stockNuevoOrigen = stockAnteriorOrigen - cantidad;
+        Double stockAnteriorOrigen = origen.getStock();
+        Double stockNuevoOrigen = stockAnteriorOrigen - cantidad;
         origen.setStock(stockNuevoOrigen);
         repositoryCommand.save(origen);
 
-        Integer stockAnteriorDestino = destino.getStock();
-        Integer stockNuevoDestino = stockAnteriorDestino + cantidad;
+        Double stockAnteriorDestino = destino.getStock();
+        Double stockNuevoDestino = stockAnteriorDestino + cantidad;
         destino.setStock(stockNuevoDestino);
         repositoryCommand.save(destino);
 
@@ -426,14 +426,32 @@ public class AlmacenFincaProductoServiceImpl implements IAlmacenFincaProductoSer
     }
 
     private void registrarMovimiento(AlmacenFincaProducto afp, TipoMovimientoStock tipo,
-                                      Integer cantidad, Integer stockAnterior, Integer stockNuevo,
+                                      Integer cantidad, Double stockAnterior, Double stockNuevo,
                                       String descripcion) {
         registrarMovimiento(afp, tipo, cantidad, stockAnterior, stockNuevo, descripcion, null);
     }
 
     private void registrarMovimiento(AlmacenFincaProducto afp, TipoMovimientoStock tipo,
-                                      Integer cantidad, Integer stockAnterior, Integer stockNuevo,
+                                      Integer cantidad, Double stockAnterior, Double stockNuevo,
                                       String descripcion, String centroCosto) {
+        MovimientoStockDto movimiento = MovimientoStockDto.builder()
+                .fincaProductoId(afp.getFincaProducto().getId())
+                .fincaId(afp.getFincaProducto().getFinca().getId())
+                .productoId(afp.getFincaProducto().getProducto().getId())
+                .almacenId(afp.getAlmacen().getId())
+                .tipo(tipo)
+                .cantidad(cantidad != null ? cantidad.doubleValue() : 0.0)
+                .stockAnterior(stockAnterior)
+                .stockNuevo(stockNuevo)
+                .descripcion(descripcion)
+                .centroCosto(centroCosto)
+                .build();
+        movimientoStockService.registrar(movimiento);
+    }
+
+    private void registrarMovimiento(AlmacenFincaProducto afp, TipoMovimientoStock tipo,
+                                      Double cantidad, Double stockAnterior, Double stockNuevo,
+                                      String descripcion) {
         MovimientoStockDto movimiento = MovimientoStockDto.builder()
                 .fincaProductoId(afp.getFincaProducto().getId())
                 .fincaId(afp.getFincaProducto().getFinca().getId())
@@ -444,7 +462,6 @@ public class AlmacenFincaProductoServiceImpl implements IAlmacenFincaProductoSer
                 .stockAnterior(stockAnterior)
                 .stockNuevo(stockNuevo)
                 .descripcion(descripcion)
-                .centroCosto(centroCosto)
                 .build();
         movimientoStockService.registrar(movimiento);
     }

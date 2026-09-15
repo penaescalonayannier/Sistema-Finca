@@ -27,7 +27,7 @@ public class SalidaDto {
     private String productoCode;
     private String productoName;
     private String unidadMedida;
-    private Integer stockActual;
+    private Double stockActual;
     private LocalDateTime fecha;
     private String observaciones;
     private Integer cantidadTotal;

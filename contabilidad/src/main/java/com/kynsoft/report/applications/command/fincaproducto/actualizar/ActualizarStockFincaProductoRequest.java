@@ -10,5 +10,5 @@ import java.util.UUID;
 public class ActualizarStockFincaProductoRequest {
     private UUID fincaId;
     private UUID productoId;
-    private Integer stock;
+    private Double stock;
 }

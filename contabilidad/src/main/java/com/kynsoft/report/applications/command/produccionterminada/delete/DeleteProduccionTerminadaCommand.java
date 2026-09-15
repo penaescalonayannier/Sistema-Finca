@@ -13,8 +13,8 @@ public class DeleteProduccionTerminadaCommand implements ICommand {
     private final UUID id;
 
     // Resultado del servicio
-    private Integer stockAnterior;
-    private Integer stockNuevo;
+    private Double stockAnterior;
+    private Double stockNuevo;
     private Integer cantidadRevertida;
 
     public DeleteProduccionTerminadaCommand(UUID id) {

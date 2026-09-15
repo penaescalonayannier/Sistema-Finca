@@ -14,7 +14,7 @@ import java.util.UUID;
 public class ActualizarStockFincaProductoCommand implements ICommand {
     private UUID fincaId;
     private UUID productoId;
-    private Integer stock;
+    private Double stock;
 
     public static ActualizarStockFincaProductoCommand fromRequest(ActualizarStockFincaProductoRequest request) {
         return new ActualizarStockFincaProductoCommand(

@@ -5,12 +5,12 @@ import lombok.Getter;
 
 @Getter
 public class AjusteStockMessage implements ICommandMessage {
-    private final Integer stockAnterior;
-    private final Integer stockNuevo;
-    private final Integer cantidad;
+    private final Double stockAnterior;
+    private final Double stockNuevo;
+    private final Double cantidad;
     private final String command = "AJUSTE_STOCK";
 
-    public AjusteStockMessage(Integer stockAnterior, Integer stockNuevo, Integer cantidad) {
+    public AjusteStockMessage(Double stockAnterior, Double stockNuevo, Double cantidad) {
         this.stockAnterior = stockAnterior;
         this.stockNuevo = stockNuevo;
         this.cantidad = cantidad;

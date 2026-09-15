@@ -8,12 +8,12 @@ import java.util.UUID;
 @Getter
 public class DeleteProduccionTerminadaMessage implements ICommandMessage {
     private final UUID id;
-    private final Integer stockAnterior;
-    private final Integer stockNuevo;
+    private final Double stockAnterior;
+    private final Double stockNuevo;
     private final Integer cantidadRevertida;
     private final String command = "DELETE_PRODUCCION_TERMINADA";
 
-    public DeleteProduccionTerminadaMessage(UUID id, Integer stockAnterior, Integer stockNuevo, Integer cantidadRevertida) {
+    public DeleteProduccionTerminadaMessage(UUID id, Double stockAnterior, Double stockNuevo, Integer cantidadRevertida) {
         this.id = id;
         this.stockAnterior = stockAnterior;
         this.stockNuevo = stockNuevo;

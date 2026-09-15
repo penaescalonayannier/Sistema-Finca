@@ -15,11 +15,11 @@ public class KardexDto {
 
     private ProductoInfoDto producto;
     private AlmacenInfoDto almacen;
-    private Integer stockInicial;
+    private Double stockInicial;
     private List<MovimientoKardexDto> movimientos;
-    private Integer stockFinal;
-    private Long totalEntradas;
-    private Long totalSalidas;
+    private Double stockFinal;
+    private Double totalEntradas;
+    private Double totalSalidas;
 
     @Getter
     @Setter
@@ -50,9 +50,9 @@ public class KardexDto {
     public static class MovimientoKardexDto {
         private LocalDateTime fecha;
         private TipoMovimientoStock tipoMovimiento;
-        private Integer entrada;
-        private Integer salida;
-        private Integer saldo;
+        private Double entrada;
+        private Double salida;
+        private Double saldo;
         private String observaciones;
     }
 }

@@ -12,5 +12,5 @@ import java.util.List;
 public class SerieGraficoDto {
     private String nombre;
     private String color;
-    private List<Integer> datos;
+    private List<Double> datos;
 }

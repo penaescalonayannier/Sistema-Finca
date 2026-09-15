@@ -16,7 +16,7 @@ public class AjusteStockCommandHandler implements ICommandHandler<AjusteStockCom
     public void handle(AjusteStockCommand command) {
         // Get current stock before operation
         FincaProductoDto dto = service.getById(command.getId());
-        Integer stockAnterior = dto.getStock();
+        Double stockAnterior = dto.getStock();
 
         // Perform the adjustment
         service.ajusteManual(

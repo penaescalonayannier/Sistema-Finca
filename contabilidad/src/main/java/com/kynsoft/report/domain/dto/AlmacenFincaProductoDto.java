@@ -25,9 +25,9 @@ public class AlmacenFincaProductoDto {
     private String productoName;
     private Double productoPrice;
     private UnidadMedida unidadMedida;
-    private Integer stock;
-    private Integer stockMinimo;
-    private Integer stockMaximo;
+    private Double stock;
+    private Double stockMinimo;
+    private Double stockMaximo;
     private EstadoStock estadoStock;
     private Boolean activo;
     private LocalDateTime createdAt;
@@ -37,9 +37,9 @@ public class AlmacenFincaProductoDto {
         return estadoStock == EstadoStock.CRITICO || estadoStock == EstadoStock.BAJO;
     }
 
-    public Integer getDeficit() {
-        if (stockMinimo == null || stockMinimo == 0 || stock == null) return 0;
-        if (stock >= stockMinimo) return 0;
+    public Double getDeficit() {
+        if (stockMinimo == null || stockMinimo == 0.0 || stock == null) return 0.0;
+        if (stock >= stockMinimo) return 0.0;
         return stockMinimo - stock;
     }
 }

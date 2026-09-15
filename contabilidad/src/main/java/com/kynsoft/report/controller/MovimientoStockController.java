@@ -125,13 +125,13 @@ public class MovimientoStockController {
             movimientos = movimientoStockService.findByAlmacenId(almacenId);
         }
 
-        long totalEntradas = movimientos.stream()
+        double totalEntradas = movimientos.stream()
                 .filter(m -> m.getTipo().isEntrada())
-                .mapToInt(MovimientoStockDto::getCantidad)
+                .mapToDouble(MovimientoStockDto::getCantidad)
                 .sum();
-        long totalSalidas = movimientos.stream()
+        double totalSalidas = movimientos.stream()
                 .filter(m -> m.getTipo().isSalida())
-                .mapToInt(MovimientoStockDto::getCantidad)
+                .mapToDouble(MovimientoStockDto::getCantidad)
                 .sum();
 
         Map<String, Object> response = new HashMap<>();
@@ -215,8 +215,8 @@ public class MovimientoStockController {
             movimientos = movimientoStockService.findByTipo(tipoMovimiento);
         }
 
-        long totalCantidad = movimientos.stream()
-                .mapToInt(MovimientoStockDto::getCantidad)
+        double totalCantidad = movimientos.stream()
+                .mapToDouble(MovimientoStockDto::getCantidad)
                 .sum();
 
         Map<String, Object> response = new HashMap<>();
@@ -270,7 +270,7 @@ public class MovimientoStockController {
         private UUID almacenId;
         private UUID fincaProductoId;
         private TipoMovimientoStock tipoMovimiento;
-        private Integer cantidad;
+        private Double cantidad;
         private String observaciones;
     }
 }

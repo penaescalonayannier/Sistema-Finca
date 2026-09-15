@@ -27,8 +27,8 @@ public class ReporteMovimientosConsolidadoDto {
     private LocalDate fechaFin;
 
     // Totales generales
-    private Integer totalEntradas;
-    private Integer totalSalidas;
+    private Double totalEntradas;
+    private Double totalSalidas;
 
     // Entradas agrupadas por producto
     private List<EntradaPorProducto> entradasPorProducto;
@@ -37,7 +37,7 @@ public class ReporteMovimientosConsolidadoDto {
     private List<SalidaPorDestino> salidasPorDestino;
 
     // Detalle de entradas por tipo de movimiento
-    private Map<TipoMovimientoStock, Integer> entradasPorTipo;
+    private Map<TipoMovimientoStock, Double> entradasPorTipo;
 
     @Getter
     @Setter
@@ -48,7 +48,7 @@ public class ReporteMovimientosConsolidadoDto {
         private String productoCode;
         private String productoName;
         private String unidadMedida;
-        private Integer cantidadTotal;
+        private Double cantidadTotal;
         private List<EntradaDetalle> detalles;
     }
 
@@ -59,7 +59,7 @@ public class ReporteMovimientosConsolidadoDto {
     @AllArgsConstructor
     public static class EntradaDetalle {
         private TipoMovimientoStock tipo;
-        private Integer cantidad;
+        private Double cantidad;
         private String descripcion;
     }
 
@@ -71,7 +71,7 @@ public class ReporteMovimientosConsolidadoDto {
     public static class SalidaPorDestino {
         private DestinoSalida destino;
         private String destinoNombre;
-        private Integer cantidadTotal;
+        private Double cantidadTotal;
         private Double valorTotal;
         private List<SalidaProductoDetalle> productos;
     }
@@ -84,7 +84,7 @@ public class ReporteMovimientosConsolidadoDto {
     public static class SalidaProductoDetalle {
         private String productoCode;
         private String productoName;
-        private Integer cantidad;
+        private Double cantidad;
         private Double precio;
         private Double valorTotal;
     }

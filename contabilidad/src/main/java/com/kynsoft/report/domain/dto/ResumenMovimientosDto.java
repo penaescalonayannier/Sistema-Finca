@@ -13,9 +13,9 @@ import java.util.Map;
 public class ResumenMovimientosDto {
 
     private PeriodoDto periodo;
-    private Map<String, Long> entradas;
-    private Map<String, Long> salidas;
-    private Long balance;
+    private Map<String, Double> entradas;
+    private Map<String, Double> salidas;
+    private Double balance;
     private Long totalMovimientos;
 
     @Getter

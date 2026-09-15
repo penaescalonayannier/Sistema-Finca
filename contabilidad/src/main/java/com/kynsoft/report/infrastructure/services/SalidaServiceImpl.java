@@ -181,8 +181,8 @@ public class SalidaServiceImpl implements ISalidaService {
         }
 
         // Rebajar el stock con auditoría
-        Integer stockAnterior = fincaProducto.getStock();
-        Integer stockNuevo = stockAnterior - cantidadTotal;
+        Double stockAnterior = fincaProducto.getStock();
+        Double stockNuevo = stockAnterior - cantidadTotal;
         fincaProducto.setStock(stockNuevo);
         fincaProductoWriteRepository.save(fincaProducto);
 
@@ -192,7 +192,7 @@ public class SalidaServiceImpl implements ISalidaService {
                     .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
                             DomainErrorMessage.BUSINESS_NOT_FOUND,
                             new ErrorField("almacenFincaProductoId", "No se encontró el producto en el almacén."))));
-            int stockAlmacen = afp.getStock() == null ? 0 : afp.getStock();
+            double stockAlmacen = afp.getStock() == null ? 0.0 : afp.getStock();
             if (!Boolean.TRUE.equals(afp.getActivo()) || !afp.getFincaProducto().getId().equals(dto.getFincaProductoId())) {
                 throw new BusinessNotFoundException(new GlobalBusinessException(
                         DomainErrorMessage.BUSINESS_NOT_FOUND,
@@ -282,7 +282,7 @@ public class SalidaServiceImpl implements ISalidaService {
             if (!Boolean.TRUE.equals(afp.getActivo()) || !almacenId.equals(afp.getAlmacen().getId())) {
                 throw validationError("almacenFincaProductoId", "Uno de los productos no pertenece al almacén seleccionado.");
             }
-            int stockDisponible = afp.getStock() == null ? 0 : afp.getStock();
+            double stockDisponible = afp.getStock() == null ? 0.0 : afp.getStock();
             if (stockDisponible < linea.getCantidad()) {
                 throw validationError("cantidad", "Stock insuficiente de " + afp.getFincaProducto().getProducto().getName()
                         + ". Disponible: " + stockDisponible + ", solicitado: " + linea.getCantidad());
@@ -369,11 +369,11 @@ public class SalidaServiceImpl implements ISalidaService {
                 itemRepositoryCommand.save(new ItemSalida(itemDto));
             }
 
-            int stockAnterior = fincaProducto.getStock();
-            int stockNuevo = stockAnterior - linea.getCantidad();
+            double stockAnterior = fincaProducto.getStock();
+            double stockNuevo = stockAnterior - linea.getCantidad();
             fincaProducto.setStock(stockNuevo);
             fincaProductoWriteRepository.save(fincaProducto);
-            afp.setStock((afp.getStock() == null ? 0 : afp.getStock()) - linea.getCantidad());
+            afp.setStock((afp.getStock() == null ? 0.0 : afp.getStock()) - linea.getCantidad());
             almacenFincaProductoWriteRepository.save(afp);
             movimientoStockService.registrarMovimiento(
                     fincaProducto.getId(), fincaProducto.getFinca().getId(), fincaProducto.getProducto().getId(),
@@ -415,7 +415,7 @@ public class SalidaServiceImpl implements ISalidaService {
         Hibernate.initialize(fincaProducto.getProducto());
 
         // Validar stock (devolver cantidad anterior y restar nueva)
-        int stockDisponible = fincaProducto.getStock() + cantidadAnterior;
+        double stockDisponible = fincaProducto.getStock() + cantidadAnterior;
         if (stockDisponible < nuevaCantidadTotal) {
             throw new BusinessNotFoundException(new GlobalBusinessException(
                     DomainErrorMessage.BUSINESS_NOT_FOUND,
@@ -485,13 +485,13 @@ public class SalidaServiceImpl implements ISalidaService {
         }
 
         // Actualizar stock con auditoría
-        Integer stockAnterior = fincaProducto.getStock();
-        Integer stockNuevo = stockDisponible - nuevaCantidadTotal;
+        Double stockAnterior = fincaProducto.getStock();
+        Double stockNuevo = stockDisponible - nuevaCantidadTotal;
         fincaProducto.setStock(stockNuevo);
         fincaProductoWriteRepository.save(fincaProducto);
 
         // Registrar movimiento de stock solo si hay cambio
-        Integer diferencia = stockNuevo - stockAnterior;
+        Double diferencia = stockNuevo - stockAnterior;
         if (diferencia != 0) {
             TipoMovimientoStock tipoMov = diferencia > 0
                     ? TipoMovimientoStock.DEVOLUCION
@@ -557,8 +557,8 @@ public class SalidaServiceImpl implements ISalidaService {
             UUID fincaProductoId = item.getFincaProductoId() != null ? item.getFincaProductoId() : salida.getFincaProductoId();
             FincaProducto fincaProducto = fincaProductoReadRepository.findByIdWithDetails(fincaProductoId).orElse(null);
             if (fincaProducto == null) continue;
-            Integer stockAnterior = fincaProducto.getStock();
-            Integer stockNuevo = stockAnterior + item.getCantidad();
+            Double stockAnterior = fincaProducto.getStock();
+            Double stockNuevo = stockAnterior + item.getCantidad();
             fincaProducto.setStock(stockNuevo);
             fincaProductoWriteRepository.save(fincaProducto);
             movimientoStockService.registrarMovimiento(

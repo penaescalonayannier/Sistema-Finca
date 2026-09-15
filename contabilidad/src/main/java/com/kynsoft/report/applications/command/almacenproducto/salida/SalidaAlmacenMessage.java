@@ -11,6 +11,6 @@ import java.util.UUID;
 public class SalidaAlmacenMessage implements ICommandMessage {
     private UUID almacenFincaProductoId;
     private Integer cantidad;
-    private Integer stockNuevo;
+    private Double stockNuevo;
     private final String command = "SALIDA_ALMACEN";
 }

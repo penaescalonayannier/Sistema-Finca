@@ -17,7 +17,7 @@ public class EntradaAlmacenCommand implements ICommand {
     private String descripcion;
     private String numeroFactura;
     private String centroCosto;
-    private Integer stockNuevo;
+    private Double stockNuevo;
 
     public EntradaAlmacenCommand(UUID almacenFincaProductoId, Integer cantidad,
                                   TipoMovimientoStock tipo, String descripcion,

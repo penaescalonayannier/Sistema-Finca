@@ -89,7 +89,7 @@ public class ProduccionTerminadaServiceImpl implements IProduccionTerminadaServi
         }
 
         // Guardar stock anterior
-        Integer stockAnterior = fincaProducto.getStock() != null ? fincaProducto.getStock() : 0;
+        Double stockAnterior = fincaProducto.getStock() != null ? fincaProducto.getStock() : 0.0;
 
         // Crear entidad
         ProduccionTerminada entity = new ProduccionTerminada(dto);
@@ -104,7 +104,7 @@ public class ProduccionTerminadaServiceImpl implements IProduccionTerminadaServi
                 saved.getId()
         );
 
-        Integer stockNuevo = stockAnterior + dto.getCantidadTerminada();
+        Double stockNuevo = stockAnterior + dto.getCantidadTerminada();
 
         return CreateProduccionTerminadaResult.builder()
                 .id(saved.getId())
@@ -159,7 +159,7 @@ public class ProduccionTerminadaServiceImpl implements IProduccionTerminadaServi
         }
 
         // Obtener stock actual
-        Integer stockActual = fincaProductoService.obtenerStock(entity.getFincaId(), entity.getProductoId());
+        Double stockActual = fincaProductoService.obtenerStock(entity.getFincaId(), entity.getProductoId());
         Integer cantidadAnterior = entity.getCantidadTerminada();
         Integer cantidadNueva = dto.getCantidadTerminada();
         Integer ajuste = cantidadNueva - cantidadAnterior;
@@ -204,7 +204,7 @@ public class ProduccionTerminadaServiceImpl implements IProduccionTerminadaServi
             }
         }
 
-        Integer stockNuevo = stockActual + ajuste;
+        Double stockNuevo = stockActual + ajuste;
 
         return UpdateProduccionTerminadaResult.builder()
                 .id(entity.getId())
@@ -230,7 +230,7 @@ public class ProduccionTerminadaServiceImpl implements IProduccionTerminadaServi
         }
 
         // Obtener stock actual
-        Integer stockActual = fincaProductoService.obtenerStock(entity.getFincaId(), entity.getProductoId());
+        Double stockActual = fincaProductoService.obtenerStock(entity.getFincaId(), entity.getProductoId());
         Integer cantidadARevertir = entity.getCantidadTerminada();
 
         // RN-07: Validar que no quede stock negativo
@@ -254,7 +254,7 @@ public class ProduccionTerminadaServiceImpl implements IProduccionTerminadaServi
                 "produccion_terminada"
         );
 
-        Integer stockNuevo = stockActual - cantidadARevertir;
+        Double stockNuevo = stockActual - cantidadARevertir;
 
         return DeleteProduccionTerminadaResult.builder()
                 .id(entity.getId())

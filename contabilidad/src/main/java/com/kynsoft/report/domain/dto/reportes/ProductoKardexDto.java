@@ -15,9 +15,9 @@ public class ProductoKardexDto {
     private String productoCode;
     private String productoName;
     private String unidadMedida;
-    private Integer stockInicial;
+    private Double stockInicial;
     private EntradasSalidasDto entradas;
     private EntradasSalidasDto salidas;
-    private Integer stockFinal;
+    private Double stockFinal;
     private List<MovimientoKardexDto> movimientos;
 }

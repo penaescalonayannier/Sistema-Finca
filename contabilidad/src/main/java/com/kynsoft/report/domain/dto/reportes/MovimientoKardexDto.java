@@ -14,8 +14,8 @@ import java.util.UUID;
 public class MovimientoKardexDto {
     private LocalDateTime fecha;
     private TipoMovimientoStock tipo;
-    private Integer cantidad;
-    private Integer stockResultante;
+    private Double cantidad;
+    private Double stockResultante;
     private String referencia;
     private UUID referenciaId;
 }

@@ -30,6 +30,22 @@ public interface IMovimientoStockService {
                              UUID referenciaId, String referenciaTabla, String descripcion,
                              String centroCosto);
 
+    void registrarMovimiento(UUID fincaProductoId, UUID fincaId, UUID productoId,
+                             TipoMovimientoStock tipo, Integer cantidad,
+                             Double stockAnterior, Double stockNuevo,
+                             UUID referenciaId, String referenciaTabla, String descripcion);
+
+    void registrarMovimiento(UUID fincaProductoId, UUID fincaId, UUID productoId,
+                             TipoMovimientoStock tipo, Double cantidad,
+                             Double stockAnterior, Double stockNuevo,
+                             UUID referenciaId, String referenciaTabla, String descripcion);
+
+    void registrarMovimiento(UUID fincaProductoId, UUID fincaId, UUID productoId,
+                             TipoMovimientoStock tipo, Double cantidad,
+                             Double stockAnterior, Double stockNuevo,
+                             UUID referenciaId, String referenciaTabla, String descripcion,
+                             String centroCosto);
+
     List<MovimientoStockDto> findByFincaProductoId(UUID fincaProductoId);
 
     List<MovimientoStockDto> findByFincaId(UUID fincaId);
@@ -50,7 +66,7 @@ public interface IMovimientoStockService {
      * - Valida no stock negativo para SALIDA_AJUSTE (RN-06)
      */
     MovimientoStockDto crearAjuste(UUID almacenId, UUID fincaProductoId,
-                                    TipoMovimientoStock tipo, Integer cantidad,
+                                    TipoMovimientoStock tipo, Double cantidad,
                                     String observaciones);
 
     MovimientoStockDto findById(UUID id);
