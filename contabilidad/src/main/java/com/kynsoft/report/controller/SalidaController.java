@@ -7,6 +7,7 @@ import com.kynsoft.share.core.infrastructure.bus.IMediator;
 import com.kynsoft.report.applications.command.salida.create.CreateSalidaCommand;
 import com.kynsoft.report.applications.command.salida.create.CreateSalidaMessage;
 import com.kynsoft.report.applications.command.salida.create.CreateSalidaRequest;
+import com.kynsoft.report.applications.command.salida.consolidado.ValesConsolidadosRequest;
 import com.kynsoft.report.applications.command.salida.delete.DeleteSalidaCommand;
 import com.kynsoft.report.applications.command.salida.delete.DeleteSalidaMessage;
 import com.kynsoft.report.applications.command.salida.update.UpdateSalidaCommand;
@@ -32,6 +33,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/salida")
@@ -155,6 +159,50 @@ public class SalidaController {
             return ResponseEntity.ok().headers(headers).body(pdfBytes);
         } catch (Exception e) {
             log.error("Error al generar PDF consolidado de vales para {} / {}: {}", fecha, destino, e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/vales")
+    public ResponseEntity<List<SalidaDto>> listarValesPorFecha(@RequestParam LocalDate fecha) {
+        return ResponseEntity.ok(salidaService.findValesActivosPorFecha(fecha));
+    }
+
+    @PostMapping("/vales/consolidado")
+    public ResponseEntity<byte[]> descargarValesConsolidadosPorDestino(@RequestBody ValesConsolidadosRequest request) {
+        if (request.getFecha() == null || request.getSalidaIds() == null || request.getSalidaIds().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        try {
+            List<SalidaDto> valesDelDia = salidaService.findValesActivosPorFecha(request.getFecha());
+            Set<UUID> seleccionados = Set.copyOf(request.getSalidaIds());
+            Map<UUID, SalidaDto> porId = valesDelDia.stream()
+                    .collect(Collectors.toMap(SalidaDto::getId, salida -> salida));
+            if (seleccionados.size() != request.getSalidaIds().size() || !porId.keySet().containsAll(seleccionados)) {
+                return ResponseEntity.badRequest().build();
+            }
+            List<SalidaDto> vales = valesDelDia.stream()
+                    .filter(salida -> seleccionados.contains(salida.getId()))
+                    .collect(Collectors.toList());
+
+            ConfiguracionEmpresaDto empresa = configuracionEmpresaService.findActive()
+                    .orElse(ConfiguracionEmpresaDto.builder()
+                            .nombre("El Coloso S.A.")
+                            .codigo("")
+                            .nit("")
+                            .direccion("Delicias")
+                            .municipio("Puerto Padre")
+                            .provincia("Las Tunas")
+                            .build());
+            byte[] pdfBytes = facturaPdfService.generarValesConsolidadosPorDestino(vales, request.getFecha(), empresa);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment", "Vales_consolidados_" + request.getFecha() + ".pdf");
+            headers.setContentLength(pdfBytes.length);
+            return ResponseEntity.ok().headers(headers).body(pdfBytes);
+        } catch (Exception e) {
+            log.error("Error al generar PDF agrupado de vales para {}: {}", request.getFecha(), e.getMessage(), e);
             return ResponseEntity.internalServerError().build();
         }
     }

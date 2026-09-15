@@ -54,6 +54,19 @@ public interface SalidaReadDataJPARepository extends JpaRepository<Salida, UUID>
             @Param("fechaInicio") LocalDateTime fechaInicio,
             @Param("fechaFin") LocalDateTime fechaFin);
 
+    @Query("SELECT DISTINCT s FROM Salida s " +
+           "JOIN FETCH s.fincaProducto fp " +
+           "JOIN FETCH fp.finca " +
+           "JOIN FETCH fp.producto " +
+           "LEFT JOIN FETCH s.items i " +
+           "LEFT JOIN FETCH i.trabajador " +
+           "WHERE s.tipo = :tipo AND s.fecha >= :fechaInicio AND s.fecha < :fechaFin AND s.activo = true " +
+           "ORDER BY s.destino, s.fecha, s.numero")
+    List<Salida> findActivasPorTipoYFecha(
+            @Param("tipo") TipoSalida tipo,
+            @Param("fechaInicio") LocalDateTime fechaInicio,
+            @Param("fechaFin") LocalDateTime fechaFin);
+
     @Query("SELECT COALESCE(MAX(CAST(SUBSTRING(s.numero, LENGTH(:prefix) + 1) AS int)), 0) FROM Salida s WHERE s.numero LIKE :prefix%")
     Integer findMaxNumeroByPrefix(@Param("prefix") String prefix);
 

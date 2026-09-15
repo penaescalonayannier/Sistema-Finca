@@ -7,7 +7,9 @@ import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
 import com.itextpdf.kernel.geom.PageSize;
 import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfReader;
 import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.kernel.utils.PdfMerger;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.borders.Border;
 import com.itextpdf.layout.borders.SolidBorder;
@@ -23,6 +25,7 @@ import com.kynsoft.report.domain.dto.SalidaDto;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
+import java.io.ByteArrayInputStream;
 import java.time.format.DateTimeFormatter;
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
@@ -171,6 +174,38 @@ public class FacturaPdfService {
         document.add(new Paragraph("Importe total: $" + String.format("%.2f", importeTotal))
                 .setFont(fontBold).setFontSize(9).setTextAlignment(TextAlignment.RIGHT).setMarginTop(6));
         document.close();
+        return baos.toByteArray();
+    }
+
+    /**
+     * Une en un único PDF los vales seleccionados, iniciando una sección independiente por destino.
+     * Es una operación de impresión: no crea ni modifica información del sistema.
+     */
+    public byte[] generarValesConsolidadosPorDestino(List<SalidaDto> salidas, LocalDate fecha,
+                                                      ConfiguracionEmpresaDto empresa) throws Exception {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PdfDocument destinoPdf = new PdfDocument(new PdfWriter(baos));
+        PdfMerger merger = new PdfMerger(destinoPdf);
+        try {
+            Map<DestinoSalida, List<SalidaDto>> porDestino = new LinkedHashMap<>();
+            for (DestinoSalida destino : DestinoSalida.values()) {
+                List<SalidaDto> grupo = salidas.stream()
+                        .filter(salida -> destino.equals(salida.getDestino()))
+                        .toList();
+                if (!grupo.isEmpty()) {
+                    porDestino.put(destino, grupo);
+                }
+            }
+
+            for (Map.Entry<DestinoSalida, List<SalidaDto>> grupo : porDestino.entrySet()) {
+                byte[] pdfGrupo = generarValesConsolidados(grupo.getValue(), fecha, grupo.getKey(), empresa);
+                try (PdfDocument origen = new PdfDocument(new PdfReader(new ByteArrayInputStream(pdfGrupo)))) {
+                    merger.merge(origen, 1, origen.getNumberOfPages());
+                }
+            }
+        } finally {
+            merger.close();
+        }
         return baos.toByteArray();
     }
 

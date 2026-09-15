@@ -564,6 +564,28 @@ public class SalidaServiceImpl implements ISalidaService {
     }
 
     @Override
+    public List<SalidaDto> findValesActivosPorFecha(LocalDate fecha) {
+        LocalDateTime inicio = fecha.atStartOfDay();
+        LocalDateTime fin = fecha.plusDays(1).atStartOfDay();
+        UUID fincaEfectiva = TenantContext.shouldFilter() ? TenantContext.getEffectiveFincaId() : null;
+
+        return repositoryQuery.findActivasPorTipoYFecha(TipoSalida.VALE, inicio, fin)
+                .stream()
+                .filter(salida -> fincaEfectiva == null
+                        || (salida.getFincaProducto() != null
+                        && salida.getFincaProducto().getFinca() != null
+                        && fincaEfectiva.equals(salida.getFincaProducto().getFinca().getId())))
+                .map(salida -> {
+                    SalidaDto dto = salida.toAggregate();
+                    dto.setItems(salida.getItems().stream()
+                            .map(ItemSalida::toAggregate)
+                            .collect(Collectors.toList()));
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
     @Deprecated
     public String generarNumero(TipoSalida tipo) {
         // Método legacy - usar numeracionService.generarSiguienteNumero() con fincaId

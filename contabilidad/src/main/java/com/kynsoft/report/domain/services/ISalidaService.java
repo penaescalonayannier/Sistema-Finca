@@ -30,5 +30,7 @@ public interface ISalidaService {
 
     List<SalidaDto> findValesActivosPorFechaYDestino(LocalDate fecha, DestinoSalida destino);
 
+    List<SalidaDto> findValesActivosPorFecha(LocalDate fecha);
+
     String generarNumero(TipoSalida tipo);
 }
