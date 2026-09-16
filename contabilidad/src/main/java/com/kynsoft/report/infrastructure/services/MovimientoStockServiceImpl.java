@@ -35,6 +35,10 @@ import com.kynsoft.report.infrastructure.repository.query.SalidaReadDataJPARepos
 import com.kynsoft.report.infrastructure.repository.query.ItemSalidaReadDataJPARepository;
 import com.kynsoft.report.infrastructure.entity.Salida;
 import com.kynsoft.report.infrastructure.entity.ItemSalida;
+import com.kynsoft.report.infrastructure.entity.LiquidacionItemSalida;
+import com.kynsoft.report.infrastructure.entity.LiquidacionSalida;
+import com.kynsoft.report.infrastructure.repository.query.LiquidacionItemSalidaReadDataJPARepository;
+import com.kynsoft.report.infrastructure.repository.query.LiquidacionSalidaReadDataJPARepository;
 import com.kynsoft.report.infrastructure.security.TenantSpecification;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -69,6 +73,8 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
     private final AlmacenFincaProductoWriteDataJPARepository almacenFincaProductoWriteRepository;
     private final SalidaReadDataJPARepository salidaRepository;
     private final ItemSalidaReadDataJPARepository itemSalidaRepository;
+    private final LiquidacionItemSalidaReadDataJPARepository liquidacionItemReadRepository;
+    private final LiquidacionSalidaReadDataJPARepository liquidacionReadRepository;
     private final IContabilizacionAutomaticaService contabilizacionService;
 
     public MovimientoStockServiceImpl(
@@ -83,6 +89,8 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
             AlmacenFincaProductoWriteDataJPARepository almacenFincaProductoWriteRepository,
             SalidaReadDataJPARepository salidaRepository,
             ItemSalidaReadDataJPARepository itemSalidaRepository,
+            LiquidacionItemSalidaReadDataJPARepository liquidacionItemReadRepository,
+            LiquidacionSalidaReadDataJPARepository liquidacionReadRepository,
             @Lazy IContabilizacionAutomaticaService contabilizacionService) {
         this.repositoryCommand = repositoryCommand;
         this.repositoryQuery = repositoryQuery;
@@ -95,6 +103,8 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
         this.almacenFincaProductoWriteRepository = almacenFincaProductoWriteRepository;
         this.salidaRepository = salidaRepository;
         this.itemSalidaRepository = itemSalidaRepository;
+        this.liquidacionItemReadRepository = liquidacionItemReadRepository;
+        this.liquidacionReadRepository = liquidacionReadRepository;
         this.contabilizacionService = contabilizacionService;
     }
 
@@ -637,6 +647,9 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
 
     @Override
     public ReporteMovimientosConsolidadoDto getConsolidadoMovimientos(LocalDate fechaInicio, LocalDate fechaFin, UUID fincaId) {
+        if (fechaInicio == null || fechaFin == null || fechaFin.isBefore(fechaInicio)) {
+            throw new IllegalArgumentException("El rango de fechas del reporte no es válido.");
+        }
         LocalDateTime inicio = fechaInicio.atStartOfDay();
         LocalDateTime fin = fechaFin.atTime(23, 59, 59);
 
@@ -708,6 +721,9 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
         } else {
             salidas = salidaRepository.findByFechaBetween(inicio, fin);
         }
+        Map<UUID, FincaProducto> fincaProductosDeSalidas = fincaProductoRepository.findByIdInWithDetails(
+                        salidas.stream().map(Salida::getFincaProductoId).filter(java.util.Objects::nonNull).distinct().toList())
+                .stream().collect(Collectors.toMap(FincaProducto::getId, fincaProducto -> fincaProducto));
 
         // Agrupar por destino
         Map<DestinoSalida, List<Salida>> salidasPorDestino = salidas.stream()
@@ -778,6 +794,17 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
                         MovimientoStock::getTipo,
                         Collectors.summingDouble(MovimientoStock::getCantidad)));
 
+        List<LiquidacionItemSalida> aplicacionesCobradas = liquidacionItemReadRepository
+                .findActivasByFincaIdAndFechaBetween(fincaId, inicio, fin);
+        List<ReporteMovimientosConsolidadoDto.CobroEfectivo> cobrosEfectivo = construirCobrosEfectivo(aplicacionesCobradas);
+        double totalEfectivoCobrado = cobrosEfectivo.stream().mapToDouble(cobro -> valor(cobro.getImporte())).sum();
+        double totalTransferenciasCobradas = aplicacionesCobradas.stream()
+                .filter(aplicacion -> aplicacion.getFormaPago() == com.kynsoft.report.domain.dto.FormaPago.TRANSFERENCIA)
+                .mapToDouble(aplicacion -> valor(aplicacion.getImporte()))
+                .sum();
+        List<ReporteMovimientosConsolidadoDto.DocumentoOrigenEmitido> documentosOrigenEmitidos =
+                construirDocumentosOrigenEmitidos(salidas, fincaProductosDeSalidas);
+
         return ReporteMovimientosConsolidadoDto.builder()
                 .fechaInicio(fechaInicio)
                 .fechaFin(fechaFin)
@@ -786,7 +813,77 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
                 .entradasPorProducto(entradasDto)
                 .salidasPorDestino(salidasDto)
                 .entradasPorTipo(entradasPorTipo)
+                .totalEfectivoCobrado(totalEfectivoCobrado)
+                .totalTransferenciasCobradas(totalTransferenciasCobradas)
+                .cobrosEfectivo(cobrosEfectivo)
+                .documentosOrigenEmitidos(documentosOrigenEmitidos)
                 .build();
+    }
+
+    /**
+     * Fuente única de efectivo: aplicaciones activas de liquidación. Cada
+     * renglón mantiene el ítem, el documento y la forma de pago que lo originó.
+     */
+    private List<ReporteMovimientosConsolidadoDto.CobroEfectivo> construirCobrosEfectivo(
+            List<LiquidacionItemSalida> aplicaciones) {
+        List<LiquidacionItemSalida> efectivo = aplicaciones.stream()
+                .filter(aplicacion -> aplicacion.getFormaPago() == com.kynsoft.report.domain.dto.FormaPago.EFECTIVO).toList();
+        if (efectivo.isEmpty()) return List.of();
+        Map<UUID, ItemSalida> items = itemSalidaRepository.findByIdIn(efectivo.stream()
+                        .map(LiquidacionItemSalida::getItemSalidaId).distinct().toList()).stream()
+                .collect(Collectors.toMap(ItemSalida::getId, item -> item));
+        Map<UUID, LiquidacionSalida> liquidaciones = liquidacionReadRepository.findByIdIn(efectivo.stream()
+                        .map(LiquidacionItemSalida::getLiquidacionSalidaId).distinct().toList()).stream()
+                .collect(Collectors.toMap(LiquidacionSalida::getId, liquidacion -> liquidacion));
+        Map<UUID, Salida> salidas = salidaRepository.findByIdInWithDetails(items.values().stream()
+                        .map(ItemSalida::getSalidaId).distinct().toList()).stream()
+                .collect(Collectors.toMap(Salida::getId, salida -> salida));
+        return efectivo.stream().map(aplicacion -> {
+            ItemSalida item = items.get(aplicacion.getItemSalidaId());
+            Salida salida = item == null ? null : salidas.get(item.getSalidaId());
+            LiquidacionSalida liquidacion = liquidaciones.get(aplicacion.getLiquidacionSalidaId());
+            double saldo = salida == null ? 0d : saldoDocumento(salida);
+            return ReporteMovimientosConsolidadoDto.CobroEfectivo.builder()
+                    .pagoDetalleId(aplicacion.getId()).fecha(liquidacion == null ? null : liquidacion.getFecha())
+                    .numeroRecibo("LIQ-" + aplicacion.getLiquidacionSalidaId())
+                    .trabajadorNombre(item != null && item.getTrabajador() != null ? item.getTrabajador().getNombre() : "No aplica")
+                    .fincaNombre(salida != null && salida.getFincaProducto() != null && salida.getFincaProducto().getFinca() != null
+                            ? salida.getFincaProducto().getFinca().getName() : "Sin finca")
+                    .tipoDocumento(salida == null || salida.getTipo() == null ? "-" : salida.getTipo().name())
+                    .numeroDocumento(salida == null ? "-" : salida.getNumero())
+                    .destino(salida == null ? "-" : getDestinoNombre(salida.getDestino()))
+                    .saldoDocumento(saldo).estadoDocumento(saldo <= 0.000001d ? "COBRADO" : "PARCIAL")
+                    .importe(valor(aplicacion.getImporte())).build();
+        }).toList();
+    }
+
+    private double saldoDocumento(Salida salida) {
+        return salida.getItems().stream().mapToDouble(item -> Math.max(0d,
+                valor(item.getCantidad()) * valor(item.getPrecio()) - valor(liquidacionItemReadRepository.totalCobradoByItemSalidaId(item.getId())))).sum();
+    }
+
+    private List<ReporteMovimientosConsolidadoDto.DocumentoOrigenEmitido> construirDocumentosOrigenEmitidos(
+            List<Salida> salidas, Map<UUID, FincaProducto> fincaProductos) {
+        if (salidas.isEmpty()) return List.of();
+        Map<UUID, List<ItemSalida>> itemsPorSalida = itemSalidaRepository
+                .findBySalidaIdIn(salidas.stream().map(Salida::getId).toList()).stream()
+                .collect(Collectors.groupingBy(ItemSalida::getSalidaId));
+        return salidas.stream().map(salida -> {
+            List<ItemSalida> items = itemsPorSalida.getOrDefault(salida.getId(), List.of());
+            FincaProducto fincaProducto = fincaProductos.get(salida.getFincaProductoId());
+            return ReporteMovimientosConsolidadoDto.DocumentoOrigenEmitido.builder()
+                    .salidaId(salida.getId())
+                    .fecha(salida.getFecha())
+                    .tipoDocumento(salida.getTipo() == null ? "-" : salida.getTipo().name())
+                    .numeroDocumento(salida.getNumero())
+                    .destino(getDestinoNombre(salida.getDestino()))
+                    .fincaNombre(fincaProducto != null && fincaProducto.getFinca() != null
+                            ? fincaProducto.getFinca().getName() : "Sin finca")
+                    .cantidad(items.stream().mapToDouble(item -> valor(item.getCantidad())).sum())
+                    .importeDocumentado(items.stream().mapToDouble(item -> valor(item.getCantidad()) * valor(item.getPrecio())).sum())
+                    .estadoCobro("PENDIENTE DE CONFIRMACION DE COBRO")
+                    .build();
+        }).toList();
     }
 
     private String getDestinoNombre(DestinoSalida destino) {

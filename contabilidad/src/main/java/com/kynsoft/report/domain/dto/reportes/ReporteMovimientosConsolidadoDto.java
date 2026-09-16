@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -38,6 +39,57 @@ public class ReporteMovimientosConsolidadoDto {
 
     // Detalle de entradas por tipo de movimiento
     private Map<TipoMovimientoStock, Double> entradasPorTipo;
+
+    /** Cobros confirmados por pagos activos con forma de pago EFECTIVO. */
+    private Double totalEfectivoCobrado;
+
+    /** Cobros confirmados por pagos activos con forma de pago TRANSFERENCIA. */
+    private Double totalTransferenciasCobradas;
+
+    /** Renglones de cobros confirmados en efectivo; su fuente es el detalle PAGO. */
+    private List<CobroEfectivo> cobrosEfectivo;
+
+    /**
+     * Vales y facturas emitidos en el período. No se les asigna cobro de forma
+     * individual porque el modelo actual no conserva una relación pago-documento.
+     */
+    private List<DocumentoOrigenEmitido> documentosOrigenEmitidos;
+
+    @Getter
+    @Setter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CobroEfectivo {
+        private java.util.UUID pagoDetalleId;
+        private LocalDateTime fecha;
+        private String numeroRecibo;
+        private String trabajadorNombre;
+        private String fincaNombre;
+        private String tipoDocumento;
+        private String numeroDocumento;
+        private String destino;
+        private Double saldoDocumento;
+        private String estadoDocumento;
+        private Double importe;
+    }
+
+    @Getter
+    @Setter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DocumentoOrigenEmitido {
+        private java.util.UUID salidaId;
+        private LocalDateTime fecha;
+        private String tipoDocumento;
+        private String numeroDocumento;
+        private String destino;
+        private String fincaNombre;
+        private Double cantidad;
+        private Double importeDocumentado;
+        private String estadoCobro;
+    }
 
     @Getter
     @Setter

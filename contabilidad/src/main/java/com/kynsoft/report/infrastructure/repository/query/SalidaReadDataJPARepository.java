@@ -37,6 +37,12 @@ public interface SalidaReadDataJPARepository extends JpaRepository<Salida, UUID>
            "WHERE s.id = :id")
     Optional<Salida> findByIdWithDetails(@Param("id") UUID id);
 
+    @Query("SELECT DISTINCT s FROM Salida s " +
+           "LEFT JOIN FETCH s.fincaProducto fp LEFT JOIN FETCH fp.finca LEFT JOIN FETCH fp.producto " +
+           "LEFT JOIN FETCH s.items i LEFT JOIN FETCH i.trabajador " +
+           "WHERE s.id IN :ids")
+    List<Salida> findByIdInWithDetails(@Param("ids") List<UUID> ids);
+
     List<Salida> findByTipo(TipoSalida tipo);
 
     List<Salida> findByFincaProductoId(UUID fincaProductoId);
@@ -80,7 +86,10 @@ public interface SalidaReadDataJPARepository extends JpaRepository<Salida, UUID>
            "LEFT JOIN FETCH s.fincaProducto fp " +
            "LEFT JOIN FETCH fp.finca " +
            "LEFT JOIN FETCH fp.producto " +
-           "LEFT JOIN FETCH s.items " +
+           "LEFT JOIN FETCH s.items i " +
+           "LEFT JOIN FETCH i.trabajador " +
+           "LEFT JOIN FETCH i.fincaProducto ifp " +
+           "LEFT JOIN FETCH ifp.producto " +
            "WHERE s.fecha >= :startDate AND s.fecha <= :endDate AND s.activo = true")
     List<Salida> findByFechaAndActivo(@Param("startDate") java.time.LocalDateTime startDate,
                                        @Param("endDate") java.time.LocalDateTime endDate);
@@ -96,6 +105,10 @@ public interface SalidaReadDataJPARepository extends JpaRepository<Salida, UUID>
            "LEFT JOIN FETCH s.fincaProducto fp " +
            "LEFT JOIN FETCH fp.finca f " +
            "LEFT JOIN FETCH fp.producto " +
+           "LEFT JOIN FETCH s.items i " +
+           "LEFT JOIN FETCH i.trabajador " +
+           "LEFT JOIN FETCH i.fincaProducto ifp " +
+           "LEFT JOIN FETCH ifp.producto " +
            "WHERE f.id = :fincaId AND s.fecha BETWEEN :fechaInicio AND :fechaFin AND s.activo = true")
     List<Salida> findByFincaIdAndFechaBetween(@Param("fincaId") UUID fincaId,
                                                @Param("fechaInicio") java.time.LocalDateTime fechaInicio,

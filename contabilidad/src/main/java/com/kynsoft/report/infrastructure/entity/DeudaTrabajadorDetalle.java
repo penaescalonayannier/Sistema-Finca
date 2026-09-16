@@ -91,6 +91,9 @@ public class DeudaTrabajadorDetalle {
     @Column(name = "observaciones", length = 500)
     private String observaciones;
 
+    @Column(name = "liquidacion_item_salida_id")
+    private UUID liquidacionItemSalidaId;
+
     public void setCantidad(Number cantidad) {
         this.cantidad = cantidad != null ? cantidad.doubleValue() : null;
     }

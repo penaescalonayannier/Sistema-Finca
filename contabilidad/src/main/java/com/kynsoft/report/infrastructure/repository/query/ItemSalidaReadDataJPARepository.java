@@ -18,5 +18,8 @@ public interface ItemSalidaReadDataJPARepository extends JpaRepository<ItemSalid
 
     List<ItemSalida> findByTrabajadorId(UUID trabajadorId);
 
+    @EntityGraph(attributePaths = {"trabajador", "trabajador.finca", "fincaProducto", "fincaProducto.producto"})
+    List<ItemSalida> findByIdIn(List<UUID> itemSalidaIds);
+
     List<ItemSalida> findBySalidaIdIn(List<UUID> salidaIds);
 }

@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Transactional(readOnly = true, transactionManager = "readTransactionManager")
@@ -28,4 +29,25 @@ public interface DeudaTrabajadorDetalleReadDataJPARepository extends JpaReposito
            "AND d.activo = true AND d.pagado = false AND d.tipoMovimiento = 'COMPRA' " +
            "ORDER BY d.fecha ASC")
     List<DeudaTrabajadorDetalle> findComprasNoPagadasByTrabajadorId(@Param("trabajadorId") UUID trabajadorId);
+
+    @Query("SELECT d FROM DeudaTrabajadorDetalle d " +
+           "LEFT JOIN FETCH d.trabajador t " +
+           "LEFT JOIN FETCH t.finca " +
+           "WHERE d.activo = true AND d.tipoMovimiento = 'PAGO' " +
+           "AND d.fecha >= :fechaInicio AND d.fecha <= :fechaFin " +
+           "ORDER BY d.fecha ASC")
+    List<DeudaTrabajadorDetalle> findPagosActivosByFechaBetween(
+            @Param("fechaInicio") LocalDateTime fechaInicio,
+            @Param("fechaFin") LocalDateTime fechaFin);
+
+    @Query("SELECT d FROM DeudaTrabajadorDetalle d " +
+           "LEFT JOIN FETCH d.trabajador t " +
+           "LEFT JOIN FETCH t.finca " +
+           "WHERE d.activo = true AND d.tipoMovimiento = 'PAGO' AND t.fincaId = :fincaId " +
+           "AND d.fecha >= :fechaInicio AND d.fecha <= :fechaFin " +
+           "ORDER BY d.fecha ASC")
+    List<DeudaTrabajadorDetalle> findPagosActivosByFincaIdAndFechaBetween(
+            @Param("fincaId") UUID fincaId,
+            @Param("fechaInicio") LocalDateTime fechaInicio,
+            @Param("fechaFin") LocalDateTime fechaFin);
 }

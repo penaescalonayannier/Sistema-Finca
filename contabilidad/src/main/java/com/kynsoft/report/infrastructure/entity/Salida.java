@@ -67,6 +67,10 @@ public class Salida {
     @Column(name = "activo", nullable = false)
     private Boolean activo = true;
 
+    /** Se actualiza únicamente cuando todos sus ítems han sido liquidados. */
+    @Column(name = "pagado", nullable = false)
+    private Boolean pagado = false;
+
     @PrePersist
     protected void onCreate() {
         if (fecha == null) {

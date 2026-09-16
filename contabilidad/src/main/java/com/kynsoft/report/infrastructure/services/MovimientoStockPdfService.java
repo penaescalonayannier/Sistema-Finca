@@ -51,6 +51,7 @@ public class MovimientoStockPdfService {
                 .setTextAlignment(TextAlignment.CENTER).setMarginBottom(12));
 
         agregarResumen(document, reporte, bold, normal);
+        agregarCobrosYDocumentosOrigen(document, reporte, bold, normal);
         agregarSalidasPorDestino(document, reporte, bold, normal);
         agregarMatrizPorProducto(document, reporte, bold, normal);
 
@@ -92,6 +93,71 @@ public class MovimientoStockPdfService {
             table.addCell(empty);
         }
         document.add(table.setMarginBottom(14));
+    }
+
+    private void agregarCobrosYDocumentosOrigen(Document document, ReporteMovimientosConsolidadoDto reporte,
+                                                 PdfFont bold, PdfFont normal) {
+        document.add(new Paragraph("Cobros confirmados en efectivo").setFont(bold).setFontSize(12));
+        document.add(new Paragraph("Fuente: aplicaciones activas de liquidación vinculadas al documento y a su ítem.")
+                .setFont(normal).setFontSize(8).setFontColor(ColorConstants.DARK_GRAY));
+        Table table = new Table(UnitValue.createPercentArray(new float[]{.9f, .75f, 1f, 1.25f, 1.4f, 1.3f, .9f, .9f}))
+                .useAllAvailableWidth().setFontSize(7);
+        encabezado(table, "Fecha", bold);
+        encabezado(table, "Tipo", bold);
+        encabezado(table, "Documento", bold);
+        encabezado(table, "Destino", bold);
+        encabezado(table, "Trabajador", bold);
+        encabezado(table, "Finca", bold);
+        encabezado(table, "Estado", bold);
+        encabezado(table, "Efectivo", bold);
+
+        List<ReporteMovimientosConsolidadoDto.CobroEfectivo> cobros = lista(reporte.getCobrosEfectivo());
+        for (ReporteMovimientosConsolidadoDto.CobroEfectivo cobro : cobros) {
+            celda(table, cobro.getFecha() == null ? "-" : DATE_FORMAT.format(cobro.getFecha()), normal, TextAlignment.CENTER);
+            celda(table, texto(cobro.getTipoDocumento()), normal, TextAlignment.CENTER);
+            celda(table, texto(cobro.getNumeroDocumento()), normal, TextAlignment.CENTER);
+            celda(table, texto(cobro.getDestino()), normal, TextAlignment.LEFT);
+            celda(table, texto(cobro.getTrabajadorNombre()), normal, TextAlignment.LEFT);
+            celda(table, texto(cobro.getFincaNombre()), normal, TextAlignment.LEFT);
+            celda(table, texto(cobro.getEstadoDocumento()), normal, TextAlignment.CENTER);
+            celda(table, formatoMoneda(valor(cobro.getImporte())), normal, TextAlignment.RIGHT);
+        }
+        if (cobros.isEmpty()) {
+            table.addCell(new Cell(1, 8).add(new Paragraph("No existen cobros confirmados en efectivo en el período.")
+                    .setFont(normal)));
+        }
+        Cell total = new Cell(1, 7).setTextAlignment(TextAlignment.RIGHT)
+                .setBackgroundColor(LIGHT_BLUE).add(new Paragraph("TOTAL EFECTIVO GENERADO").setFont(bold));
+        table.addCell(total);
+        table.addCell(new Cell().setTextAlignment(TextAlignment.RIGHT).setBackgroundColor(LIGHT_BLUE)
+                .add(new Paragraph(formatoMoneda(valor(reporte.getTotalEfectivoCobrado()))).setFont(bold)));
+        document.add(table.setMarginBottom(14));
+
+        document.add(new Paragraph("Vales y facturas emitidos (sin atribución individual de cobro)").setFont(bold).setFontSize(12));
+        Table documentos = new Table(UnitValue.createPercentArray(new float[]{1f, .8f, 1.1f, 1.35f, 2.15f, .8f, 1.1f, 1.5f}))
+                .useAllAvailableWidth().setFontSize(7);
+        encabezado(documentos, "Fecha", bold);
+        encabezado(documentos, "Tipo", bold);
+        encabezado(documentos, "No. documento", bold);
+        encabezado(documentos, "Destino", bold);
+        encabezado(documentos, "Finca", bold);
+        encabezado(documentos, "Cantidad", bold);
+        encabezado(documentos, "Importe", bold);
+        encabezado(documentos, "Estado de cobro", bold);
+        for (ReporteMovimientosConsolidadoDto.DocumentoOrigenEmitido documento : lista(reporte.getDocumentosOrigenEmitidos())) {
+            celda(documentos, documento.getFecha() == null ? "-" : DATE_FORMAT.format(documento.getFecha()), normal, TextAlignment.CENTER);
+            celda(documentos, texto(documento.getTipoDocumento()), normal, TextAlignment.CENTER);
+            celda(documentos, texto(documento.getNumeroDocumento()), normal, TextAlignment.CENTER);
+            celda(documentos, texto(documento.getDestino()), normal, TextAlignment.LEFT);
+            celda(documentos, texto(documento.getFincaNombre()), normal, TextAlignment.LEFT);
+            celda(documentos, String.valueOf(valor(documento.getCantidad())), normal, TextAlignment.RIGHT);
+            celda(documentos, formatoMoneda(valor(documento.getImporteDocumentado())), normal, TextAlignment.RIGHT);
+            celda(documentos, texto(documento.getEstadoCobro()), normal, TextAlignment.LEFT);
+        }
+        if (lista(reporte.getDocumentosOrigenEmitidos()).isEmpty()) {
+            documentos.addCell(new Cell(1, 8).add(new Paragraph("No existen vales o facturas activos en el período.").setFont(normal)));
+        }
+        document.add(documentos.setMarginBottom(14));
     }
 
     private void agregarMatrizPorProducto(Document document, ReporteMovimientosConsolidadoDto reporte,
