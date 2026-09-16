@@ -11,6 +11,7 @@ import com.kynsoft.report.domain.dto.TipoMovimientoStock;
 import com.kynsoft.report.domain.dto.reportes.ReporteMovimientosConsolidadoDto;
 import com.kynsoft.report.domain.services.IMovimientoStockService;
 import com.kynsoft.report.infrastructure.services.MovimientoStockPdfService;
+import com.kynsoft.report.infrastructure.services.TarjetaEstibaPdfService;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.domain.Pageable;
@@ -33,11 +34,14 @@ public class MovimientoStockController {
 
     private final IMovimientoStockService movimientoStockService;
     private final MovimientoStockPdfService movimientoStockPdfService;
+    private final TarjetaEstibaPdfService tarjetaEstibaPdfService;
 
     public MovimientoStockController(IMovimientoStockService movimientoStockService,
-                                     MovimientoStockPdfService movimientoStockPdfService) {
+                                     MovimientoStockPdfService movimientoStockPdfService,
+                                     TarjetaEstibaPdfService tarjetaEstibaPdfService) {
         this.movimientoStockService = movimientoStockService;
         this.movimientoStockPdfService = movimientoStockPdfService;
+        this.tarjetaEstibaPdfService = tarjetaEstibaPdfService;
     }
 
     @PostMapping("/ajuste")
@@ -261,6 +265,25 @@ public class MovimientoStockController {
 
         KardexDto kardex = movimientoStockService.getKardex(fincaProductoId, almacenId, fechaInicio, fechaFin);
         return ResponseEntity.ok(kardex);
+    }
+
+    /**
+     * Descarga el modelo SC-2-14 (Tarjeta de Estiba) para un único producto
+     * asignado a un almacén. Es una consulta histórica y no genera movimientos.
+     */
+    @GetMapping(value = "/tarjeta-estiba/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> descargarTarjetaEstiba(
+            @RequestParam UUID fincaProductoId,
+            @RequestParam UUID almacenId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin) throws Exception {
+        byte[] pdf = tarjetaEstibaPdfService.generar(fincaProductoId, almacenId, fechaInicio, fechaFin);
+        String filename = "SC-2-14_tarjeta_estiba_" + fincaProductoId.toString().substring(0, 8)
+                + "_" + fechaInicio + "_" + fechaFin + ".pdf";
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdf);
     }
 
     // Request class para crear ajuste

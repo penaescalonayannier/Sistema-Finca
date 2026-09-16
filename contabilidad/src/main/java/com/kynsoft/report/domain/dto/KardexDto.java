@@ -28,6 +28,7 @@ public class KardexDto {
     @AllArgsConstructor
     public static class ProductoInfoDto {
         private UUID fincaProductoId;
+        private UUID productoId;
         private String productoCode;
         private String productoName;
     }
@@ -54,5 +55,9 @@ public class KardexDto {
         private Double salida;
         private Double saldo;
         private String observaciones;
+        /** Documento que originó el movimiento; se muestra en la tarjeta de estiba. */
+        private UUID referenciaId;
+        private String referenciaTabla;
+        private String descripcion;
     }
 }

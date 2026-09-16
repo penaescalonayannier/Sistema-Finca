@@ -500,14 +500,21 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
 
     @Override
     public KardexDto getKardex(UUID fincaProductoId, UUID almacenId, LocalDateTime fechaInicio, LocalDateTime fechaFin) {
+        if (fechaInicio == null || fechaFin == null || fechaFin.isBefore(fechaInicio)) {
+            throw new IllegalArgumentException("El período del kardex es inválido.");
+        }
         // Obtener movimientos
         List<MovimientoStock> movimientos;
+        List<MovimientoStock> movimientosAnteriores;
         if (almacenId != null) {
             movimientos = repositoryQuery.findByFincaProductoIdAndAlmacenIdAndFechaBetween(
                     fincaProductoId, almacenId, fechaInicio, fechaFin);
+            movimientosAnteriores = repositoryQuery.findByFincaProductoIdAndAlmacenIdAndFechaBefore(
+                    fincaProductoId, almacenId, fechaInicio);
         } else {
             movimientos = repositoryQuery.findByFincaProductoIdAndFechaBetween(
                     fincaProductoId, fechaInicio, fechaFin);
+            movimientosAnteriores = repositoryQuery.findByFincaProductoIdAndFechaBefore(fincaProductoId, fechaInicio);
         }
 
         // Obtener info del producto
@@ -520,6 +527,7 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
 
         KardexDto.ProductoInfoDto productoInfo = KardexDto.ProductoInfoDto.builder()
                 .fincaProductoId(fincaProductoId)
+                .productoId(fp.getProducto().getId())
                 .productoCode(producto != null ? producto.getCode() : "")
                 .productoName(producto != null ? producto.getName() : "")
                 .build();
@@ -537,7 +545,11 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
 
         // Calcular kardex
         List<KardexDto.MovimientoKardexDto> movimientosKardex = new ArrayList<>();
-        Double stockInicial = movimientos.isEmpty() ? 0.0 : movimientos.get(0).getStockAnterior();
+        // La tarjeta de estiba debe abrir con el saldo exactamente anterior al período,
+        // aun si no existen movimientos dentro de las fechas solicitadas.
+        Double stockInicial = movimientosAnteriores.isEmpty()
+                ? (movimientos.isEmpty() ? 0.0 : valor(movimientos.get(0).getStockAnterior()))
+                : valor(movimientosAnteriores.get(movimientosAnteriores.size() - 1).getStockNuevo());
         Double saldoActual = stockInicial;
         double totalEntradas = 0.0;
         double totalSalidas = 0.0;
@@ -563,6 +575,9 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
                     .salida(salida)
                     .saldo(saldoActual)
                     .observaciones(m.getObservaciones())
+                    .referenciaId(m.getReferenciaId())
+                    .referenciaTabla(m.getReferenciaTabla())
+                    .descripcion(m.getDescripcion())
                     .build());
         }
 
@@ -575,6 +590,10 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
                 .totalEntradas(totalEntradas)
                 .totalSalidas(totalSalidas)
                 .build();
+    }
+
+    private double valor(Double numero) {
+        return numero == null ? 0d : numero;
     }
 
     @Override

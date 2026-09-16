@@ -64,11 +64,24 @@ public interface MovimientoStockReadDataJPARepository extends JpaRepository<Movi
             @Param("fechaInicio") LocalDateTime fechaInicio,
             @Param("fechaFin") LocalDateTime fechaFin);
 
+    @Query("SELECT m FROM MovimientoStock m WHERE m.fincaProductoId = :fincaProductoId "
+            + "AND m.almacenId = :almacenId AND m.fecha < :fecha ORDER BY m.fecha ASC")
+    List<MovimientoStock> findByFincaProductoIdAndAlmacenIdAndFechaBefore(
+            @Param("fincaProductoId") UUID fincaProductoId,
+            @Param("almacenId") UUID almacenId,
+            @Param("fecha") LocalDateTime fecha);
+
     @Query("SELECT m FROM MovimientoStock m WHERE m.fincaProductoId = :fincaProductoId AND m.fecha BETWEEN :fechaInicio AND :fechaFin ORDER BY m.fecha ASC")
     List<MovimientoStock> findByFincaProductoIdAndFechaBetween(
             @Param("fincaProductoId") UUID fincaProductoId,
             @Param("fechaInicio") LocalDateTime fechaInicio,
             @Param("fechaFin") LocalDateTime fechaFin);
+
+    @Query("SELECT m FROM MovimientoStock m WHERE m.fincaProductoId = :fincaProductoId "
+            + "AND m.fecha < :fecha ORDER BY m.fecha ASC")
+    List<MovimientoStock> findByFincaProductoIdAndFechaBefore(
+            @Param("fincaProductoId") UUID fincaProductoId,
+            @Param("fecha") LocalDateTime fecha);
 
     @Query("SELECT DISTINCT m.fincaProductoId FROM MovimientoStock m WHERE m.fincaId = :fincaId AND m.fecha BETWEEN :fechaInicio AND :fechaFin")
     List<UUID> findDistinctFincaProductoIdsByFincaIdAndFechaBetween(
