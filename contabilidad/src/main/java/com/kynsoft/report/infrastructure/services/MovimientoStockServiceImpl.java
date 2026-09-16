@@ -273,6 +273,19 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
                 data.getTotalElements(), data.getSize(), data.getNumber());
     }
 
+    /** Mantiene disponibles los ajustes enteros de los consumidores existentes. */
+    public MovimientoStockDto crearAjuste(UUID almacenId, UUID fincaProductoId,
+                                           TipoMovimientoStock tipo, Integer cantidad,
+                                           String observaciones) {
+        return crearAjuste(
+                almacenId,
+                fincaProductoId,
+                tipo,
+                cantidad != null ? cantidad.doubleValue() : null,
+                observaciones
+        );
+    }
+
     @Override
     public MovimientoStockDto crearAjuste(UUID almacenId, UUID fincaProductoId,
                                            TipoMovimientoStock tipo, Double cantidad,

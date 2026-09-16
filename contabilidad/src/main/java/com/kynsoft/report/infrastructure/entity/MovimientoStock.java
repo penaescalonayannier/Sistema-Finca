@@ -63,6 +63,18 @@ public class MovimientoStock {
     @Column(name = "fecha", nullable = false)
     private LocalDateTime fecha;
 
+    public void setCantidad(Number cantidad) {
+        this.cantidad = cantidad != null ? cantidad.doubleValue() : null;
+    }
+
+    public void setStockAnterior(Number stockAnterior) {
+        this.stockAnterior = stockAnterior != null ? stockAnterior.doubleValue() : null;
+    }
+
+    public void setStockNuevo(Number stockNuevo) {
+        this.stockNuevo = stockNuevo != null ? stockNuevo.doubleValue() : null;
+    }
+
     @PrePersist
     protected void onCreate() {
         if (id == null) {

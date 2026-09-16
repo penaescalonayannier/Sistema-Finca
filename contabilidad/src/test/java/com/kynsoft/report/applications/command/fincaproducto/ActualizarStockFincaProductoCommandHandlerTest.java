@@ -17,7 +17,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,7 +47,7 @@ class ActualizarStockFincaProductoCommandHandlerTest {
         @DisplayName("Debe actualizar stock correctamente")
         void debeActualizarStockCorrectamente() {
             // Arrange
-            int nuevoStock = 150;
+            double nuevoStock = 150;
             ActualizarStockFincaProductoCommand command = new ActualizarStockFincaProductoCommand(
                     fincaId, productoId, nuevoStock
             );
@@ -65,12 +65,12 @@ class ActualizarStockFincaProductoCommandHandlerTest {
         @DisplayName("Debe llamar al servicio con los parámetros correctos")
         void debeLlamarAlServicioConParametrosCorrectos() {
             // Arrange
-            int stock = 75;
+            double stock = 75;
             ActualizarStockFincaProductoCommand command = new ActualizarStockFincaProductoCommand(
                     fincaId, productoId, stock
             );
 
-            doNothing().when(fincaProductoService).actualizarStock(any(), any(), anyInt());
+            doNothing().when(fincaProductoService).actualizarStock(any(), any(), anyDouble());
 
             // Act
             handler.handle(command);
@@ -88,14 +88,14 @@ class ActualizarStockFincaProductoCommandHandlerTest {
         void debePermitirActualizarAStockCero() {
             // Arrange
             ActualizarStockFincaProductoCommand command = new ActualizarStockFincaProductoCommand(
-                    fincaId, productoId, 0
+                    fincaId, productoId, 0.0
             );
 
-            doNothing().when(fincaProductoService).actualizarStock(fincaId, productoId, 0);
+            doNothing().when(fincaProductoService).actualizarStock(fincaId, productoId, 0.0);
 
             // Act & Assert - no exception
             assertDoesNotThrow(() -> handler.handle(command));
-            verify(fincaProductoService).actualizarStock(fincaId, productoId, 0);
+            verify(fincaProductoService).actualizarStock(fincaId, productoId, 0.0);
         }
 
         @Test
@@ -103,11 +103,11 @@ class ActualizarStockFincaProductoCommandHandlerTest {
         void debePropagarExcepcionSiProductoNoAsignado() {
             // Arrange
             ActualizarStockFincaProductoCommand command = new ActualizarStockFincaProductoCommand(
-                    fincaId, productoId, 100
+                    fincaId, productoId, 100.0
             );
 
             doThrow(new BusinessNotFoundException(null))
-                    .when(fincaProductoService).actualizarStock(any(), any(), anyInt());
+                    .when(fincaProductoService).actualizarStock(any(), any(), anyDouble());
 
             // Act & Assert
             assertThrows(BusinessNotFoundException.class, () -> handler.handle(command));
@@ -117,7 +117,7 @@ class ActualizarStockFincaProductoCommandHandlerTest {
         @DisplayName("Debe permitir actualizar stock alto")
         void debePermitirActualizarStockAlto() {
             // Arrange
-            int stockAlto = 10000;
+            double stockAlto = 10000;
             ActualizarStockFincaProductoCommand command = new ActualizarStockFincaProductoCommand(
                     fincaId, productoId, stockAlto
             );
@@ -140,7 +140,7 @@ class ActualizarStockFincaProductoCommandHandlerTest {
         @DisplayName("Debe crear comando correctamente")
         void debeCrearComandoCorrectamente() {
             // Arrange & Act
-            int stock = 200;
+            double stock = 200;
             ActualizarStockFincaProductoCommand command = new ActualizarStockFincaProductoCommand(
                     fincaId, productoId, stock
             );
@@ -156,7 +156,7 @@ class ActualizarStockFincaProductoCommandHandlerTest {
         void getMessageDebeRetornarMensajeConIds() {
             // Arrange
             ActualizarStockFincaProductoCommand command = new ActualizarStockFincaProductoCommand(
-                    fincaId, productoId, 100
+                    fincaId, productoId, 100.0
             );
 
             // Act
@@ -171,11 +171,11 @@ class ActualizarStockFincaProductoCommandHandlerTest {
         void debePermitirModificarStockViaSetter() {
             // Arrange
             ActualizarStockFincaProductoCommand command = new ActualizarStockFincaProductoCommand(
-                    fincaId, productoId, 50
+                    fincaId, productoId, 50.0
             );
 
             // Act
-            command.setStock(100);
+            command.setStock(100.0);
 
             // Assert
             assertEquals(100, command.getStock());
@@ -207,16 +207,16 @@ class ActualizarStockFincaProductoCommandHandlerTest {
         void handlerDebeSerLlamadoUnaSolaVez() {
             // Arrange
             ActualizarStockFincaProductoCommand command = new ActualizarStockFincaProductoCommand(
-                    fincaId, productoId, 100
+                    fincaId, productoId, 100.0
             );
 
-            doNothing().when(fincaProductoService).actualizarStock(any(), any(), anyInt());
+            doNothing().when(fincaProductoService).actualizarStock(any(), any(), anyDouble());
 
             // Act
             handler.handle(command);
 
             // Assert
-            verify(fincaProductoService, times(1)).actualizarStock(any(), any(), anyInt());
+            verify(fincaProductoService, times(1)).actualizarStock(any(), any(), anyDouble());
         }
     }
 }

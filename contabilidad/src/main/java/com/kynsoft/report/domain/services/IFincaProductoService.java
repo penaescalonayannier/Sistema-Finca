@@ -16,6 +16,7 @@ public interface IFincaProductoService {
     // Asignar producto a finca con stock inicial y stockMinimo
     UUID asignarProductoAFinca(UUID fincaId, UUID productoId, Double stock, Double stockMinimo);
 
+
     // Actualizar configuración (stockMinimo)
     void actualizarConfiguracion(UUID id, Double stockMinimo);
 
@@ -23,6 +24,7 @@ public interface IFincaProductoService {
     FincaProductoDto getById(UUID id);
 
     void actualizarStock(UUID fincaId, UUID productoId, Double stock);
+
 
     void removerProductoDeFinca(UUID fincaId, UUID productoId);
 

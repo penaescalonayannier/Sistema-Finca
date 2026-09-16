@@ -347,7 +347,7 @@ class ProduccionTerminadaServiceImplTest {
             when(repositoryQuery.findById(produccionId)).thenReturn(Optional.of(entity));
             when(trabajadorService.findById(trabajadorEntregaId)).thenReturn(trabajadorEntrega);
             when(trabajadorService.findById(trabajadorRecibeId)).thenReturn(trabajadorRecibe);
-            when(fincaProductoService.obtenerStock(fincaId, productoId)).thenReturn(50); // Stock actual
+            when(fincaProductoService.obtenerStock(fincaId, productoId)).thenReturn(50.0); // Stock actual
 
             // Act & Assert - Ajuste de -80 con stock de 50 deja -30 (negativo)
             assertThrows(
@@ -380,7 +380,7 @@ class ProduccionTerminadaServiceImplTest {
             when(repositoryQuery.findById(produccionId)).thenReturn(Optional.of(entity));
             when(trabajadorService.findById(trabajadorEntregaId)).thenReturn(trabajadorEntrega);
             when(trabajadorService.findById(trabajadorRecibeId)).thenReturn(trabajadorRecibe);
-            when(fincaProductoService.obtenerStock(fincaId, productoId)).thenReturn(100);
+            when(fincaProductoService.obtenerStock(fincaId, productoId)).thenReturn(100.0);
             when(repositoryCommand.save(any(ProduccionTerminada.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
             // Act
@@ -451,7 +451,7 @@ class ProduccionTerminadaServiceImplTest {
             entity.setActivo(true);
 
             when(repositoryQuery.findById(produccionId)).thenReturn(Optional.of(entity));
-            when(fincaProductoService.obtenerStock(fincaId, productoId)).thenReturn(50); // Stock actual menor que cantidad
+            when(fincaProductoService.obtenerStock(fincaId, productoId)).thenReturn(50.0); // Stock actual menor que cantidad
 
             // Act & Assert
             assertThrows(
@@ -473,7 +473,7 @@ class ProduccionTerminadaServiceImplTest {
             entity.setActivo(true);
 
             when(repositoryQuery.findById(produccionId)).thenReturn(Optional.of(entity));
-            when(fincaProductoService.obtenerStock(fincaId, productoId)).thenReturn(100);
+            when(fincaProductoService.obtenerStock(fincaId, productoId)).thenReturn(100.0);
             when(repositoryCommand.save(any(ProduccionTerminada.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
             // Act

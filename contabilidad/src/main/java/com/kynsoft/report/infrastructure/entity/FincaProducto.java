@@ -41,6 +41,18 @@ public class FincaProducto {
     @Column(name = "activo", nullable = false)
     private Boolean activo = true;
 
+    public void setStock(Number stock) {
+        this.stock = stock != null ? stock.doubleValue() : null;
+    }
+
+    public void setStockMinimo(Number stockMinimo) {
+        this.stockMinimo = stockMinimo != null ? stockMinimo.doubleValue() : null;
+    }
+
+    public void setStockMaximo(Number stockMaximo) {
+        this.stockMaximo = stockMaximo != null ? stockMaximo.doubleValue() : null;
+    }
+
     public FincaProducto(FincaProductoDto dto) {
         this.id = dto.getId();
         this.stock = dto.getStock();

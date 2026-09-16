@@ -31,6 +31,23 @@ public class MovimientoStockDto {
     private LocalDateTime fecha;
     private String centroCosto;  // Código del centro de costo para contabilidad
 
+    public static class MovimientoStockDtoBuilder {
+        public MovimientoStockDtoBuilder cantidad(Number cantidad) {
+            this.cantidad = cantidad != null ? cantidad.doubleValue() : null;
+            return this;
+        }
+
+        public MovimientoStockDtoBuilder stockAnterior(Number stockAnterior) {
+            this.stockAnterior = stockAnterior != null ? stockAnterior.doubleValue() : null;
+            return this;
+        }
+
+        public MovimientoStockDtoBuilder stockNuevo(Number stockNuevo) {
+            this.stockNuevo = stockNuevo != null ? stockNuevo.doubleValue() : null;
+            return this;
+        }
+    }
+
     // Campos adicionales para mostrar información relacionada
     private String fincaNombre;
     private String productoNombre;

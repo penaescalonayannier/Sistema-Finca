@@ -20,4 +20,5 @@ public class ActualizarStockFincaProductoCommandHandler
             command.getStock()
         );
     }
+
 }

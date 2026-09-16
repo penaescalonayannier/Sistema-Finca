@@ -90,7 +90,7 @@ class FincaProductoServiceImplTest {
             // Act & Assert
             assertThrows(
                     BusinessNotFoundException.class,
-                    () -> fincaProductoService.asignarProductoAFinca(fincaId, productoId, 50, 10)
+                    () -> fincaProductoService.asignarProductoAFinca(fincaId, productoId, 50.0, 10.0)
             );
         }
 
@@ -104,7 +104,7 @@ class FincaProductoServiceImplTest {
             // Act & Assert
             assertThrows(
                     BusinessNotFoundException.class,
-                    () -> fincaProductoService.asignarProductoAFinca(fincaId, productoId, 50, 10)
+                    () -> fincaProductoService.asignarProductoAFinca(fincaId, productoId, 50.0, 10.0)
             );
         }
 
@@ -120,7 +120,7 @@ class FincaProductoServiceImplTest {
             // Act & Assert
             assertThrows(
                     BusinessNotFoundException.class,
-                    () -> fincaProductoService.asignarProductoAFinca(fincaId, productoId, 50, 10)
+                    () -> fincaProductoService.asignarProductoAFinca(fincaId, productoId, 50.0, 10.0)
             );
         }
 
@@ -143,7 +143,7 @@ class FincaProductoServiceImplTest {
             when(repositoryCommand.save(any(FincaProducto.class))).thenAnswer(inv -> inv.getArgument(0));
 
             // Act
-            UUID result = fincaProductoService.asignarProductoAFinca(fincaId, productoId, 100, 15);
+            UUID result = fincaProductoService.asignarProductoAFinca(fincaId, productoId, 100.0, 15.0);
 
             // Assert
             assertNotNull(result);
@@ -167,7 +167,7 @@ class FincaProductoServiceImplTest {
             });
 
             // Act
-            UUID result = fincaProductoService.asignarProductoAFinca(fincaId, productoId, 50, 5);
+            UUID result = fincaProductoService.asignarProductoAFinca(fincaId, productoId, 50.0, 5.0);
 
             // Assert
             assertNotNull(result);
@@ -253,7 +253,7 @@ class FincaProductoServiceImplTest {
                     .thenReturn(Optional.of(fincaProducto));
 
             // Act
-            Integer stock = fincaProductoService.obtenerStock(fincaId, productoId);
+            Double stock = fincaProductoService.obtenerStock(fincaId, productoId);
 
             // Assert
             assertEquals(150, stock);
@@ -347,7 +347,7 @@ class FincaProductoServiceImplTest {
             when(repositoryCommand.save(any(FincaProducto.class))).thenAnswer(inv -> inv.getArgument(0));
 
             // Act
-            fincaProductoService.actualizarStock(fincaId, productoId, 50);
+            fincaProductoService.actualizarStock(fincaId, productoId, 50.0);
 
             // Assert
             verify(repositoryCommand).save(argThat(fp -> fp.getStock() == 50));
@@ -363,7 +363,7 @@ class FincaProductoServiceImplTest {
             // Act & Assert
             assertThrows(
                     BusinessNotFoundException.class,
-                    () -> fincaProductoService.actualizarStock(fincaId, productoId, 50)
+                    () -> fincaProductoService.actualizarStock(fincaId, productoId, 50.0)
             );
         }
 
@@ -377,7 +377,7 @@ class FincaProductoServiceImplTest {
             when(repositoryCommand.save(any(FincaProducto.class))).thenAnswer(inv -> inv.getArgument(0));
 
             // Act
-            fincaProductoService.actualizarStock(fincaId, productoId, 0);
+            fincaProductoService.actualizarStock(fincaId, productoId, 0.0);
 
             // Assert
             verify(repositoryCommand).save(argThat(fp -> fp.getStock() == 0));

@@ -48,6 +48,18 @@ public class AlmacenFincaProducto {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    public void setStock(Number stock) {
+        this.stock = stock != null ? stock.doubleValue() : null;
+    }
+
+    public void setStockMinimo(Number stockMinimo) {
+        this.stockMinimo = stockMinimo != null ? stockMinimo.doubleValue() : null;
+    }
+
+    public void setStockMaximo(Number stockMaximo) {
+        this.stockMaximo = stockMaximo != null ? stockMaximo.doubleValue() : null;
+    }
+
     @PrePersist
     protected void onCreate() {
         if (id == null) {

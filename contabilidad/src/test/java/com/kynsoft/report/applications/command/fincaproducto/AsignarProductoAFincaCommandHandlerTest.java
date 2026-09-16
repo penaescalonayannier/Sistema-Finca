@@ -16,7 +16,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -48,10 +48,10 @@ class AsignarProductoAFincaCommandHandlerTest {
             // Arrange
             UUID expectedId = UUID.randomUUID();
             AsignarProductoAFincaCommand command = new AsignarProductoAFincaCommand(
-                    fincaId, productoId, 100, 20
+                    fincaId, productoId, 100.0, 20.0
             );
 
-            when(fincaProductoService.asignarProductoAFinca(fincaId, productoId, 100, 20))
+            when(fincaProductoService.asignarProductoAFinca(fincaId, productoId, 100.0, 20.0))
                     .thenReturn(expectedId);
 
             // Act
@@ -59,7 +59,7 @@ class AsignarProductoAFincaCommandHandlerTest {
 
             // Assert
             assertEquals(expectedId, command.getId());
-            verify(fincaProductoService).asignarProductoAFinca(fincaId, productoId, 100, 20);
+            verify(fincaProductoService).asignarProductoAFinca(fincaId, productoId, 100.0, 20.0);
         }
 
         @Test
@@ -67,13 +67,13 @@ class AsignarProductoAFincaCommandHandlerTest {
         void debeLlamarAlServicioConParametrosCorrectos() {
             // Arrange
             UUID expectedId = UUID.randomUUID();
-            int stock = 50;
-            int stockMinimo = 10;
+            double stock = 50;
+            double stockMinimo = 10;
             AsignarProductoAFincaCommand command = new AsignarProductoAFincaCommand(
                     fincaId, productoId, stock, stockMinimo
             );
 
-            when(fincaProductoService.asignarProductoAFinca(any(), any(), anyInt(), anyInt()))
+            when(fincaProductoService.asignarProductoAFinca(any(), any(), anyDouble(), anyDouble()))
                     .thenReturn(expectedId);
 
             // Act
@@ -94,10 +94,10 @@ class AsignarProductoAFincaCommandHandlerTest {
             // Arrange
             UUID generatedId = UUID.randomUUID();
             AsignarProductoAFincaCommand command = new AsignarProductoAFincaCommand(
-                    fincaId, productoId, 100, 20
+                    fincaId, productoId, 100.0, 20.0
             );
 
-            when(fincaProductoService.asignarProductoAFinca(any(), any(), anyInt(), anyInt()))
+            when(fincaProductoService.asignarProductoAFinca(any(), any(), anyDouble(), anyDouble()))
                     .thenReturn(generatedId);
 
             // Pre-condition
@@ -117,10 +117,10 @@ class AsignarProductoAFincaCommandHandlerTest {
             // Arrange
             UUID expectedId = UUID.randomUUID();
             AsignarProductoAFincaCommand command = new AsignarProductoAFincaCommand(
-                    fincaId, productoId, 0, 5
+                    fincaId, productoId, 0.0, 5.0
             );
 
-            when(fincaProductoService.asignarProductoAFinca(fincaId, productoId, 0, 5))
+            when(fincaProductoService.asignarProductoAFinca(fincaId, productoId, 0.0, 5.0))
                     .thenReturn(expectedId);
 
             // Act
@@ -128,7 +128,7 @@ class AsignarProductoAFincaCommandHandlerTest {
 
             // Assert
             assertEquals(expectedId, command.getId());
-            verify(fincaProductoService).asignarProductoAFinca(fincaId, productoId, 0, 5);
+            verify(fincaProductoService).asignarProductoAFinca(fincaId, productoId, 0.0, 5.0);
         }
 
         @Test
@@ -136,10 +136,10 @@ class AsignarProductoAFincaCommandHandlerTest {
         void debePropagarExcepcionDelServicio() {
             // Arrange
             AsignarProductoAFincaCommand command = new AsignarProductoAFincaCommand(
-                    fincaId, productoId, 100, 20
+                    fincaId, productoId, 100.0, 20.0
             );
 
-            when(fincaProductoService.asignarProductoAFinca(any(), any(), anyInt(), anyInt()))
+            when(fincaProductoService.asignarProductoAFinca(any(), any(), anyDouble(), anyDouble()))
                     .thenThrow(new RuntimeException("Error de servicio"));
 
             // Act & Assert
@@ -157,7 +157,7 @@ class AsignarProductoAFincaCommandHandlerTest {
             // This is a static factory method test
             // The command is a simple data holder
             AsignarProductoAFincaCommand command = new AsignarProductoAFincaCommand(
-                    fincaId, productoId, 200, 50
+                    fincaId, productoId, 200.0, 50.0
             );
 
             assertEquals(fincaId, command.getFincaId());
@@ -172,7 +172,7 @@ class AsignarProductoAFincaCommandHandlerTest {
             // Arrange
             UUID expectedId = UUID.randomUUID();
             AsignarProductoAFincaCommand command = new AsignarProductoAFincaCommand(
-                    fincaId, productoId, 100, 20
+                    fincaId, productoId, 100.0, 20.0
             );
             command.setId(expectedId);
 

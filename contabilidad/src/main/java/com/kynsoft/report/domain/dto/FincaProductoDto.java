@@ -32,6 +32,23 @@ public class FincaProductoDto {
     private TipoProducto productoTipo;
     private Boolean activo;
 
+    public static class FincaProductoDtoBuilder {
+        public FincaProductoDtoBuilder stock(Number stock) {
+            this.stock = stock != null ? stock.doubleValue() : null;
+            return this;
+        }
+
+        public FincaProductoDtoBuilder stockMinimo(Number stockMinimo) {
+            this.stockMinimo = stockMinimo != null ? stockMinimo.doubleValue() : null;
+            return this;
+        }
+
+        public FincaProductoDtoBuilder stockMaximo(Number stockMaximo) {
+            this.stockMaximo = stockMaximo != null ? stockMaximo.doubleValue() : null;
+            return this;
+        }
+    }
+
     // Campo calculado (legacy, usar estadoStock)
     public Boolean getAlertaStockBajo() {
         return estadoStock == EstadoStock.CRITICO || estadoStock == EstadoStock.BAJO;
