@@ -94,7 +94,7 @@ public class SalidaController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/{id}/factura")
+    @GetMapping("/{id:[0-9a-fA-F-]+}/factura")
     public ResponseEntity<byte[]> descargarFactura(@PathVariable UUID id) {
         try {
             SalidaDto salida = salidaService.findById(id);
@@ -128,6 +128,15 @@ public class SalidaController {
             log.error("Error al generar PDF para salida {}: {}", id, e.getMessage(), e);
             return ResponseEntity.internalServerError().build();
         }
+    }
+
+    /**
+     * Ruta semántica para el vale de salida. Se conserva /factura por compatibilidad
+     * con clientes existentes; ambas rutas son de solo lectura y generan el mismo PDF.
+     */
+    @GetMapping("/{id:[0-9a-fA-F-]+}/pdf")
+    public ResponseEntity<byte[]> descargarValePdf(@PathVariable UUID id) {
+        return descargarFactura(id);
     }
 
     @GetMapping("/vales/consolidado")
