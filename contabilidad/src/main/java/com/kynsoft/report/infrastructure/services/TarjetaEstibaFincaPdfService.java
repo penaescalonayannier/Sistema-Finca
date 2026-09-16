@@ -27,6 +27,7 @@ import com.kynsoft.report.infrastructure.repository.query.FincaProductoReadDataJ
 import com.kynsoft.report.infrastructure.repository.query.MovimientoStockReadDataJPARepository;
 import com.kynsoft.report.domain.services.IConfiguracionEmpresaService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.ByteArrayOutputStream;
 import java.text.DecimalFormat;
@@ -78,6 +79,7 @@ public class TarjetaEstibaFincaPdfService {
         this.configuracionEmpresaService = configuracionEmpresaService;
     }
 
+    @Transactional(readOnly = true, transactionManager = "readTransactionManager")
     public byte[] generar(UUID fincaProductoId, LocalDate fechaInicio, LocalDate fechaFin) throws Exception {
         validarPeriodo(fechaInicio, fechaFin);
         FincaProducto fincaProducto = fincaProductoRepository.findByIdWithDetails(fincaProductoId)

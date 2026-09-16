@@ -7,6 +7,7 @@ import com.kynsoft.report.domain.services.IReportesConsolidadosService;
 import com.kynsoft.report.infrastructure.entity.*;
 import com.kynsoft.report.infrastructure.repository.query.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -18,6 +19,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional(readOnly = true, transactionManager = "readTransactionManager")
 public class ReportesConsolidadosServiceImpl implements IReportesConsolidadosService {
 
     private final DeudaTrabajadorReadDataJPARepository deudaRepository;
