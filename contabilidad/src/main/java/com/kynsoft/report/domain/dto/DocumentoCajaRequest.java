@@ -1,0 +1,3 @@
+package com.kynsoft.report.domain.dto;
+import lombok.Getter; import lombok.Setter; import java.time.LocalDateTime; import java.util.*;
+@Getter @Setter public class DocumentoCajaRequest { private UUID fincaId; private TipoDocumentoCaja tipo; private LocalDateTime fecha; private Double importe; private String beneficiario; private String concepto; private String entregadoPor; private String recibidoPor; private String autorizadoPor; private String referencia; private String observaciones; /** Solo para una operación nueva de efectivo, nunca para documentar un cobro ya liquidado. */ private Boolean registrarMovimientoCaja; private SentidoCaja sentidoCaja; private List<DenominacionCajaDto> denominaciones; }

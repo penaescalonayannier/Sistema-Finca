@@ -114,6 +114,23 @@ La vista **Finanzas → Arqueos de Caja** implementa el acta de control del efec
 
 La migración `V22__arqueos_sorpresivos_caja.sql` crea exclusivamente las actas y sus detalles, por lo que es segura para datos existentes. Después de actualizar una PC, abra **Arqueos de Caja**, cree un arqueo parcial de prueba, ciérrelo y descargue su PDF.
 
+### Control oficial de Caja, documentos y Banco (V23 y V24)
+
+La sección **Finanzas** incorpora tres vistas complementarias. Conservan la trazabilidad documental y no alteran inventario. Los cobros ya registrados en **Liquidación / Caja** no se documentan de nuevo como movimientos de efectivo, para evitar duplicarlos.
+
+1. **Fondos y Control de Caja** permite definir por finca los fondos autorizados de cambio, pagos menores, nómina y efectivo por depositar. También registra el acta vigente de responsabilidad material del custodio, muestra el tablero mensual de control y gestiona los expedientes derivados de sobrantes o faltantes de arqueos ya cerrados.
+2. **Documentos de Caja** emite documentos consecutivos de recibo de efectivo, vale de pago menor, anticipo, liquidación de anticipo y reembolso. Cada documento conserva beneficiario, concepto, responsables, referencia, estado y PDF. La anulación conserva el registro y exige observaciones; nunca se borra el comprobante.
+3. **Banco y Conciliación** controla la emisión y confirmación de cheques o transferencias, y prepara conciliaciones mensuales con saldos de extracto y libros, movimientos conciliados y cierre inmutable.
+
+Las migraciones `V23__caja_oficial_control.sql`, `V24__control_banco_y_documentos_caja.sql` y `V25__documento_caja_movimiento_efectivo.sql` se aplican automáticamente con el actualizador. Solo añaden sus tablas, secuencias, restricciones e índices; no alteran movimientos ni registros históricos. Un documento de Caja puede, de manera explícita, registrar una entrada o salida nueva de efectivo: exige elegir el sentido, detallar los billetes y que estos sumen exactamente el importe. La operación queda enlazada uno a uno con el documento, y los egresos se rechazan si los billetes no existen. No active esta opción para vales o facturas ya liquidados.
+
+- Defina el fondo de cambio autorizado y el custodio mediante un acta de responsabilidad activa.
+- Compruebe que el tablero muestra el efectivo pendiente de depósito y los arqueos del mes.
+- Emita un documento de prueba, descargue su PDF y compruebe que una anulación conserva el número y la trazabilidad. Si el documento afectó Caja, no se anula: emita un documento inverso para conservar la auditoría.
+- Cree una conciliación de prueba con un período mensual y ciérrela únicamente después de verificar sus partidas.
+
+Como control operativo, el efectivo por depositar debe entregarse al banco a más tardar el siguiente día hábil bancario; los arqueos sorpresivos se realizan al menos una vez al mes y los expedientes de diferencias se mantienen visibles hasta su resolución.
+
 ## Estado registrado el 2026-09-16
 
 | PC | Estado | Observaciones |

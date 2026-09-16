@@ -1,0 +1,3 @@
+package com.kynsoft.report.infrastructure.entity;
+import jakarta.persistence.*; import lombok.Getter; import lombok.Setter; import java.time.LocalDate; import java.util.UUID;
+@Getter @Setter @Entity @Table(name="movimiento_conciliacion_bancaria") public class MovimientoConciliacionBancaria { @Id private UUID id; @Column(name="conciliacion_id",nullable=false) private UUID conciliacionId; @Column(nullable=false) private LocalDate fecha; @Column(nullable=false) private String origen; @Column(nullable=false) private String descripcion; private String referencia; @Column(nullable=false) private Double importe; @Column(nullable=false) private Boolean conciliado; private String observaciones; }

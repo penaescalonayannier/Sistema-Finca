@@ -8,4 +8,5 @@ import java.util.UUID;
 
 @Repository
 public interface MovimientoCajaWriteDataJPARepository extends JpaRepository<MovimientoCaja, UUID> {
+    boolean existsByDocumentoCajaId(UUID documentoCajaId);
 }

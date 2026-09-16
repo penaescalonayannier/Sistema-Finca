@@ -34,5 +34,7 @@ public class MovimientoCaja {
     private UUID liquidacionItemSalidaId;
     @Column(name = "entrega_banco_id")
     private UUID entregaBancoId;
+    @Column(name = "documento_caja_id")
+    private UUID documentoCajaId;
     private String observaciones;
 }
