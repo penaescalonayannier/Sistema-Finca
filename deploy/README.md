@@ -22,6 +22,8 @@ Para actualizar una PC ya configurada:
 ~/sistema-finca/update-from-github.sh
 ```
 
+Para el procedimiento completo de actualización de las dos PC, incluida la verificación final, consulte [ACTUALIZACION-DOS-PC.md](ACTUALIZACION-DOS-PC.md).
+
 La primera instalación requiere las herramientas de compilación y el cliente de PostgreSQL. En Ubuntu:
 
 ```bash

@@ -1,0 +1,52 @@
+# Actualización de las PC de trabajo
+
+Este procedimiento aplica la misma versión de Sistema Finca en cada PC. GitHub es la fuente de verdad del código; los datos y la configuración de cada PC se mantienen locales.
+
+## Antes de comenzar
+
+1. Avise a los usuarios y espere a que terminen las operaciones en curso.
+2. Confirme que la PC tiene Java 21, Node.js con npm, Git y `psql` disponibles.
+3. Confirme que existen `~/sistema-finca/start-all.sh` y, si se usa para detener servicios, `~/sistema-finca/stop-all.sh`.
+4. Como medida operativa recomendada, haga una copia de seguridad de la base de datos local antes de actualizar.
+
+Puede comprobar las herramientas con:
+
+```bash
+java -version
+node --version
+npm --version
+git --version
+psql --version
+```
+
+## Actualizar una PC
+
+Ejecute únicamente este comando desde una terminal:
+
+```bash
+~/sistema-finca/update-from-github.sh
+```
+
+El script realiza automáticamente, en este orden:
+
+1. Descarga la rama `main` de los repositorios oficiales de backend y frontend.
+2. Conserva fuera del código los archivos locales de conexión (`application*.properties`) y los `.env*` del frontend.
+3. Compila `share`, el backend y el frontend.
+4. Instala el JAR nuevo.
+5. Ejecuta las migraciones de base de datos V16, V17 y V18 antes de iniciar el sistema.
+6. Reinicia los servicios y consulta `http://127.0.0.1:9908/actuator/health`.
+
+Las migraciones son idempotentes: se pueden ejecutar en ambas PC sin repetir datos ni alterar registros existentes. V17 y V18 dejan las existencias y cantidades de movimientos con precisión de cuatro decimales. Así, valores como `1.5` se conservan en productos de finca, almacenes, entradas, salidas, transferencias, vales y reportes.
+
+## Después de actualizar
+
+1. Espere el mensaje `Actualización completada` y compruebe que el health check no informa error.
+2. Abra el sistema y valide una existencia conocida con decimales, por ejemplo `1.5`.
+3. Registre una entrada o transferencia de prueba solamente si la operación lo permite; confirme que el valor no se redondea.
+4. Repita exactamente el mismo comando en la segunda PC.
+
+## Si falla
+
+El actualizador se detiene antes de reiniciar si falta una herramienta, falla la compilación o no puede aplicar una migración. No edite el código dentro de `~/sistema-finca/source/Sistema-Finca` ni `~/sistema-finca/frontend`: el siguiente proceso restablece esas carpetas desde GitHub.
+
+Revise el mensaje de error y conserve la configuración local en `~/sistema-finca/config/`. Si el fallo sucede durante la migración, no continúe usando la nueva versión hasta resolver la conexión o el esquema de esa PC.
