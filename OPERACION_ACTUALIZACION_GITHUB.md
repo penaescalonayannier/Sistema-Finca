@@ -94,6 +94,15 @@ Los documentos históricos marcados como pagados sin una forma de pago trazable 
 
 Si la caja tenía efectivo antes de V21, la vista mostrará el valor `pendienteSinDesglose`. Antes de realizar un depósito con billetes debe pulsarse **Registrar apertura física** e indicar el conteo real. La suma de los billetes debe coincidir exactamente con ese importe. A partir de entonces, todo cobro en efectivo y toda entrega al banco exige su desglose; el sistema no permite retirar más billetes de los existentes.
 
+### Cambio de billetes y vuelto
+
+En **Liquidación / Entrega a caja** se dispone de dos operaciones que conservan el arqueo físico:
+
+1. **Cambio de denominaciones** permite, por ejemplo, entregar un billete de 200 CUP y recibir dos de 100 CUP. Los importes entregado y recibido deben ser iguales; el saldo monetario de caja no cambia, pero sí queda actualizado y trazado el conteo de cada denominación.
+2. En un cobro en efectivo se registran los **billetes recibidos** y, si el cliente entrega más que el importe del vale o factura, el **vuelto** entregado. El sistema exige que recibido menos vuelto sea exactamente el importe cobrado y rechaza el registro si no existen en caja los billetes necesarios para dar el cambio. El historial conserva el cobro bruto y el vuelto como movimientos separados, por lo que el saldo neto de caja y el documento quedan correctos.
+
+Estas operaciones no requieren migración adicional: se apoyan en las tablas de control por denominación de V21. Después de actualizar, compruebe un canje de prueba y un cobro con vuelto antes de realizar operaciones reales.
+
 ## Estado registrado el 2026-09-16
 
 | PC | Estado | Observaciones |

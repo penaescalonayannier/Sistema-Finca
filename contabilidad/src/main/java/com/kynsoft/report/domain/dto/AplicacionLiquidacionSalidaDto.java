@@ -21,4 +21,8 @@ public class AplicacionLiquidacionSalidaDto {
     private String referenciaBancaria;
     /** Obligatorio cuando la forma de pago sea EFECTIVO. */
     private List<DenominacionCajaDto> denominaciones;
+    /** Billetes entregados por el cliente; permite que excedan el importe a liquidar. */
+    private List<DenominacionCajaDto> denominacionesRecibidas;
+    /** Billetes devueltos al cliente como vuelto. */
+    private List<DenominacionCajaDto> denominacionesVuelto;
 }

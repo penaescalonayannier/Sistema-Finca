@@ -2,6 +2,8 @@ package com.kynsoft.report.domain.dto;
 
 public enum TipoMovimientoCaja {
     COBRO_EFECTIVO,
+    VUELTO_EFECTIVO,
     ENTREGA_BANCO,
-    APERTURA_CAJA
+    APERTURA_CAJA,
+    CAMBIO_DENOMINACION
 }

@@ -3,6 +3,7 @@ package com.kynsoft.report.controller;
 import com.kynsoft.report.domain.dto.EntregaBancoRequest;
 import com.kynsoft.report.domain.dto.EntregaBancoResponse;
 import com.kynsoft.report.domain.dto.AperturaCajaRequest;
+import com.kynsoft.report.domain.dto.CambioDenominacionesCajaRequest;
 import com.kynsoft.report.domain.dto.LiquidarSalidaRequest;
 import com.kynsoft.report.domain.dto.SaldoCajaDto;
 import com.kynsoft.report.domain.dto.SalidaPendienteLiquidacionDto;
@@ -59,5 +60,10 @@ public class LiquidacionSalidaController {
     @PostMapping("/caja/apertura")
     public ResponseEntity<Map<String, UUID>> aperturaCaja(@RequestBody AperturaCajaRequest request) {
         return ResponseEntity.ok(Map.of("id", service.abrirCajaPorDenominaciones(request)));
+    }
+
+    @PostMapping("/caja/cambios-denominaciones")
+    public ResponseEntity<Map<String, UUID>> cambiarDenominaciones(@RequestBody CambioDenominacionesCajaRequest request) {
+        return ResponseEntity.ok(Map.of("id", service.cambiarDenominaciones(request)));
     }
 }

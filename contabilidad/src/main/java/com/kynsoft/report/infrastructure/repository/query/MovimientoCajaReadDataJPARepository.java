@@ -18,7 +18,7 @@ public interface MovimientoCajaReadDataJPARepository extends JpaRepository<Movim
     Double saldoByFincaId(@Param("fincaId") UUID fincaId);
 
     @Query("SELECT COALESCE(SUM(m.importe), 0) FROM MovimientoCaja m " +
-           "WHERE m.fincaId = :fincaId AND m.tipo = 'COBRO_EFECTIVO'")
+           "WHERE m.fincaId = :fincaId AND (m.tipo = 'COBRO_EFECTIVO' OR m.tipo = 'VUELTO_EFECTIVO')")
     Double totalCobradoEfectivoByFincaId(@Param("fincaId") UUID fincaId);
 
     @Query("SELECT COALESCE(SUM(-m.importe), 0) FROM MovimientoCaja m " +

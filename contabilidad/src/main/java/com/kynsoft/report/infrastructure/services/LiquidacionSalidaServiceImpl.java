@@ -2,6 +2,7 @@ package com.kynsoft.report.infrastructure.services;
 
 import com.kynsoft.report.domain.dto.AplicacionLiquidacionSalidaDto;
 import com.kynsoft.report.domain.dto.AperturaCajaRequest;
+import com.kynsoft.report.domain.dto.CambioDenominacionesCajaRequest;
 import com.kynsoft.report.domain.dto.DenominacionCajaDto;
 import com.kynsoft.report.domain.dto.DeudaTrabajadorDetalleDto;
 import com.kynsoft.report.domain.dto.EntregaBancoRequest;
@@ -169,10 +170,15 @@ public class LiquidacionSalidaServiceImpl implements ILiquidacionSalidaService {
 
             registrarPagoTrabajador(item, aplicacion, request.getObservaciones());
             if (aplicacion.getFormaPago() == FormaPago.EFECTIVO) {
-                Map<Integer, Integer> denominaciones = validarDenominaciones(aplicacionDto.getDenominaciones(),
-                        aplicacion.getImporte(), "El desglose de efectivo del cobro");
-                registrarMovimientoCaja(fincaId, aplicacion.getId(), aplicacion.getImporte(),
-                        "Cobro en efectivo de " + salida.getNumero(), null, denominaciones);
+                CobroEfectivoDenominado cobro = desgloseCobroEfectivo(aplicacionDto);
+                registrarMovimientoCaja(fincaId, aplicacion.getId(), cobro.importeRecibido(),
+                        "Cobro en efectivo de " + salida.getNumero(), null, cobro.recibido(), TipoMovimientoCaja.COBRO_EFECTIVO);
+                if (cobro.importeVuelto() > EPSILON) {
+                    validarDisponibilidadDenominaciones(fincaId, cobro.vuelto());
+                    registrarMovimientoCaja(fincaId, aplicacion.getId(), -cobro.importeVuelto(),
+                            "Vuelto de cobro en efectivo de " + salida.getNumero(), null, negar(cobro.vuelto()),
+                            TipoMovimientoCaja.VUELTO_EFECTIVO);
+                }
             }
         }
 
@@ -294,9 +300,38 @@ public class LiquidacionSalidaServiceImpl implements ILiquidacionSalidaService {
             throw new IllegalArgumentException("La apertura debe coincidir con el efectivo histórico sin desglose: " + pendiente + ".");
         }
         MovimientoCaja movimiento = registrarMovimientoCaja(request.getFincaId(), null, 0d,
-                "Apertura física de caja. " + texto(request.getObservaciones()), null, denominaciones);
+                "Apertura física de caja. " + texto(request.getObservaciones()), null, denominaciones,
+                TipoMovimientoCaja.APERTURA_CAJA);
         movimiento.setFecha(request.getFecha() == null ? LocalDateTime.now() : request.getFecha());
-        movimiento.setTipo(TipoMovimientoCaja.APERTURA_CAJA);
+        cajaWriteRepository.save(movimiento);
+        return movimiento.getId();
+    }
+
+    @Override
+    public UUID cambiarDenominaciones(CambioDenominacionesCajaRequest request) {
+        if (request == null || request.getFincaId() == null) {
+            throw new IllegalArgumentException("La finca es obligatoria para el cambio de denominaciones.");
+        }
+        Map<Integer, Integer> entregadas = validarDenominaciones(request.getDenominacionesEntregadas(), null,
+                "Las denominaciones entregadas");
+        Map<Integer, Integer> recibidas = validarDenominaciones(request.getDenominacionesRecibidas(), null,
+                "Las denominaciones recibidas");
+        if (Math.abs(totalDenominaciones(entregadas) - totalDenominaciones(recibidas)) > EPSILON) {
+            throw new IllegalArgumentException("El cambio de denominaciones debe conservar exactamente el mismo importe.");
+        }
+        if (entregadas.keySet().stream().anyMatch(recibidas::containsKey)) {
+            throw new IllegalArgumentException("Un cambio no puede entregar y recibir la misma denominación; declare solo el saldo físico que cambia.");
+        }
+        Map<Integer, Integer> movimientoDenominaciones = combinarCambio(entregadas, recibidas);
+        if (movimientoDenominaciones.isEmpty()) {
+            throw new IllegalArgumentException("El cambio debe modificar al menos una denominación.");
+        }
+        validarDisponibilidadDenominaciones(request.getFincaId(), entregadas);
+        MovimientoCaja movimiento = registrarMovimientoCaja(request.getFincaId(), null, 0d,
+                "Cambio de denominaciones. Entregado por: " + texto(request.getEntregadoPor())
+                        + ". Recibido por: " + texto(request.getRecibidoPor()) + ". " + texto(request.getObservaciones()),
+                null, movimientoDenominaciones, TipoMovimientoCaja.CAMBIO_DENOMINACION);
+        movimiento.setFecha(request.getFecha() == null ? LocalDateTime.now() : request.getFecha());
         cajaWriteRepository.save(movimiento);
         return movimiento.getId();
     }
@@ -350,17 +385,20 @@ public class LiquidacionSalidaServiceImpl implements ILiquidacionSalidaService {
         deudaDetalleWriteRepository.save(detalle);
     }
 
-    private void registrarMovimientoCaja(UUID fincaId, UUID aplicacionId, double importe, String observaciones) {
-        registrarMovimientoCaja(fincaId, aplicacionId, importe, observaciones, null, Map.of());
+    private MovimientoCaja registrarMovimientoCaja(UUID fincaId, UUID aplicacionId, double importe, String observaciones,
+                                                   UUID entregaBancoId, Map<Integer, Integer> denominaciones) {
+        return registrarMovimientoCaja(fincaId, aplicacionId, importe, observaciones, entregaBancoId, denominaciones,
+                importe >= 0 ? TipoMovimientoCaja.COBRO_EFECTIVO : TipoMovimientoCaja.ENTREGA_BANCO);
     }
 
     private MovimientoCaja registrarMovimientoCaja(UUID fincaId, UUID aplicacionId, double importe, String observaciones,
-                                                   UUID entregaBancoId, Map<Integer, Integer> denominaciones) {
+                                                   UUID entregaBancoId, Map<Integer, Integer> denominaciones,
+                                                   TipoMovimientoCaja tipo) {
         MovimientoCaja movimiento = new MovimientoCaja();
         movimiento.setId(UUID.randomUUID());
         movimiento.setFincaId(fincaId);
         movimiento.setFecha(LocalDateTime.now());
-        movimiento.setTipo(importe >= 0 ? TipoMovimientoCaja.COBRO_EFECTIVO : TipoMovimientoCaja.ENTREGA_BANCO);
+        movimiento.setTipo(tipo);
         movimiento.setImporte(importe);
         movimiento.setLiquidacionItemSalidaId(aplicacionId);
         movimiento.setEntregaBancoId(entregaBancoId);
@@ -392,8 +430,7 @@ public class LiquidacionSalidaServiceImpl implements ILiquidacionSalidaService {
                 throw new IllegalArgumentException("La referencia bancaria es obligatoria para transferencias.");
             }
             if (aplicacion.getFormaPago() == FormaPago.EFECTIVO) {
-                validarDenominaciones(aplicacion.getDenominaciones(), aplicacion.getImporte(),
-                        "El desglose de efectivo del cobro");
+                desgloseCobroEfectivo(aplicacion);
             }
         }
     }
@@ -463,4 +500,32 @@ public class LiquidacionSalidaServiceImpl implements ILiquidacionSalidaService {
     private double importeDenominacion(Integer denominacion, Integer cantidad) {
         return (double) denominacion * cantidad;
     }
+
+    private CobroEfectivoDenominado desgloseCobroEfectivo(AplicacionLiquidacionSalidaDto aplicacion) {
+        List<DenominacionCajaDto> recibidasSolicitud = aplicacion.getDenominacionesRecibidas() == null
+                || aplicacion.getDenominacionesRecibidas().isEmpty()
+                ? aplicacion.getDenominaciones() : aplicacion.getDenominacionesRecibidas();
+        Map<Integer, Integer> recibidas = validarDenominaciones(recibidasSolicitud, null,
+                "El desglose de efectivo recibido");
+        Map<Integer, Integer> vuelto = aplicacion.getDenominacionesVuelto() == null || aplicacion.getDenominacionesVuelto().isEmpty()
+                ? Map.of() : validarDenominaciones(aplicacion.getDenominacionesVuelto(), null, "El desglose del vuelto");
+        double importeRecibido = totalDenominaciones(recibidas);
+        double importeVuelto = totalDenominaciones(vuelto);
+        if (importeRecibido + EPSILON < aplicacion.getImporte()
+                || Math.abs(importeRecibido - importeVuelto - aplicacion.getImporte()) > EPSILON) {
+            throw new IllegalArgumentException("El efectivo recibido menos el vuelto debe coincidir exactamente con el importe a liquidar.");
+        }
+        return new CobroEfectivoDenominado(recibidas, vuelto, importeRecibido, importeVuelto);
+    }
+
+    private Map<Integer, Integer> combinarCambio(Map<Integer, Integer> entregadas, Map<Integer, Integer> recibidas) {
+        Map<Integer, Integer> resultado = new LinkedHashMap<>();
+        entregadas.forEach((denominacion, cantidad) -> resultado.merge(denominacion, -cantidad, Integer::sum));
+        recibidas.forEach((denominacion, cantidad) -> resultado.merge(denominacion, cantidad, Integer::sum));
+        resultado.entrySet().removeIf(entrada -> entrada.getValue() == 0);
+        return resultado;
+    }
+
+    private record CobroEfectivoDenominado(Map<Integer, Integer> recibido, Map<Integer, Integer> vuelto,
+                                            double importeRecibido, double importeVuelto) { }
 }
