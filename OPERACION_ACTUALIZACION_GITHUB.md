@@ -61,7 +61,36 @@ git -C ~/sistema-finca/frontend log -1 --oneline
 
 Si una compilación falla antes del reinicio, los servicios actuales siguen ejecutándose. No se debe usar `git pull` manualmente dentro de los directorios gestionados: el actualizador los fija exactamente a `origin/main`.
 
-## Estado registrado el 2026-09-15
+## Módulo de liquidación, caja y banco (versión 2026-09-16)
+
+La versión actual incorpora el control trazable de cobro de vales y facturas. La operación se realiza en la nueva vista **Liquidación / Entrega a caja** y no modifica inventario: solo registra el cobro y su efecto sobre caja/deuda.
+
+1. Seleccione finca y período. La lista presenta únicamente renglones con saldo pendiente.
+2. Seleccione uno o más renglones y distribuya el importe entre **efectivo** y **transferencia**. Se permiten cobros parciales y pagos mixtos. Una transferencia exige su referencia bancaria.
+3. Al registrar, cada aplicación queda vinculada al ítem, al vale o factura y a la forma de pago. Los renglones totalmente saldados dejan de aparecer como pendientes. Para trabajadores, se reduce la deuda por el importe aplicado.
+4. Solo el efectivo incrementa el saldo de caja. Las transferencias no pasan por caja física.
+5. En **Entrega de efectivo al banco**, registre el depósito con finca, importe, fecha y referencia bancaria. El importe debe ser menor o igual al saldo disponible; el depósito resta caja pero no borra ningún cobro ni documento.
+
+El **Reporte Consolidado de Movimientos** y su PDF incluyen las filas de efectivo confirmado: liquidación, vale/factura, destino, trabajador, importe y estado del documento. Los documentos emitidos sin aplicación de pago no se contabilizan como efectivo.
+
+### Migración requerida
+
+La migración Flyway `V20__liquidacion_salida_y_caja.sql` se aplica automáticamente al ejecutar el actualizador. Crea las tablas `liquidacion_salida`, `liquidacion_item_salida`, `movimiento_caja` y `entrega_banco`, además de la trazabilidad asociada. No debe ejecutarse SQL manual ni editarse una migración ya aplicada.
+
+Después de actualizar una PC, compruebe:
+
+```bash
+curl --fail http://127.0.0.1:9908/actuator/health
+```
+
+- Abra **Liquidación / Entrega a caja** y valide que aparecen los pendientes de una finca.
+- Compruebe el saldo de caja antes de registrar una operación real.
+- Tras una liquidación real, confirme que el PDF consolidado muestra el vale/factura y que el saldo pendiente disminuyó exactamente.
+- Antes de una entrega al banco, verifique el importe disponible; el sistema rechazará depósitos mayores al saldo de caja.
+
+Los documentos históricos marcados como pagados sin una forma de pago trazable se conservan como históricos y no se incorporan artificialmente a caja. A partir de esta versión, los cobros nuevos quedan vinculados al documento de origen.
+
+## Estado registrado el 2026-09-16
 
 | PC | Estado | Observaciones |
 |---|---|---|

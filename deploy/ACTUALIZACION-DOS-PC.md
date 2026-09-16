@@ -33,10 +33,10 @@ El script realiza automáticamente, en este orden:
 2. Conserva fuera del código los archivos locales de conexión (`application*.properties`) y los `.env*` del frontend.
 3. Compila `share`, el backend y el frontend.
 4. Instala el JAR nuevo.
-5. Ejecuta las migraciones de base de datos V16, V17 y V18 antes de iniciar el sistema.
+5. Ejecuta todas las migraciones Flyway pendientes antes de iniciar el sistema, incluida `V20__liquidacion_salida_y_caja.sql` cuando la PC aún no la tenga aplicada.
 6. Reinicia los servicios y consulta `http://127.0.0.1:9908/actuator/health`.
 
-Las migraciones son idempotentes: se pueden ejecutar en ambas PC sin repetir datos ni alterar registros existentes. V17 y V18 dejan las existencias y cantidades de movimientos con precisión de cuatro decimales. Así, valores como `1.5` se conservan en productos de finca, almacenes, entradas, salidas, transferencias, vales y reportes.
+Las migraciones son idempotentes: se pueden ejecutar en ambas PC sin repetir datos ni alterar registros existentes. V17 y V18 dejan las existencias y cantidades de movimientos con precisión de cuatro decimales. V20 añade la trazabilidad de liquidación de vales/facturas, caja física y entregas al banco. Así, valores como `1.5` se conservan en productos de finca, almacenes, entradas, salidas, transferencias, vales y reportes.
 
 ## Después de actualizar
 
