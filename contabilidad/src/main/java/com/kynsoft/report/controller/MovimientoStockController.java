@@ -12,6 +12,7 @@ import com.kynsoft.report.domain.dto.reportes.ReporteMovimientosConsolidadoDto;
 import com.kynsoft.report.domain.services.IMovimientoStockService;
 import com.kynsoft.report.infrastructure.services.MovimientoStockPdfService;
 import com.kynsoft.report.infrastructure.services.TarjetaEstibaPdfService;
+import com.kynsoft.report.infrastructure.services.TarjetaEstibaFincaPdfService;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.domain.Pageable;
@@ -35,13 +36,16 @@ public class MovimientoStockController {
     private final IMovimientoStockService movimientoStockService;
     private final MovimientoStockPdfService movimientoStockPdfService;
     private final TarjetaEstibaPdfService tarjetaEstibaPdfService;
+    private final TarjetaEstibaFincaPdfService tarjetaEstibaFincaPdfService;
 
     public MovimientoStockController(IMovimientoStockService movimientoStockService,
                                      MovimientoStockPdfService movimientoStockPdfService,
-                                     TarjetaEstibaPdfService tarjetaEstibaPdfService) {
+                                     TarjetaEstibaPdfService tarjetaEstibaPdfService,
+                                     TarjetaEstibaFincaPdfService tarjetaEstibaFincaPdfService) {
         this.movimientoStockService = movimientoStockService;
         this.movimientoStockPdfService = movimientoStockPdfService;
         this.tarjetaEstibaPdfService = tarjetaEstibaPdfService;
+        this.tarjetaEstibaFincaPdfService = tarjetaEstibaFincaPdfService;
     }
 
     @PostMapping("/ajuste")
@@ -279,6 +283,21 @@ public class MovimientoStockController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin) throws Exception {
         byte[] pdf = tarjetaEstibaPdfService.generar(fincaProductoId, almacenId, fechaInicio, fechaFin);
         String filename = "SC-2-14_tarjeta_estiba_" + fincaProductoId.toString().substring(0, 8)
+                + "_" + fechaInicio + "_" + fechaFin + ".pdf";
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdf);
+    }
+
+    /** Tarjeta SC-2-14 consolidada del producto en todos los almacenes de una finca. */
+    @GetMapping(value = "/tarjeta-estiba/finca/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> descargarTarjetaEstibaFinca(
+            @RequestParam UUID fincaProductoId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin) throws Exception {
+        byte[] pdf = tarjetaEstibaFincaPdfService.generar(fincaProductoId, fechaInicio, fechaFin);
+        String filename = "SC-2-14_tarjeta_estiba_finca_" + fincaProductoId.toString().substring(0, 8)
                 + "_" + fechaInicio + "_" + fechaFin + ".pdf";
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")

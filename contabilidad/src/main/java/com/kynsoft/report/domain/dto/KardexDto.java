@@ -31,6 +31,9 @@ public class KardexDto {
         private UUID productoId;
         private String productoCode;
         private String productoName;
+        private String unidadMedida;
+        private String fincaCode;
+        private String fincaName;
     }
 
     @Getter
@@ -59,5 +62,8 @@ public class KardexDto {
         private UUID referenciaId;
         private String referenciaTabla;
         private String descripcion;
+        private UUID almacenId;
+        private String almacenNombre;
+        private String almacenInventario;
     }
 }

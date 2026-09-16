@@ -187,6 +187,7 @@ public class SalidaServiceImpl implements ISalidaService {
         fincaProductoWriteRepository.save(fincaProducto);
 
         // Si viene de un almacén, también rebajar el stock del AlmacenFincaProducto
+        UUID almacenMovimientoId = null;
         if (dto.getAlmacenFincaProductoId() != null) {
             AlmacenFincaProducto afp = almacenFincaProductoReadRepository.findById(dto.getAlmacenFincaProductoId())
                     .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
@@ -206,6 +207,7 @@ public class SalidaServiceImpl implements ISalidaService {
             }
             afp.setStock(stockAlmacen - cantidadTotal);
             almacenFincaProductoWriteRepository.save(afp);
+            almacenMovimientoId = afp.getAlmacen().getId();
         }
 
         // Registrar movimiento de stock con el tipo correcto según destino
@@ -220,7 +222,8 @@ public class SalidaServiceImpl implements ISalidaService {
                 stockNuevo,
                 salida.getId(),
                 "salida",
-                "Salida " + dto.getNumero() + " - " + dto.getDestino()
+                "Salida " + dto.getNumero() + " - " + dto.getDestino(),
+                almacenMovimientoId
         );
 
         return salida.getId();
@@ -378,7 +381,7 @@ public class SalidaServiceImpl implements ISalidaService {
             movimientoStockService.registrarMovimiento(
                     fincaProducto.getId(), fincaProducto.getFinca().getId(), fincaProducto.getProducto().getId(),
                     determinarTipoMovimientoSegunDestino(destino), -linea.getCantidad(), stockAnterior, stockNuevo,
-                    salida.getId(), "salida", "Salida " + salida.getNumero() + " - " + destino);
+                    salida.getId(), "salida", "Salida " + salida.getNumero() + " - " + destino, almacenId);
         }
         return List.of(salida.getId());
     }

@@ -74,10 +74,26 @@ public class TarjetaEstibaPdfService {
         return generar(kardex, almacenProducto, empresa, fechaInicio, fechaFin);
     }
 
+    /** Genera la tarjeta física consolidada del producto en todos los almacenes de su finca. */
+    public byte[] generarFinca(UUID fincaProductoId, LocalDate fechaInicio, LocalDate fechaFin) throws Exception {
+        validarPeriodo(fechaInicio, fechaFin);
+        KardexDto kardex = movimientoStockService.getKardex(fincaProductoId, null,
+                fechaInicio.atStartOfDay(), fechaFin.atTime(LocalTime.MAX));
+        ConfiguracionEmpresaDto empresa = configuracionEmpresaService.findActive()
+                .orElseGet(ConfiguracionEmpresaDto::new);
+        return generar(kardex, null, empresa, fechaInicio, fechaFin, true);
+    }
+
     /** Variante sin acceso a datos, destinada a pruebas y reutilización. */
     public byte[] generar(KardexDto kardex, AlmacenFincaProductoDto almacenProducto,
                           ConfiguracionEmpresaDto empresa, LocalDate fechaInicio, LocalDate fechaFin)
             throws Exception {
+        return generar(kardex, almacenProducto, empresa, fechaInicio, fechaFin, false);
+    }
+
+    private byte[] generar(KardexDto kardex, AlmacenFincaProductoDto almacenProducto,
+                           ConfiguracionEmpresaDto empresa, LocalDate fechaInicio, LocalDate fechaFin,
+                           boolean todaLaFinca) throws Exception {
         validarPeriodo(fechaInicio, fechaFin);
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         Document document = new Document(new PdfDocument(new PdfWriter(output)), PageSize.A4.rotate());
@@ -85,8 +101,8 @@ public class TarjetaEstibaPdfService {
 
         PdfFont normal = PdfFontFactory.createFont("Helvetica");
         PdfFont bold = PdfFontFactory.createFont("Helvetica-Bold");
-        document.add(cabecera(kardex, almacenProducto, empresa, fechaInicio, fechaFin, normal, bold));
-        document.add(tablaMovimientos(kardex, normal, bold));
+        document.add(cabecera(kardex, almacenProducto, empresa, fechaInicio, fechaFin, normal, bold, todaLaFinca));
+        document.add(tablaMovimientos(kardex, normal, bold, todaLaFinca));
         document.add(resumen(kardex, normal, bold));
         document.add(firmas(normal, bold));
         document.add(new Paragraph("Modelo SC-2-14 — Tarjeta de Estiba. Resolución No. 11/2007 del MFP. "
@@ -99,20 +115,22 @@ public class TarjetaEstibaPdfService {
 
     private Table cabecera(KardexDto kardex, AlmacenFincaProductoDto almacenProducto,
                            ConfiguracionEmpresaDto empresa, LocalDate inicio, LocalDate fin,
-                           PdfFont normal, PdfFont bold) {
+                           PdfFont normal, PdfFont bold, boolean todaLaFinca) {
         Table table = new Table(UnitValue.createPercentArray(new float[]{44, 30, 26}))
                 .useAllAvailableWidth().setMarginBottom(10);
         Cell entity = celdaBorde();
         entity.add(linea("Entidad:", safe(empresa.getNombre()), normal, bold));
         entity.add(linea("Código:", safe(empresa.getCodigo()), normal, bold));
         entity.add(linea("Dirección:", safe(empresa.getDireccionCompleta()), normal, bold));
-        entity.add(linea("Almacén:", almacen(almacenProducto, kardex), normal, bold));
+        entity.add(linea(todaLaFinca ? "Finca:" : "Almacén:",
+                todaLaFinca ? finca(kardex) : almacen(almacenProducto, kardex), normal, bold));
+        if (todaLaFinca) entity.add(linea("Almacenes:", "Todos los almacenes de la finca", normal, bold));
         table.addCell(entity);
 
         Cell producto = celdaBorde();
         producto.add(linea("Código producto:", codigo(kardex, almacenProducto), normal, bold));
         producto.add(linea("Producto:", nombre(kardex, almacenProducto), normal, bold));
-        producto.add(linea("Unidad de medida:", unidad(almacenProducto), normal, bold));
+        producto.add(linea("Unidad de medida:", unidad(almacenProducto, kardex), normal, bold));
         producto.add(linea("Ubicación:", "No registrado", normal, bold));
         producto.add(linea("Cuenta / subcuenta / análisis:", "No registrado", normal, bold));
         producto.add(linea("Período:", DATE_FORMAT.format(inicio) + " al " + DATE_FORMAT.format(fin), normal, bold));
@@ -126,10 +144,15 @@ public class TarjetaEstibaPdfService {
         return table;
     }
 
-    private Table tablaMovimientos(KardexDto kardex, PdfFont normal, PdfFont bold) {
-        Table table = new Table(UnitValue.createPercentArray(new float[]{11, 15, 13, 25, 9, 9, 9, 9}))
+    private Table tablaMovimientos(KardexDto kardex, PdfFont normal, PdfFont bold, boolean todaLaFinca) {
+        float[] columnas = todaLaFinca
+                ? new float[]{10, 14, 15, 12, 21, 7, 7, 7, 7}
+                : new float[]{11, 15, 13, 25, 9, 9, 9, 9};
+        Table table = new Table(UnitValue.createPercentArray(columnas))
                 .useAllAvailableWidth();
-        String[] headers = {"Fecha", "Tipo de movimiento", "Documento / No.", "Concepto", "Entrada", "Salida", "Existencia", "Firma"};
+        String[] headers = todaLaFinca
+                ? new String[]{"Fecha", "Tipo de movimiento", "Almacén que registró", "Documento / No.", "Concepto", "Entrada", "Salida", "Existencia", "Firma"}
+                : new String[]{"Fecha", "Tipo de movimiento", "Documento / No.", "Concepto", "Entrada", "Salida", "Existencia", "Firma"};
         for (String header : headers) {
             table.addHeaderCell(celdaBorde().setBackgroundColor(HEADER_BACKGROUND).setPadding(4)
                     .setTextAlignment(TextAlignment.CENTER)
@@ -140,6 +163,7 @@ public class TarjetaEstibaPdfService {
         for (KardexDto.MovimientoKardexDto movimiento : movimientos) {
             celda(table, fecha(movimiento.getFecha()), normal, TextAlignment.CENTER);
             celda(table, tipo(movimiento), normal, TextAlignment.LEFT);
+            if (todaLaFinca) celda(table, almacenMovimiento(movimiento), normal, TextAlignment.LEFT);
             celda(table, referencia(movimiento), normal, TextAlignment.LEFT);
             celda(table, concepto(movimiento), normal, TextAlignment.LEFT);
             celda(table, cantidad(movimiento.getEntrada()), normal, TextAlignment.RIGHT);
@@ -148,7 +172,7 @@ public class TarjetaEstibaPdfService {
             celda(table, "", normal, TextAlignment.CENTER);
         }
         if (movimientos.isEmpty()) {
-            table.addCell(new Cell(1, 8).setBorder(new SolidBorder(BORDER_COLOR, .5f))
+            table.addCell(new Cell(1, todaLaFinca ? 9 : 8).setBorder(new SolidBorder(BORDER_COLOR, .5f))
                     .add(new Paragraph("No se registran movimientos del producto en el período seleccionado.")
                             .setFont(normal).setFontSize(8).setTextAlignment(TextAlignment.CENTER)));
         }
@@ -231,5 +255,20 @@ public class TarjetaEstibaPdfService {
     private String nombre(KardexDto kardex, AlmacenFincaProductoDto afp) {
         return afp != null ? safe(afp.getProductoName()) : kardex.getProducto() == null ? "" : safe(kardex.getProducto().getProductoName());
     }
-    private String unidad(AlmacenFincaProductoDto afp) { return afp == null || afp.getUnidadMedida() == null ? "" : afp.getUnidadMedida().name(); }
+    private String unidad(AlmacenFincaProductoDto afp, KardexDto kardex) {
+        if (afp != null && afp.getUnidadMedida() != null) return afp.getUnidadMedida().name();
+        return kardex.getProducto() == null ? "" : safe(kardex.getProducto().getUnidadMedida());
+    }
+    private String finca(KardexDto kardex) {
+        if (kardex.getProducto() == null) return "";
+        String codigo = safe(kardex.getProducto().getFincaCode());
+        String nombre = safe(kardex.getProducto().getFincaName());
+        return (codigo + (codigo.isBlank() || nombre.isBlank() ? "" : " - ") + nombre).trim();
+    }
+    private String almacenMovimiento(KardexDto.MovimientoKardexDto movimiento) {
+        if (movimiento.getAlmacenId() == null) return "Sin almacén asociado";
+        String nombre = safe(movimiento.getAlmacenNombre());
+        String inventario = safe(movimiento.getAlmacenInventario());
+        return nombre.isBlank() ? "Almacén no disponible" : nombre + (inventario.isBlank() ? "" : " (" + inventario + ")");
+    }
 }

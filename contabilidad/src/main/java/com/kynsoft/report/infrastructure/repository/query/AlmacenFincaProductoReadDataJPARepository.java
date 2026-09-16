@@ -30,8 +30,10 @@ public interface AlmacenFincaProductoReadDataJPARepository
     @EntityGraph(attributePaths = {"almacen", "fincaProducto", "fincaProducto.producto"})
     List<AlmacenFincaProducto> findByFincaProductoIdAndActivoTrue(UUID fincaProductoId);
 
+    @EntityGraph(attributePaths = {"almacen", "fincaProducto", "fincaProducto.producto"})
     Optional<AlmacenFincaProducto> findByAlmacenIdAndFincaProductoId(UUID almacenId, UUID fincaProductoId);
 
+    @EntityGraph(attributePaths = {"almacen", "fincaProducto", "fincaProducto.producto"})
     Optional<AlmacenFincaProducto> findByAlmacenIdAndFincaProductoIdAndActivoTrue(UUID almacenId, UUID fincaProductoId);
 
     boolean existsByAlmacenIdAndFincaProductoIdAndActivoTrue(UUID almacenId, UUID fincaProductoId);

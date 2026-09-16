@@ -3,6 +3,7 @@ package com.kynsoft.report.controller;
 import com.kynsoft.report.domain.services.IMovimientoStockService;
 import com.kynsoft.report.infrastructure.services.MovimientoStockPdfService;
 import com.kynsoft.report.infrastructure.services.TarjetaEstibaPdfService;
+import com.kynsoft.report.infrastructure.services.TarjetaEstibaFincaPdfService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -35,6 +36,9 @@ class MovimientoStockControllerIntegrationTest {
 
     @MockBean
     private TarjetaEstibaPdfService tarjetaEstibaPdfService;
+
+    @MockBean
+    private TarjetaEstibaFincaPdfService tarjetaEstibaFincaPdfService;
 
     @Test
     void descargaTarjetaEstibaSc214PorAlmacenProductoYPeriodo() throws Exception {

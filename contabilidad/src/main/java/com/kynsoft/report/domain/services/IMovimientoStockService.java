@@ -46,6 +46,13 @@ public interface IMovimientoStockService {
                              UUID referenciaId, String referenciaTabla, String descripcion,
                              String centroCosto);
 
+    /** Registra un movimiento físico conservando el almacén que lo originó. */
+    void registrarMovimiento(UUID fincaProductoId, UUID fincaId, UUID productoId,
+                             TipoMovimientoStock tipo, Double cantidad,
+                             Double stockAnterior, Double stockNuevo,
+                             UUID referenciaId, String referenciaTabla, String descripcion,
+                             UUID almacenId);
+
     List<MovimientoStockDto> findByFincaProductoId(UUID fincaProductoId);
 
     List<MovimientoStockDto> findByFincaId(UUID fincaId);

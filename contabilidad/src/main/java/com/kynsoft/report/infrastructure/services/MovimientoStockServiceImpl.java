@@ -196,6 +196,20 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
     }
 
     @Override
+    public void registrarMovimiento(UUID fincaProductoId, UUID fincaId, UUID productoId,
+                                     TipoMovimientoStock tipo, Double cantidad,
+                                     Double stockAnterior, Double stockNuevo,
+                                     UUID referenciaId, String referenciaTabla, String descripcion,
+                                     UUID almacenId) {
+        MovimientoStockDto dto = MovimientoStockDto.builder()
+                .id(UUID.randomUUID()).fincaProductoId(fincaProductoId).fincaId(fincaId).productoId(productoId)
+                .almacenId(almacenId).tipo(tipo).cantidad(cantidad).stockAnterior(stockAnterior).stockNuevo(stockNuevo)
+                .referenciaId(referenciaId).referenciaTabla(referenciaTabla).descripcion(descripcion)
+                .fecha(LocalDateTime.now()).build();
+        registrar(dto);
+    }
+
+    @Override
     public List<MovimientoStockDto> findByFincaProductoId(UUID fincaProductoId) {
         return repositoryQuery.findByFincaProductoId(fincaProductoId)
                 .stream()
@@ -518,7 +532,7 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
         }
 
         // Obtener info del producto
-        FincaProducto fp = fincaProductoRepository.findById(fincaProductoId)
+        FincaProducto fp = fincaProductoRepository.findByIdWithDetails(fincaProductoId)
                 .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
                         DomainErrorMessage.BUSINESS_NOT_FOUND,
                         new ErrorField("fincaProductoId", "FincaProducto no encontrado."))));
@@ -530,6 +544,10 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
                 .productoId(fp.getProducto().getId())
                 .productoCode(producto != null ? producto.getCode() : "")
                 .productoName(producto != null ? producto.getName() : "")
+                .unidadMedida(producto != null && producto.getUnidadMedida() != null
+                        ? producto.getUnidadMedida().name() : "")
+                .fincaCode(fp.getFinca() != null ? fp.getFinca().getCode() : "")
+                .fincaName(fp.getFinca() != null ? fp.getFinca().getName() : "")
                 .build();
 
         KardexDto.AlmacenInfoDto almacenInfo = null;
@@ -547,26 +565,34 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
         List<KardexDto.MovimientoKardexDto> movimientosKardex = new ArrayList<>();
         // La tarjeta de estiba debe abrir con el saldo exactamente anterior al período,
         // aun si no existen movimientos dentro de las fechas solicitadas.
-        Double stockInicial = movimientosAnteriores.isEmpty()
-                ? (movimientos.isEmpty() ? 0.0 : valor(movimientos.get(0).getStockAnterior()))
-                : valor(movimientosAnteriores.get(movimientosAnteriores.size() - 1).getStockNuevo());
+        Double stockInicial = almacenId == null
+                ? movimientosAnteriores.stream().mapToDouble(this::variacionFisica).sum()
+                : (movimientosAnteriores.isEmpty()
+                    ? (movimientos.isEmpty() ? 0.0 : valor(movimientos.get(0).getStockAnterior()))
+                    : valor(movimientosAnteriores.get(movimientosAnteriores.size() - 1).getStockNuevo()));
         Double saldoActual = stockInicial;
         double totalEntradas = 0.0;
         double totalSalidas = 0.0;
+
+        Map<UUID, Almacen> almacenesPorId = almacenRepository.findAllById(
+                        movimientos.stream().map(MovimientoStock::getAlmacenId)
+                                .filter(java.util.Objects::nonNull).distinct().toList())
+                .stream().collect(Collectors.toMap(Almacen::getId, almacen -> almacen));
 
         for (MovimientoStock m : movimientos) {
             Double entrada = 0.0;
             Double salida = 0.0;
 
             if (m.getTipo().isEntrada()) {
-                entrada = m.getCantidad();
+                entrada = cantidadFisica(m);
                 totalEntradas += entrada;
                 saldoActual += entrada;
             } else if (m.getTipo().isSalida()) {
-                salida = m.getCantidad();
+                salida = cantidadFisica(m);
                 totalSalidas += salida;
                 saldoActual -= salida;
             }
+            Almacen almacenMovimiento = m.getAlmacenId() == null ? null : almacenesPorId.get(m.getAlmacenId());
 
             movimientosKardex.add(KardexDto.MovimientoKardexDto.builder()
                     .fecha(m.getFecha())
@@ -578,6 +604,9 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
                     .referenciaId(m.getReferenciaId())
                     .referenciaTabla(m.getReferenciaTabla())
                     .descripcion(m.getDescripcion())
+                    .almacenId(m.getAlmacenId())
+                    .almacenNombre(almacenMovimiento != null ? almacenMovimiento.getNombre() : null)
+                    .almacenInventario(almacenMovimiento != null ? almacenMovimiento.getInventario() : null)
                     .build());
         }
 
@@ -594,6 +623,16 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
 
     private double valor(Double numero) {
         return numero == null ? 0d : numero;
+    }
+
+    private double cantidadFisica(MovimientoStock movimiento) {
+        return Math.abs(valor(movimiento.getCantidad()));
+    }
+
+    private double variacionFisica(MovimientoStock movimiento) {
+        if (movimiento.getTipo().isEntrada()) return cantidadFisica(movimiento);
+        if (movimiento.getTipo().isSalida()) return -cantidadFisica(movimiento);
+        return 0d;
     }
 
     @Override
