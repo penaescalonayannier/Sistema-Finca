@@ -19,6 +19,7 @@ import com.kynsoft.report.infrastructure.repository.command.LiquidacionSalidaWri
 import com.kynsoft.report.infrastructure.repository.command.MovimientoCajaWriteDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.command.SalidaWriteDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.DeudaTrabajadorReadDataJPARepository;
+import com.kynsoft.report.infrastructure.repository.query.EntregaBancoReadDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.LiquidacionItemSalidaReadDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.MovimientoCajaReadDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.SalidaReadDataJPARepository;
@@ -52,9 +53,10 @@ class LiquidacionSalidaServiceImplTest {
         MovimientoCajaReadDataJPARepository cajaRead = mock(MovimientoCajaReadDataJPARepository.class);
         MovimientoCajaWriteDataJPARepository cajaWrite = mock(MovimientoCajaWriteDataJPARepository.class);
         EntregaBancoWriteDataJPARepository entregaWrite = mock(EntregaBancoWriteDataJPARepository.class);
+        EntregaBancoReadDataJPARepository entregaRead = mock(EntregaBancoReadDataJPARepository.class);
         LiquidacionSalidaServiceImpl service = new LiquidacionSalidaServiceImpl(salidaRead, salidaWrite, itemWrite,
                 liquidacionWrite, aplicacionWrite, aplicacionRead, deudaRead, deudaWrite, detalleWrite,
-                cajaRead, cajaWrite, entregaWrite);
+                cajaRead, cajaWrite, entregaWrite, entregaRead);
 
         UUID salidaId = UUID.randomUUID();
         UUID itemId = UUID.randomUUID();

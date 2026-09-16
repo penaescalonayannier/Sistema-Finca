@@ -3,6 +3,7 @@ package com.kynsoft.report.infrastructure.services;
 import com.kynsoft.report.domain.dto.AplicacionLiquidacionSalidaDto;
 import com.kynsoft.report.domain.dto.DeudaTrabajadorDetalleDto;
 import com.kynsoft.report.domain.dto.EntregaBancoRequest;
+import com.kynsoft.report.domain.dto.EntregaBancoResponse;
 import com.kynsoft.report.domain.dto.FormaPago;
 import com.kynsoft.report.domain.dto.ItemSalidaPendienteLiquidacionDto;
 import com.kynsoft.report.domain.dto.LiquidarSalidaRequest;
@@ -27,6 +28,7 @@ import com.kynsoft.report.infrastructure.repository.command.LiquidacionSalidaWri
 import com.kynsoft.report.infrastructure.repository.command.MovimientoCajaWriteDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.command.SalidaWriteDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.DeudaTrabajadorReadDataJPARepository;
+import com.kynsoft.report.infrastructure.repository.query.EntregaBancoReadDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.LiquidacionItemSalidaReadDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.MovimientoCajaReadDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.SalidaReadDataJPARepository;
@@ -59,6 +61,7 @@ public class LiquidacionSalidaServiceImpl implements ILiquidacionSalidaService {
     private final MovimientoCajaReadDataJPARepository cajaReadRepository;
     private final MovimientoCajaWriteDataJPARepository cajaWriteRepository;
     private final EntregaBancoWriteDataJPARepository entregaBancoWriteRepository;
+    private final EntregaBancoReadDataJPARepository entregaBancoReadRepository;
 
     public LiquidacionSalidaServiceImpl(SalidaReadDataJPARepository salidaReadRepository,
                                         SalidaWriteDataJPARepository salidaWriteRepository,
@@ -71,7 +74,8 @@ public class LiquidacionSalidaServiceImpl implements ILiquidacionSalidaService {
                                         DeudaTrabajadorDetalleWriteDataJPARepository deudaDetalleWriteRepository,
                                         MovimientoCajaReadDataJPARepository cajaReadRepository,
                                         MovimientoCajaWriteDataJPARepository cajaWriteRepository,
-                                        EntregaBancoWriteDataJPARepository entregaBancoWriteRepository) {
+                                        EntregaBancoWriteDataJPARepository entregaBancoWriteRepository,
+                                        EntregaBancoReadDataJPARepository entregaBancoReadRepository) {
         this.salidaReadRepository = salidaReadRepository;
         this.salidaWriteRepository = salidaWriteRepository;
         this.itemWriteRepository = itemWriteRepository;
@@ -84,6 +88,7 @@ public class LiquidacionSalidaServiceImpl implements ILiquidacionSalidaService {
         this.cajaReadRepository = cajaReadRepository;
         this.cajaWriteRepository = cajaWriteRepository;
         this.entregaBancoWriteRepository = entregaBancoWriteRepository;
+        this.entregaBancoReadRepository = entregaBancoReadRepository;
     }
 
     @Override
@@ -205,6 +210,18 @@ public class LiquidacionSalidaServiceImpl implements ILiquidacionSalidaService {
         entregaBancoWriteRepository.save(entrega);
         registrarMovimientoCaja(entrega.getFincaId(), null, -entrega.getImporte(), "Entrega a banco: " + texto(entrega.getReferenciaBancaria()), entrega.getId());
         return entrega.getId();
+    }
+
+    @Override
+    public List<EntregaBancoResponse> listarEntregasBanco(UUID fincaId) {
+        if (fincaId == null) throw new IllegalArgumentException("La finca es obligatoria para consultar entregas al banco.");
+        return entregaBancoReadRepository.findByFincaIdAndActivoTrueOrderByFechaDesc(fincaId).stream()
+                .map(entrega -> EntregaBancoResponse.builder()
+                        .id(entrega.getId()).fincaId(entrega.getFincaId()).fecha(entrega.getFecha())
+                        .importe(entrega.getImporte()).referenciaBancaria(entrega.getReferenciaBancaria())
+                        .entregadoPor(entrega.getEntregadoPor()).recibidoPor(entrega.getRecibidoPor())
+                        .observaciones(entrega.getObservaciones()).build())
+                .toList();
     }
 
     private SalidaPendienteLiquidacionDto aPendienteDto(Salida salida) {
