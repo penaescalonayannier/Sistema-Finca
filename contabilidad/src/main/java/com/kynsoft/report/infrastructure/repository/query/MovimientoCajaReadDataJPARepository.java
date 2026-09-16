@@ -8,6 +8,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
+import java.util.Collection;
+import java.util.List;
 
 @Repository
 @Transactional(readOnly = true, transactionManager = "readTransactionManager")
@@ -22,4 +24,6 @@ public interface MovimientoCajaReadDataJPARepository extends JpaRepository<Movim
     @Query("SELECT COALESCE(SUM(-m.importe), 0) FROM MovimientoCaja m " +
            "WHERE m.fincaId = :fincaId AND m.tipo = 'ENTREGA_BANCO'")
     Double totalEntregadoBancoByFincaId(@Param("fincaId") UUID fincaId);
+
+    List<MovimientoCaja> findByEntregaBancoIdIn(Collection<UUID> entregaBancoIds);
 }

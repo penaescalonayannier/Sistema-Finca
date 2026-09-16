@@ -2,6 +2,7 @@ package com.kynsoft.report.controller;
 
 import com.kynsoft.report.domain.dto.EntregaBancoRequest;
 import com.kynsoft.report.domain.dto.EntregaBancoResponse;
+import com.kynsoft.report.domain.dto.AperturaCajaRequest;
 import com.kynsoft.report.domain.dto.LiquidarSalidaRequest;
 import com.kynsoft.report.domain.dto.SaldoCajaDto;
 import com.kynsoft.report.domain.dto.SalidaPendienteLiquidacionDto;
@@ -53,5 +54,10 @@ public class LiquidacionSalidaController {
     @GetMapping("/caja/entregas-banco")
     public ResponseEntity<List<EntregaBancoResponse>> listarEntregasBanco(@RequestParam UUID fincaId) {
         return ResponseEntity.ok(service.listarEntregasBanco(fincaId));
+    }
+
+    @PostMapping("/caja/apertura")
+    public ResponseEntity<Map<String, UUID>> aperturaCaja(@RequestBody AperturaCajaRequest request) {
+        return ResponseEntity.ok(Map.of("id", service.abrirCajaPorDenominaciones(request)));
     }
 }

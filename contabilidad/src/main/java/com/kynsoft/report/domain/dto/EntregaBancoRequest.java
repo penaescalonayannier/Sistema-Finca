@@ -8,6 +8,7 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.List;
 
 @Getter
 @Setter
@@ -22,4 +23,5 @@ public class EntregaBancoRequest {
     private String entregadoPor;
     private String recibidoPor;
     private String observaciones;
+    private List<DenominacionCajaDto> denominaciones;
 }

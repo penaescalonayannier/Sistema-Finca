@@ -2,6 +2,7 @@ package com.kynsoft.report.domain.services;
 
 import com.kynsoft.report.domain.dto.EntregaBancoRequest;
 import com.kynsoft.report.domain.dto.EntregaBancoResponse;
+import com.kynsoft.report.domain.dto.AperturaCajaRequest;
 import com.kynsoft.report.domain.dto.LiquidarSalidaRequest;
 import com.kynsoft.report.domain.dto.SaldoCajaDto;
 import com.kynsoft.report.domain.dto.SalidaPendienteLiquidacionDto;
@@ -16,4 +17,5 @@ public interface ILiquidacionSalidaService {
     SaldoCajaDto obtenerSaldoCaja(UUID fincaId);
     UUID entregarBanco(EntregaBancoRequest request);
     List<EntregaBancoResponse> listarEntregasBanco(UUID fincaId);
+    UUID abrirCajaPorDenominaciones(AperturaCajaRequest request);
 }

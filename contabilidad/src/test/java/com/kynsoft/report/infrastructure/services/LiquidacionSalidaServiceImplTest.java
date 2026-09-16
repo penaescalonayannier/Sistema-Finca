@@ -3,6 +3,7 @@ package com.kynsoft.report.infrastructure.services;
 import com.kynsoft.report.domain.dto.AplicacionLiquidacionSalidaDto;
 import com.kynsoft.report.domain.dto.FormaPago;
 import com.kynsoft.report.domain.dto.LiquidarSalidaRequest;
+import com.kynsoft.report.domain.dto.DenominacionCajaDto;
 import com.kynsoft.report.infrastructure.entity.DeudaTrabajador;
 import com.kynsoft.report.infrastructure.entity.Finca;
 import com.kynsoft.report.infrastructure.entity.FincaProducto;
@@ -17,11 +18,15 @@ import com.kynsoft.report.infrastructure.repository.command.ItemSalidaWriteDataJ
 import com.kynsoft.report.infrastructure.repository.command.LiquidacionItemSalidaWriteDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.command.LiquidacionSalidaWriteDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.command.MovimientoCajaWriteDataJPARepository;
+import com.kynsoft.report.infrastructure.repository.command.MovimientoCajaDenominacionWriteDataJPARepository;
+import com.kynsoft.report.infrastructure.repository.command.SaldoCajaDenominacionWriteDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.command.SalidaWriteDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.DeudaTrabajadorReadDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.EntregaBancoReadDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.LiquidacionItemSalidaReadDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.MovimientoCajaReadDataJPARepository;
+import com.kynsoft.report.infrastructure.repository.query.MovimientoCajaDenominacionReadDataJPARepository;
+import com.kynsoft.report.infrastructure.repository.query.SaldoCajaDenominacionReadDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.SalidaReadDataJPARepository;
 import org.junit.jupiter.api.Test;
 
@@ -52,11 +57,16 @@ class LiquidacionSalidaServiceImplTest {
         DeudaTrabajadorDetalleWriteDataJPARepository detalleWrite = mock(DeudaTrabajadorDetalleWriteDataJPARepository.class);
         MovimientoCajaReadDataJPARepository cajaRead = mock(MovimientoCajaReadDataJPARepository.class);
         MovimientoCajaWriteDataJPARepository cajaWrite = mock(MovimientoCajaWriteDataJPARepository.class);
+        MovimientoCajaDenominacionWriteDataJPARepository cajaDenominacionWrite = mock(MovimientoCajaDenominacionWriteDataJPARepository.class);
+        MovimientoCajaDenominacionReadDataJPARepository cajaDenominacionRead = mock(MovimientoCajaDenominacionReadDataJPARepository.class);
+        SaldoCajaDenominacionWriteDataJPARepository saldoDenominacionWrite = mock(SaldoCajaDenominacionWriteDataJPARepository.class);
+        SaldoCajaDenominacionReadDataJPARepository saldoDenominacionRead = mock(SaldoCajaDenominacionReadDataJPARepository.class);
         EntregaBancoWriteDataJPARepository entregaWrite = mock(EntregaBancoWriteDataJPARepository.class);
         EntregaBancoReadDataJPARepository entregaRead = mock(EntregaBancoReadDataJPARepository.class);
         LiquidacionSalidaServiceImpl service = new LiquidacionSalidaServiceImpl(salidaRead, salidaWrite, itemWrite,
                 liquidacionWrite, aplicacionWrite, aplicacionRead, deudaRead, deudaWrite, detalleWrite,
-                cajaRead, cajaWrite, entregaWrite, entregaRead);
+                cajaRead, cajaWrite, cajaDenominacionWrite, cajaDenominacionRead, saldoDenominacionWrite,
+                saldoDenominacionRead, entregaWrite, entregaRead);
 
         UUID salidaId = UUID.randomUUID();
         UUID itemId = UUID.randomUUID();
@@ -78,7 +88,9 @@ class LiquidacionSalidaServiceImplTest {
 
         UUID id = service.liquidar(LiquidarSalidaRequest.builder().salidaId(salidaId)
                 .aplicaciones(List.of(AplicacionLiquidacionSalidaDto.builder().itemSalidaId(itemId)
-                        .importe(10d).formaPago(FormaPago.EFECTIVO).build())).build());
+                        .importe(10d).formaPago(FormaPago.EFECTIVO)
+                        .denominaciones(List.of(DenominacionCajaDto.builder().denominacion(5).cantidad(2).build()))
+                        .build())).build());
 
         assertNotNull(id);
         assertEquals(0d, deuda.getImporte());

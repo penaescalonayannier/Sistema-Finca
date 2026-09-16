@@ -1,6 +1,8 @@
 package com.kynsoft.report.infrastructure.services;
 
 import com.kynsoft.report.domain.dto.AplicacionLiquidacionSalidaDto;
+import com.kynsoft.report.domain.dto.AperturaCajaRequest;
+import com.kynsoft.report.domain.dto.DenominacionCajaDto;
 import com.kynsoft.report.domain.dto.DeudaTrabajadorDetalleDto;
 import com.kynsoft.report.domain.dto.EntregaBancoRequest;
 import com.kynsoft.report.domain.dto.EntregaBancoResponse;
@@ -8,6 +10,7 @@ import com.kynsoft.report.domain.dto.FormaPago;
 import com.kynsoft.report.domain.dto.ItemSalidaPendienteLiquidacionDto;
 import com.kynsoft.report.domain.dto.LiquidarSalidaRequest;
 import com.kynsoft.report.domain.dto.SaldoCajaDto;
+import com.kynsoft.report.domain.dto.SaldoDenominacionCajaDto;
 import com.kynsoft.report.domain.dto.SalidaPendienteLiquidacionDto;
 import com.kynsoft.report.domain.dto.TipoMovimiento;
 import com.kynsoft.report.domain.dto.TipoMovimientoCaja;
@@ -18,6 +21,8 @@ import com.kynsoft.report.infrastructure.entity.ItemSalida;
 import com.kynsoft.report.infrastructure.entity.LiquidacionItemSalida;
 import com.kynsoft.report.infrastructure.entity.LiquidacionSalida;
 import com.kynsoft.report.infrastructure.entity.MovimientoCaja;
+import com.kynsoft.report.infrastructure.entity.MovimientoCajaDenominacion;
+import com.kynsoft.report.infrastructure.entity.SaldoCajaDenominacion;
 import com.kynsoft.report.infrastructure.entity.Salida;
 import com.kynsoft.report.infrastructure.repository.command.DeudaTrabajadorDetalleWriteDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.command.DeudaTrabajadorWriteDataJPARepository;
@@ -26,11 +31,15 @@ import com.kynsoft.report.infrastructure.repository.command.ItemSalidaWriteDataJ
 import com.kynsoft.report.infrastructure.repository.command.LiquidacionItemSalidaWriteDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.command.LiquidacionSalidaWriteDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.command.MovimientoCajaWriteDataJPARepository;
+import com.kynsoft.report.infrastructure.repository.command.MovimientoCajaDenominacionWriteDataJPARepository;
+import com.kynsoft.report.infrastructure.repository.command.SaldoCajaDenominacionWriteDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.command.SalidaWriteDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.DeudaTrabajadorReadDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.EntregaBancoReadDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.LiquidacionItemSalidaReadDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.MovimientoCajaReadDataJPARepository;
+import com.kynsoft.report.infrastructure.repository.query.MovimientoCajaDenominacionReadDataJPARepository;
+import com.kynsoft.report.infrastructure.repository.query.SaldoCajaDenominacionReadDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.SalidaReadDataJPARepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
@@ -42,12 +51,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.Set;
+import java.util.LinkedHashMap;
 import java.util.stream.Collectors;
 
 @Service
 @Transactional
 public class LiquidacionSalidaServiceImpl implements ILiquidacionSalidaService {
     private static final double EPSILON = 0.000001d;
+    private static final Set<Integer> DENOMINACIONES_CUP = Set.of(5, 10, 20, 50, 100, 200, 500,
+            1000, 2000, 5000, 10000, 20000);
 
     private final SalidaReadDataJPARepository salidaReadRepository;
     private final SalidaWriteDataJPARepository salidaWriteRepository;
@@ -60,6 +73,10 @@ public class LiquidacionSalidaServiceImpl implements ILiquidacionSalidaService {
     private final DeudaTrabajadorDetalleWriteDataJPARepository deudaDetalleWriteRepository;
     private final MovimientoCajaReadDataJPARepository cajaReadRepository;
     private final MovimientoCajaWriteDataJPARepository cajaWriteRepository;
+    private final MovimientoCajaDenominacionWriteDataJPARepository cajaDenominacionWriteRepository;
+    private final MovimientoCajaDenominacionReadDataJPARepository cajaDenominacionReadRepository;
+    private final SaldoCajaDenominacionWriteDataJPARepository saldoDenominacionWriteRepository;
+    private final SaldoCajaDenominacionReadDataJPARepository saldoDenominacionReadRepository;
     private final EntregaBancoWriteDataJPARepository entregaBancoWriteRepository;
     private final EntregaBancoReadDataJPARepository entregaBancoReadRepository;
 
@@ -74,6 +91,10 @@ public class LiquidacionSalidaServiceImpl implements ILiquidacionSalidaService {
                                         DeudaTrabajadorDetalleWriteDataJPARepository deudaDetalleWriteRepository,
                                         MovimientoCajaReadDataJPARepository cajaReadRepository,
                                         MovimientoCajaWriteDataJPARepository cajaWriteRepository,
+                                        MovimientoCajaDenominacionWriteDataJPARepository cajaDenominacionWriteRepository,
+                                        MovimientoCajaDenominacionReadDataJPARepository cajaDenominacionReadRepository,
+                                        SaldoCajaDenominacionWriteDataJPARepository saldoDenominacionWriteRepository,
+                                        SaldoCajaDenominacionReadDataJPARepository saldoDenominacionReadRepository,
                                         EntregaBancoWriteDataJPARepository entregaBancoWriteRepository,
                                         EntregaBancoReadDataJPARepository entregaBancoReadRepository) {
         this.salidaReadRepository = salidaReadRepository;
@@ -87,6 +108,10 @@ public class LiquidacionSalidaServiceImpl implements ILiquidacionSalidaService {
         this.deudaDetalleWriteRepository = deudaDetalleWriteRepository;
         this.cajaReadRepository = cajaReadRepository;
         this.cajaWriteRepository = cajaWriteRepository;
+        this.cajaDenominacionWriteRepository = cajaDenominacionWriteRepository;
+        this.cajaDenominacionReadRepository = cajaDenominacionReadRepository;
+        this.saldoDenominacionWriteRepository = saldoDenominacionWriteRepository;
+        this.saldoDenominacionReadRepository = saldoDenominacionReadRepository;
         this.entregaBancoWriteRepository = entregaBancoWriteRepository;
         this.entregaBancoReadRepository = entregaBancoReadRepository;
     }
@@ -144,8 +169,10 @@ public class LiquidacionSalidaServiceImpl implements ILiquidacionSalidaService {
 
             registrarPagoTrabajador(item, aplicacion, request.getObservaciones());
             if (aplicacion.getFormaPago() == FormaPago.EFECTIVO) {
+                Map<Integer, Integer> denominaciones = validarDenominaciones(aplicacionDto.getDenominaciones(),
+                        aplicacion.getImporte(), "El desglose de efectivo del cobro");
                 registrarMovimientoCaja(fincaId, aplicacion.getId(), aplicacion.getImporte(),
-                        "Cobro en efectivo de " + salida.getNumero());
+                        "Cobro en efectivo de " + salida.getNumero(), null, denominaciones);
             }
         }
 
@@ -184,44 +211,94 @@ public class LiquidacionSalidaServiceImpl implements ILiquidacionSalidaService {
         if (fincaId == null) throw new IllegalArgumentException("La finca es obligatoria para consultar caja.");
         double efectivo = valor(cajaReadRepository.totalCobradoEfectivoByFincaId(fincaId));
         double entregado = valor(cajaReadRepository.totalEntregadoBancoByFincaId(fincaId));
+        List<SaldoDenominacionCajaDto> denominaciones = saldoDenominacionReadRepository
+                .findByFincaIdOrderByDenominacionAsc(fincaId).stream()
+                .map(saldo -> SaldoDenominacionCajaDto.builder().denominacion(saldo.getDenominacion())
+                        .cantidad(saldo.getCantidad()).importe(importeDenominacion(saldo.getDenominacion(), saldo.getCantidad()))
+                        .build()).toList();
+        double efectivoDesglosado = denominaciones.stream().mapToDouble(SaldoDenominacionCajaDto::getImporte).sum();
         return SaldoCajaDto.builder().fincaId(fincaId).efectivoCobrado(efectivo)
-                .entregadoBanco(entregado).saldoDisponible(efectivo - entregado).build();
+                .entregadoBanco(entregado).saldoDisponible(efectivo - entregado)
+                .denominaciones(denominaciones)
+                .pendienteSinDesglose(Math.max(0d, efectivo - entregado - efectivoDesglosado)).build();
     }
 
     @Override
     public UUID entregarBanco(EntregaBancoRequest request) {
-        if (request == null || request.getFincaId() == null || request.getImporte() == null || request.getImporte() <= 0) {
-            throw new IllegalArgumentException("Finca e importe positivo son obligatorios para la entrega al banco.");
+        if (request == null || request.getFincaId() == null) {
+            throw new IllegalArgumentException("La finca es obligatoria para la entrega al banco.");
         }
+        Map<Integer, Integer> denominaciones = validarDenominaciones(request.getDenominaciones(), request.getImporte(),
+                "El desglose de billetes de la entrega al banco");
+        double importeEntrega = totalDenominaciones(denominaciones);
         double saldo = valor(cajaReadRepository.saldoByFincaId(request.getFincaId()));
-        if (request.getImporte() - saldo > EPSILON) {
+        if (importeEntrega - saldo > EPSILON) {
             throw new IllegalArgumentException("El importe excede el efectivo disponible en caja.");
         }
+        validarDisponibilidadDenominaciones(request.getFincaId(), denominaciones);
         EntregaBanco entrega = new EntregaBanco();
         entrega.setId(UUID.randomUUID());
         entrega.setFincaId(request.getFincaId());
         entrega.setFecha(request.getFecha() == null ? LocalDateTime.now() : request.getFecha());
-        entrega.setImporte(request.getImporte());
+        entrega.setImporte(importeEntrega);
         entrega.setReferenciaBancaria(texto(request.getReferenciaBancaria()));
         entrega.setEntregadoPor(texto(request.getEntregadoPor()));
         entrega.setRecibidoPor(texto(request.getRecibidoPor()));
         entrega.setObservaciones(texto(request.getObservaciones()));
         entrega.setActivo(true);
         entregaBancoWriteRepository.save(entrega);
-        registrarMovimientoCaja(entrega.getFincaId(), null, -entrega.getImporte(), "Entrega a banco: " + texto(entrega.getReferenciaBancaria()), entrega.getId());
+        registrarMovimientoCaja(entrega.getFincaId(), null, -entrega.getImporte(),
+                "Entrega a banco: " + texto(entrega.getReferenciaBancaria()), entrega.getId(), negar(denominaciones));
         return entrega.getId();
     }
 
     @Override
     public List<EntregaBancoResponse> listarEntregasBanco(UUID fincaId) {
         if (fincaId == null) throw new IllegalArgumentException("La finca es obligatoria para consultar entregas al banco.");
-        return entregaBancoReadRepository.findByFincaIdAndActivoTrueOrderByFechaDesc(fincaId).stream()
+        List<EntregaBanco> entregas = entregaBancoReadRepository.findByFincaIdAndActivoTrueOrderByFechaDesc(fincaId);
+        Map<UUID, UUID> movimientoPorEntrega = cajaReadRepository.findByEntregaBancoIdIn(
+                        entregas.stream().map(EntregaBanco::getId).toList()).stream()
+                .collect(Collectors.toMap(MovimientoCaja::getEntregaBancoId, MovimientoCaja::getId));
+        Map<UUID, List<DenominacionCajaDto>> denominacionesPorEntrega = cajaDenominacionReadRepository
+                .findByMovimientoCajaIdIn(movimientoPorEntrega.values()).stream()
+                .collect(Collectors.groupingBy(detalle -> detalle.getMovimientoCajaId(), Collectors.mapping(detalle ->
+                        DenominacionCajaDto.builder().denominacion(detalle.getDenominacion())
+                                .cantidad(Math.abs(detalle.getCantidad())).build(), Collectors.toList())));
+        return entregas.stream()
                 .map(entrega -> EntregaBancoResponse.builder()
                         .id(entrega.getId()).fincaId(entrega.getFincaId()).fecha(entrega.getFecha())
                         .importe(entrega.getImporte()).referenciaBancaria(entrega.getReferenciaBancaria())
                         .entregadoPor(entrega.getEntregadoPor()).recibidoPor(entrega.getRecibidoPor())
-                        .observaciones(entrega.getObservaciones()).build())
+                        .observaciones(entrega.getObservaciones())
+                        .denominaciones(denominacionesPorEntrega.getOrDefault(movimientoPorEntrega.get(entrega.getId()), List.of()))
+                        .build())
                 .toList();
+    }
+
+    @Override
+    public UUID abrirCajaPorDenominaciones(AperturaCajaRequest request) {
+        if (request == null || request.getFincaId() == null) {
+            throw new IllegalArgumentException("La finca es obligatoria para la apertura de caja.");
+        }
+        Map<Integer, Integer> denominaciones = validarDenominaciones(request.getDenominaciones(), null,
+                "El desglose de la apertura de caja");
+        double saldoRegistrado = valor(cajaReadRepository.saldoByFincaId(request.getFincaId()));
+        double saldoDesglosado = saldoDenominacionReadRepository.findByFincaIdOrderByDenominacionAsc(request.getFincaId())
+                .stream().mapToDouble(saldo -> importeDenominacion(saldo.getDenominacion(), saldo.getCantidad())).sum();
+        double pendiente = saldoRegistrado - saldoDesglosado;
+        if (pendiente <= EPSILON) {
+            throw new IllegalArgumentException("No existe efectivo histórico pendiente de declarar por denominaciones.");
+        }
+        double apertura = totalDenominaciones(denominaciones);
+        if (Math.abs(apertura - pendiente) > EPSILON) {
+            throw new IllegalArgumentException("La apertura debe coincidir con el efectivo histórico sin desglose: " + pendiente + ".");
+        }
+        MovimientoCaja movimiento = registrarMovimientoCaja(request.getFincaId(), null, 0d,
+                "Apertura física de caja. " + texto(request.getObservaciones()), null, denominaciones);
+        movimiento.setFecha(request.getFecha() == null ? LocalDateTime.now() : request.getFecha());
+        movimiento.setTipo(TipoMovimientoCaja.APERTURA_CAJA);
+        cajaWriteRepository.save(movimiento);
+        return movimiento.getId();
     }
 
     private SalidaPendienteLiquidacionDto aPendienteDto(Salida salida) {
@@ -274,10 +351,11 @@ public class LiquidacionSalidaServiceImpl implements ILiquidacionSalidaService {
     }
 
     private void registrarMovimientoCaja(UUID fincaId, UUID aplicacionId, double importe, String observaciones) {
-        registrarMovimientoCaja(fincaId, aplicacionId, importe, observaciones, null);
+        registrarMovimientoCaja(fincaId, aplicacionId, importe, observaciones, null, Map.of());
     }
 
-    private void registrarMovimientoCaja(UUID fincaId, UUID aplicacionId, double importe, String observaciones, UUID entregaBancoId) {
+    private MovimientoCaja registrarMovimientoCaja(UUID fincaId, UUID aplicacionId, double importe, String observaciones,
+                                                   UUID entregaBancoId, Map<Integer, Integer> denominaciones) {
         MovimientoCaja movimiento = new MovimientoCaja();
         movimiento.setId(UUID.randomUUID());
         movimiento.setFincaId(fincaId);
@@ -288,6 +366,8 @@ public class LiquidacionSalidaServiceImpl implements ILiquidacionSalidaService {
         movimiento.setEntregaBancoId(entregaBancoId);
         movimiento.setObservaciones(observaciones);
         cajaWriteRepository.save(movimiento);
+        registrarDenominacionesMovimiento(movimiento.getId(), fincaId, denominaciones);
+        return movimiento;
     }
 
     private double saldoPendiente(ItemSalida item) {
@@ -311,6 +391,76 @@ public class LiquidacionSalidaServiceImpl implements ILiquidacionSalidaService {
                     (aplicacion.getReferenciaBancaria() == null || aplicacion.getReferenciaBancaria().isBlank())) {
                 throw new IllegalArgumentException("La referencia bancaria es obligatoria para transferencias.");
             }
+            if (aplicacion.getFormaPago() == FormaPago.EFECTIVO) {
+                validarDenominaciones(aplicacion.getDenominaciones(), aplicacion.getImporte(),
+                        "El desglose de efectivo del cobro");
+            }
         }
+    }
+
+    private Map<Integer, Integer> validarDenominaciones(List<DenominacionCajaDto> detalles, Double importeEsperado,
+                                                         String etiqueta) {
+        if (detalles == null || detalles.isEmpty()) {
+            throw new IllegalArgumentException(etiqueta + " es obligatorio.");
+        }
+        Map<Integer, Integer> resultado = new LinkedHashMap<>();
+        for (DenominacionCajaDto detalle : detalles) {
+            if (detalle == null || detalle.getDenominacion() == null || !DENOMINACIONES_CUP.contains(detalle.getDenominacion())
+                    || detalle.getCantidad() == null || detalle.getCantidad() <= 0) {
+                throw new IllegalArgumentException("Las denominaciones CUP y sus cantidades deben ser válidas y positivas.");
+            }
+            resultado.merge(detalle.getDenominacion(), detalle.getCantidad(), Math::addExact);
+        }
+        double total = totalDenominaciones(resultado);
+        if (importeEsperado != null && (importeEsperado <= 0 || Math.abs(total - importeEsperado) > EPSILON)) {
+            throw new IllegalArgumentException(etiqueta + " debe sumar exactamente " + importeEsperado + ".");
+        }
+        return resultado;
+    }
+
+    private void validarDisponibilidadDenominaciones(UUID fincaId, Map<Integer, Integer> requeridas) {
+        for (Map.Entry<Integer, Integer> requerida : requeridas.entrySet()) {
+            SaldoCajaDenominacion saldo = saldoDenominacionWriteRepository
+                    .findByFincaIdAndDenominacionForUpdate(fincaId, requerida.getKey())
+                    .orElseThrow(() -> new IllegalArgumentException("No existen billetes de " + requerida.getKey() + " CUP en caja."));
+            if (saldo.getCantidad() < requerida.getValue()) {
+                throw new IllegalArgumentException("No hay suficientes billetes de " + requerida.getKey() + " CUP en caja.");
+            }
+        }
+    }
+
+    private void registrarDenominacionesMovimiento(UUID movimientoId, UUID fincaId, Map<Integer, Integer> cantidades) {
+        for (Map.Entry<Integer, Integer> detalle : cantidades.entrySet()) {
+            MovimientoCajaDenominacion fila = new MovimientoCajaDenominacion();
+            fila.setId(UUID.randomUUID());
+            fila.setMovimientoCajaId(movimientoId);
+            fila.setDenominacion(detalle.getKey());
+            fila.setCantidad(detalle.getValue());
+            cajaDenominacionWriteRepository.save(fila);
+            SaldoCajaDenominacion saldo = saldoDenominacionWriteRepository
+                    .findByFincaIdAndDenominacionForUpdate(fincaId, detalle.getKey()).orElseGet(() -> {
+                        SaldoCajaDenominacion nuevo = new SaldoCajaDenominacion();
+                        nuevo.setId(UUID.randomUUID()); nuevo.setFincaId(fincaId); nuevo.setDenominacion(detalle.getKey()); nuevo.setCantidad(0);
+                        return nuevo;
+                    });
+            int nuevoSaldo = Math.addExact(saldo.getCantidad(), detalle.getValue());
+            if (nuevoSaldo < 0) {
+                throw new IllegalArgumentException("La salida deja una cantidad negativa de billetes de " + detalle.getKey() + " CUP.");
+            }
+            saldo.setCantidad(nuevoSaldo);
+            saldoDenominacionWriteRepository.save(saldo);
+        }
+    }
+
+    private Map<Integer, Integer> negar(Map<Integer, Integer> cantidades) {
+        return cantidades.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entrada -> -entrada.getValue()));
+    }
+
+    private double totalDenominaciones(Map<Integer, Integer> denominaciones) {
+        return denominaciones.entrySet().stream().mapToDouble(e -> importeDenominacion(e.getKey(), e.getValue())).sum();
+    }
+
+    private double importeDenominacion(Integer denominacion, Integer cantidad) {
+        return (double) denominacion * cantidad;
     }
 }

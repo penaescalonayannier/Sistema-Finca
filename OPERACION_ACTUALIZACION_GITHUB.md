@@ -75,7 +75,7 @@ El **Reporte Consolidado de Movimientos** y su PDF incluyen las filas de efectiv
 
 ### Migración requerida
 
-La migración Flyway `V20__liquidacion_salida_y_caja.sql` se aplica automáticamente al ejecutar el actualizador. Crea las tablas `liquidacion_salida`, `liquidacion_item_salida`, `movimiento_caja` y `entrega_banco`, además de la trazabilidad asociada. No debe ejecutarse SQL manual ni editarse una migración ya aplicada.
+Las migraciones Flyway `V20__liquidacion_salida_y_caja.sql` y `V21__control_caja_denominaciones.sql` se aplican automáticamente al ejecutar el actualizador. V21 registra el arqueo físico con las denominaciones CUP de 5, 10, 20, 50, 100, 200, 500, 1 000, 2 000, 5 000, 10 000 y 20 000. No debe ejecutarse SQL manual ni editarse una migración ya aplicada.
 
 Después de actualizar una PC, compruebe:
 
@@ -89,6 +89,10 @@ curl --fail http://127.0.0.1:9908/actuator/health
 - Antes de una entrega al banco, verifique el importe disponible; el sistema rechazará depósitos mayores al saldo de caja.
 
 Los documentos históricos marcados como pagados sin una forma de pago trazable se conservan como históricos y no se incorporan artificialmente a caja. A partir de esta versión, los cobros nuevos quedan vinculados al documento de origen.
+
+### Arqueo inicial de billetes
+
+Si la caja tenía efectivo antes de V21, la vista mostrará el valor `pendienteSinDesglose`. Antes de realizar un depósito con billetes debe pulsarse **Registrar apertura física** e indicar el conteo real. La suma de los billetes debe coincidir exactamente con ese importe. A partir de entonces, todo cobro en efectivo y toda entrega al banco exige su desglose; el sistema no permite retirar más billetes de los existentes.
 
 ## Estado registrado el 2026-09-16
 
