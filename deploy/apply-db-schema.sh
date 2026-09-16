@@ -28,6 +28,12 @@ command -v psql >/dev/null 2>&1 || {
 
 # psql usa URI PostgreSQL; Spring usa el mismo valor con el prefijo jdbc:.
 DB_URL="${DB_URL#jdbc:}"
+esquema_existe() {
+    local relation="$1"
+    PGPASSWORD="$DB_PASSWORD" psql -At "$DB_URL" -U "$DB_USER" \
+        -c "SELECT to_regclass('public.${relation}') IS NOT NULL;"
+}
+
 PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
     -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V16__item_salida_producto_multiple.sql"
 PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
@@ -38,5 +44,11 @@ PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
     -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V19__produccion_terminada_almacen_y_decimales.sql"
 PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
     -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V20__liquidacion_salida_y_caja.sql"
+if [[ "$(esquema_existe saldo_caja_denominacion)" != "t" ]]; then
+    PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
+        -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V21__control_caja_denominaciones.sql"
+else
+    echo "V21 ya está instalada; se omite su recreación para conservar los índices existentes."
+fi
 PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
-    -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V21__control_caja_denominaciones.sql"
+    -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V22__arqueos_sorpresivos_caja.sql"

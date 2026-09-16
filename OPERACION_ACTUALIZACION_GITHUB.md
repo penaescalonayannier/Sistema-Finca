@@ -103,6 +103,17 @@ En **Liquidación / Entrega a caja** se dispone de dos operaciones que conservan
 
 Estas operaciones no requieren migración adicional: se apoyan en las tablas de control por denominación de V21. Después de actualizar, compruebe un canje de prueba y un cobro con vuelto antes de realizar operaciones reales.
 
+### Arqueos sorpresivos de caja (V22)
+
+La vista **Finanzas → Arqueos de Caja** implementa el acta de control del efectivo siguiendo los campos operativos del modelo cubano SC-3-06: detalle de billetes por denominación, totales, diferencia, fecha y responsables. El arqueo no crea movimientos, no ajusta existencias de billetes y no modifica el saldo de Caja.
+
+1. Seleccione la finca. La pantalla muestra las existencias actuales de cada denominación y el contador selecciona la muestra que revisará. Si selecciona todas las denominaciones, el acta queda marcada como **TOTAL**; cualquier subconjunto queda identificado como **PARCIAL**.
+2. Indique contador responsable, custodio de caja, testigo o receptor opcional y observaciones de apertura. Al iniciar, el sistema congela el saldo esperado y la hora; cobros o entregas posteriores no alteran ese acta.
+3. Al cierre, registre el conteo físico de cada denominación de la muestra. Si hay sobrante o faltante, las observaciones de cierre son obligatorias. El resultado se cierra de forma inmutable, conserva la diferencia e incluye descarga de PDF.
+4. Solo se permite un arqueo abierto por finca. Un arqueo TOTAL se bloquea mientras exista efectivo histórico sin desglose por denominaciones; primero debe registrarse la apertura física de Caja.
+
+La migración `V22__arqueos_sorpresivos_caja.sql` crea exclusivamente las actas y sus detalles, por lo que es segura para datos existentes. Después de actualizar una PC, abra **Arqueos de Caja**, cree un arqueo parcial de prueba, ciérrelo y descargue su PDF.
+
 ## Estado registrado el 2026-09-16
 
 | PC | Estado | Observaciones |
