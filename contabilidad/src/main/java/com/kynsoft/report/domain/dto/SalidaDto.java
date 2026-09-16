@@ -20,6 +20,7 @@ public class SalidaDto {
     private TipoSalida tipo;
     private DestinoSalida destino;
     private String numero;
+    private UUID fincaId;
     private UUID fincaProductoId;
     private UUID almacenFincaProductoId; // Optional: when creating from almacen view
     private String fincaCode;

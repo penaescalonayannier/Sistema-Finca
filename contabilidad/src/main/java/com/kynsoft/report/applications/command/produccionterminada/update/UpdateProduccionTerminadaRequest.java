@@ -16,4 +16,7 @@ public class UpdateProduccionTerminadaRequest {
     private UUID trabajadorEntregaId;
     private UUID trabajadorRecibeId;
     private String observaciones;
+    private Double costoUnitario;
+    private String lote;
+    private String centroCosto;
 }

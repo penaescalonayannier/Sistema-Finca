@@ -15,6 +15,9 @@ public class UpdateProduccionTerminadaCommand implements ICommand {
     private UUID trabajadorEntregaId;
     private UUID trabajadorRecibeId;
     private String observaciones;
+    private Double costoUnitario;
+    private String lote;
+    private String centroCosto;
 
     // Resultado del servicio
     private Double stockAnterior;
@@ -26,12 +29,15 @@ public class UpdateProduccionTerminadaCommand implements ICommand {
             Double cantidadTerminada,
             UUID trabajadorEntregaId,
             UUID trabajadorRecibeId,
-            String observaciones) {
+            String observaciones, Double costoUnitario, String lote, String centroCosto) {
         this.id = id;
         this.cantidadTerminada = cantidadTerminada;
         this.trabajadorEntregaId = trabajadorEntregaId;
         this.trabajadorRecibeId = trabajadorRecibeId;
         this.observaciones = observaciones;
+        this.costoUnitario = costoUnitario;
+        this.lote = lote;
+        this.centroCosto = centroCosto;
     }
 
     public void setCantidadTerminada(Number cantidadTerminada) {
@@ -48,7 +54,10 @@ public class UpdateProduccionTerminadaCommand implements ICommand {
                 request.getCantidadTerminada(),
                 request.getTrabajadorEntregaId(),
                 request.getTrabajadorRecibeId(),
-                request.getObservaciones()
+                request.getObservaciones(),
+                request.getCostoUnitario(),
+                request.getLote(),
+                request.getCentroCosto()
         );
     }
 

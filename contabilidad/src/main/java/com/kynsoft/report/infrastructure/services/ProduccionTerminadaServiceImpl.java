@@ -16,6 +16,8 @@ import com.kynsoft.report.domain.services.IFincaProductoService;
 import com.kynsoft.report.domain.services.IAlmacenFincaProductoService;
 import com.kynsoft.report.domain.services.IProduccionTerminadaService;
 import com.kynsoft.report.domain.services.ITrabajadorService;
+import com.kynsoft.report.domain.services.INumeracionService;
+import com.kynsoft.report.domain.dto.TipoDocumento;
 import com.kynsoft.report.infrastructure.entity.ProduccionTerminada;
 import com.kynsoft.report.infrastructure.repository.command.ProduccionTerminadaWriteDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.ProduccionTerminadaReadDataJPARepository;
@@ -36,89 +38,33 @@ public class ProduccionTerminadaServiceImpl implements IProduccionTerminadaServi
     private final IFincaProductoService fincaProductoService;
     private final ITrabajadorService trabajadorService;
     private final IAlmacenFincaProductoService almacenFincaProductoService;
+    private final INumeracionService numeracionService;
 
     public ProduccionTerminadaServiceImpl(
             ProduccionTerminadaWriteDataJPARepository repositoryCommand,
             ProduccionTerminadaReadDataJPARepository repositoryQuery,
             IFincaProductoService fincaProductoService,
             ITrabajadorService trabajadorService,
-            IAlmacenFincaProductoService almacenFincaProductoService) {
+            IAlmacenFincaProductoService almacenFincaProductoService,
+            INumeracionService numeracionService) {
         this.repositoryCommand = repositoryCommand;
         this.repositoryQuery = repositoryQuery;
         this.fincaProductoService = fincaProductoService;
         this.trabajadorService = trabajadorService;
         this.almacenFincaProductoService = almacenFincaProductoService;
+        this.numeracionService = numeracionService;
     }
 
     @Override
     @Transactional
     public CreateProduccionTerminadaResult create(ProduccionTerminadaDto dto) {
-        if (dto.getId() == null) {
-            dto.setId(UUID.randomUUID());
-        }
-        // RN-03: Validar cantidad mayor a cero
-        if (dto.getCantidadTerminada() == null || dto.getCantidadTerminada() <= 0) {
+        if (dto == null || dto.getAlmacenFincaProductoId() == null) {
             throw new BusinessNotFoundException(new GlobalBusinessException(
                     DomainErrorMessage.BUSINESS_NOT_FOUND,
-                    new ErrorField("cantidadTerminada", "La cantidad terminada debe ser mayor a 0.")));
+                    new ErrorField("almacenFincaProductoId", "La producción terminada requiere el almacén receptor.")));
         }
-
-        // RN-01: Validar producto asignado a finca
-        FincaProductoDto fincaProducto;
-        try {
-            fincaProducto = fincaProductoService.obtenerRelacion(dto.getFincaId(), dto.getProductoId());
-        } catch (BusinessNotFoundException e) {
-            throw new BusinessNotFoundException(new GlobalBusinessException(
-                    DomainErrorMessage.BUSINESS_NOT_FOUND,
-                    new ErrorField("productoId", "El producto no está asignado a la finca.")));
-        }
-
-        // Validar trabajadores existen
-        TrabajadorDto trabajadorEntrega = trabajadorService.findById(dto.getTrabajadorEntregaId());
-        TrabajadorDto trabajadorRecibe = trabajadorService.findById(dto.getTrabajadorRecibeId());
-
-        // RN-05: Validar trabajadores diferentes
-        if (dto.getTrabajadorEntregaId().equals(dto.getTrabajadorRecibeId())) {
-            throw new BusinessNotFoundException(new GlobalBusinessException(
-                    DomainErrorMessage.BUSINESS_NOT_FOUND,
-                    new ErrorField("trabajadorRecibeId", "El trabajador que entrega y el que recibe deben ser diferentes.")));
-        }
-
-        // RN-04: Validar trabajadores de la misma finca
-        if (!dto.getFincaId().equals(trabajadorEntrega.getFincaId())) {
-            throw new BusinessNotFoundException(new GlobalBusinessException(
-                    DomainErrorMessage.BUSINESS_NOT_FOUND,
-                    new ErrorField("trabajadorEntregaId", "El trabajador que entrega no pertenece a la finca.")));
-        }
-        if (!dto.getFincaId().equals(trabajadorRecibe.getFincaId())) {
-            throw new BusinessNotFoundException(new GlobalBusinessException(
-                    DomainErrorMessage.BUSINESS_NOT_FOUND,
-                    new ErrorField("trabajadorRecibeId", "El trabajador que recibe no pertenece a la finca.")));
-        }
-
-        // Guardar stock anterior
-        Double stockAnterior = fincaProducto.getStock() != null ? fincaProducto.getStock() : 0.0;
-
-        // Crear entidad
-        ProduccionTerminada entity = new ProduccionTerminada(dto);
-        ProduccionTerminada saved = repositoryCommand.save(entity);
-
-        // RN-02: Incrementar stock automáticamente
-        fincaProductoService.entradaProduccion(
-                dto.getFincaId(),
-                dto.getProductoId(),
-                dto.getCantidadTerminada(),
-                "Producción terminada: " + (dto.getObservaciones() != null ? dto.getObservaciones() : ""),
-                saved.getId()
-        );
-
-        Double stockNuevo = stockAnterior + dto.getCantidadTerminada();
-
-        return CreateProduccionTerminadaResult.builder()
-                .id(saved.getId())
-                .stockAnterior(stockAnterior)
-                .stockNuevo(stockNuevo)
-                .build();
+        AlmacenFincaProductoDto almacenProducto = almacenFincaProductoService.findById(dto.getAlmacenFincaProductoId());
+        return createEnAlmacen(almacenProducto.getAlmacenId(), dto.getAlmacenFincaProductoId(), dto);
     }
 
     @Override
@@ -150,6 +96,7 @@ public class ProduccionTerminadaServiceImpl implements IProduccionTerminadaServi
         validarTrabajadores(dto);
 
         Double stockAnterior = almacenProducto.getStock() != null ? almacenProducto.getStock() : 0.0;
+        completarSnapshotDocumento(dto, fincaProducto, almacenProducto, stockAnterior + dto.getCantidadTerminada());
         ProduccionTerminada saved = repositoryCommand.save(new ProduccionTerminada(dto));
 
         // Este método es el único que incrementa el inventario físico y el consolidado
@@ -159,7 +106,7 @@ public class ProduccionTerminadaServiceImpl implements IProduccionTerminadaServi
                 dto.getCantidadTerminada(),
                 saved.getId(),
                 descripcionProduccion(dto.getObservaciones()),
-                null
+                dto.getCentroCosto()
         );
 
         return CreateProduccionTerminadaResult.builder()
@@ -215,6 +162,11 @@ public class ProduccionTerminadaServiceImpl implements IProduccionTerminadaServi
         }
 
         boolean produccionEnAlmacen = entity.getAlmacenFincaProductoId() != null;
+        if (!produccionEnAlmacen) {
+            throw new BusinessNotFoundException(new GlobalBusinessException(
+                    DomainErrorMessage.BUSINESS_NOT_FOUND,
+                    new ErrorField("id", "La producción histórica no tiene almacén receptor y no puede modificarse. Registre un ajuste documentado en el almacén.")));
+        }
         Double stockActual = produccionEnAlmacen
                 ? obtenerStockAlmacen(entity.getAlmacenFincaProductoId())
                 : fincaProductoService.obtenerStock(entity.getFincaId(), entity.getProductoId());
@@ -237,6 +189,21 @@ public class ProduccionTerminadaServiceImpl implements IProduccionTerminadaServi
         entity.setTrabajadorEntregaId(dto.getTrabajadorEntregaId());
         entity.setTrabajadorRecibeId(dto.getTrabajadorRecibeId());
         entity.setObservaciones(dto.getObservaciones());
+        // Los metadatos documentales son opcionales en actualizaciones de
+        // documentos históricos; no deben borrarse si el cliente no los envía.
+        if (dto.getLote() != null) {
+            entity.setLote(dto.getLote());
+        }
+        if (dto.getCentroCosto() != null) {
+            entity.setCentroCosto(dto.getCentroCosto());
+        }
+        if (dto.getCostoUnitario() != null) {
+            validarCosto(dto.getCostoUnitario());
+            entity.setCostoUnitario(dto.getCostoUnitario());
+        }
+        entity.setImporte(entity.getCostoUnitario() == null ? null
+                : entity.getCostoUnitario() * dto.getCantidadTerminada());
+        entity.setSaldoPosterior(stockActual + ajuste);
 
         repositoryCommand.save(entity);
 
@@ -299,6 +266,11 @@ public class ProduccionTerminadaServiceImpl implements IProduccionTerminadaServi
         }
 
         boolean produccionEnAlmacen = entity.getAlmacenFincaProductoId() != null;
+        if (!produccionEnAlmacen) {
+            throw new BusinessNotFoundException(new GlobalBusinessException(
+                    DomainErrorMessage.BUSINESS_NOT_FOUND,
+                    new ErrorField("id", "La producción histórica no tiene almacén receptor y no puede anularse. Registre un ajuste documentado en el almacén.")));
+        }
         Double stockActual = produccionEnAlmacen
                 ? obtenerStockAlmacen(entity.getAlmacenFincaProductoId())
                 : fincaProductoService.obtenerStock(entity.getFincaId(), entity.getProductoId());
@@ -405,6 +377,34 @@ public class ProduccionTerminadaServiceImpl implements IProduccionTerminadaServi
             throw new BusinessNotFoundException(new GlobalBusinessException(
                     DomainErrorMessage.BUSINESS_NOT_FOUND,
                     new ErrorField("productoId", "El producto no coincide con el producto del almacén.")));
+        }
+    }
+
+    /**
+     * Congela los datos que forman el comprobante de producción. El PDF nunca
+     * debe recalcularlos desde precios o existencias actuales, pues eso altera
+     * una evidencia histórica al editar el catálogo o mover inventario.
+     */
+    private void completarSnapshotDocumento(ProduccionTerminadaDto dto, FincaProductoDto fincaProducto,
+                                            AlmacenFincaProductoDto almacenProducto, double saldoPosterior) {
+        validarCosto(dto.getCostoUnitario());
+        dto.setNumeroDocumento(numeracionService.generarSiguienteNumero(fincaProducto.getFincaId(), TipoDocumento.PRODUCCION));
+        dto.setProductoCodigoSnapshot(fincaProducto.getProductoCode());
+        dto.setProductoNombreSnapshot(fincaProducto.getProductoName());
+        dto.setUnidadMedidaSnapshot(fincaProducto.getUnidadMedida() == null ? null
+                : fincaProducto.getUnidadMedida().name());
+        dto.setAlmacenNombreSnapshot(almacenProducto == null ? null : almacenProducto.getAlmacenNombre());
+        dto.setAlmacenInventarioSnapshot(almacenProducto == null ? null : almacenProducto.getAlmacenInventario());
+        dto.setSaldoPosterior(saldoPosterior);
+        dto.setImporte(dto.getCostoUnitario() == null ? null
+                : dto.getCostoUnitario() * dto.getCantidadTerminada());
+    }
+
+    private void validarCosto(Double costoUnitario) {
+        if (costoUnitario != null && costoUnitario < 0) {
+            throw new BusinessNotFoundException(new GlobalBusinessException(
+                    DomainErrorMessage.BUSINESS_NOT_FOUND,
+                    new ErrorField("costoUnitario", "El costo unitario no puede ser negativo.")));
         }
     }
 

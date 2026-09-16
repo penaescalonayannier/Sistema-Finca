@@ -68,11 +68,29 @@ public class AlmacenFincaProductoServiceImpl implements IAlmacenFincaProductoSer
                 .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
                         DomainErrorMessage.BUSINESS_NOT_FOUND,
                         new ErrorField("almacenId", "Almacén no encontrado."))));
+        if (!Boolean.TRUE.equals(almacen.getActivo())) {
+            throw new BusinessNotFoundException(new GlobalBusinessException(
+                    DomainErrorMessage.BUSINESS_NOT_FOUND,
+                    new ErrorField("almacenId", "No se puede asignar productos a un almacén inactivo.")));
+        }
 
         FincaProducto fincaProducto = fincaProductoRepository.findById(fincaProductoId)
                 .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
                         DomainErrorMessage.BUSINESS_NOT_FOUND,
                         new ErrorField("fincaProductoId", "Producto no encontrado."))));
+
+        if (!almacen.getFinca().getId().equals(fincaProducto.getFinca().getId())) {
+            throw new BusinessNotFoundException(new GlobalBusinessException(
+                    DomainErrorMessage.BUSINESS_NOT_FOUND,
+                    new ErrorField("fincaProductoId", "El producto pertenece a otra finca.")));
+        }
+        if (!Boolean.TRUE.equals(fincaProducto.getActivo())) {
+            throw new BusinessNotFoundException(new GlobalBusinessException(
+                    DomainErrorMessage.BUSINESS_NOT_FOUND,
+                    new ErrorField("fincaProductoId", "No se puede asignar un producto de finca inactivo.")));
+        }
+        validarStockNoNegativo(stockInicial, "stockInicial");
+        validarLimites(stockMinimo, stockMaximo);
 
         if (repositoryQuery.existsByAlmacenIdAndFincaProductoIdAndActivoTrue(almacenId, fincaProductoId)) {
             throw new BusinessNotFoundException(new GlobalBusinessException(
@@ -92,6 +110,12 @@ public class AlmacenFincaProductoServiceImpl implements IAlmacenFincaProductoSer
         repositoryCommand.save(afp);
 
         if (stockInicial != null && stockInicial > 0) {
+            // El stock inicial representa una existencia física incorporada a
+            // este almacén. Por tanto también debe incorporarse al saldo de la
+            // finca; omitirlo dejaba ambos inventarios desincronizados.
+            Double stockFincaAnterior = fincaProducto.getStock() != null ? fincaProducto.getStock() : 0.0;
+            fincaProducto.setStock(stockFincaAnterior + stockInicial);
+            fincaProductoWriteRepository.save(fincaProducto);
             registrarMovimiento(afp, TipoMovimientoStock.ENTRADA_AJUSTE, stockInicial,
                     0.0, stockInicial, "Stock inicial al asignar producto");
         }
@@ -101,6 +125,7 @@ public class AlmacenFincaProductoServiceImpl implements IAlmacenFincaProductoSer
 
     @Override
     public void actualizarStock(UUID id, Double nuevoStock) {
+        validarStockNoNegativo(nuevoStock, "nuevoStock");
         AlmacenFincaProducto afp = findEntityById(id);
         Double stockAnterior = afp.getStock();
         afp.setStock(nuevoStock);
@@ -110,15 +135,24 @@ public class AlmacenFincaProductoServiceImpl implements IAlmacenFincaProductoSer
 
         // Actualizar también el stock total de FincaProducto
         FincaProducto fp = afp.getFincaProducto();
-        fp.setStock(Math.max(0.0, fp.getStock() + diferencia));
+        Double stockFincaAnterior = fp.getStock() != null ? fp.getStock() : 0.0;
+        Double stockFincaNuevo = stockFincaAnterior + diferencia;
+        if (stockFincaNuevo < 0) {
+            throw new BusinessNotFoundException(new GlobalBusinessException(
+                    DomainErrorMessage.BUSINESS_NOT_FOUND,
+                    new ErrorField("nuevoStock", "El ajuste dejaría el stock de la finca en negativo. "
+                            + "Stock actual: " + stockFincaAnterior)));
+        }
+        fp.setStock(stockFincaNuevo);
         fincaProductoWriteRepository.save(fp);
 
         TipoMovimientoStock tipo = diferencia > 0 ? TipoMovimientoStock.ENTRADA_AJUSTE : TipoMovimientoStock.SALIDA_AJUSTE;
-        registrarMovimiento(afp, tipo, diferencia, stockAnterior, nuevoStock, "Ajuste manual de stock");
+        registrarMovimiento(afp, tipo, Math.abs(diferencia), stockAnterior, nuevoStock, "Ajuste manual de stock");
     }
 
     @Override
     public void actualizarLimites(UUID id, Double stockMinimo, Double stockMaximo) {
+        validarLimites(stockMinimo, stockMaximo);
         AlmacenFincaProducto afp = findEntityById(id);
         if (stockMinimo != null) afp.setStockMinimo(stockMinimo);
         if (stockMaximo != null) afp.setStockMaximo(stockMaximo);
@@ -317,7 +351,18 @@ public class AlmacenFincaProductoServiceImpl implements IAlmacenFincaProductoSer
     @Override
     public void transferir(UUID origenId, UUID destinoAlmacenId, Double cantidad, String observaciones) {
         validarCantidadPositiva(cantidad);
+        if (observaciones == null || observaciones.trim().isEmpty()) {
+            throw new BusinessNotFoundException(new GlobalBusinessException(
+                    DomainErrorMessage.BUSINESS_NOT_FOUND,
+                    new ErrorField("observaciones", "La transferencia debe indicar su referencia o motivo.")));
+        }
         AlmacenFincaProducto origen = findEntityById(origenId);
+
+        if (!Boolean.TRUE.equals(origen.getAlmacen().getActivo())) {
+            throw new BusinessNotFoundException(new GlobalBusinessException(
+                    DomainErrorMessage.BUSINESS_NOT_FOUND,
+                    new ErrorField("origenId", "No se puede transferir desde un almacén inactivo.")));
+        }
 
         if (origen.getStock() < cantidad) {
             throw new BusinessNotFoundException(new GlobalBusinessException(
@@ -334,6 +379,12 @@ public class AlmacenFincaProductoServiceImpl implements IAlmacenFincaProductoSer
             throw new BusinessNotFoundException(new GlobalBusinessException(
                     DomainErrorMessage.BUSINESS_NOT_FOUND,
                     new ErrorField("destinoAlmacenId", "Almacén destino está inactivo.")));
+        }
+
+        if (origen.getAlmacen().getId().equals(destinoAlmacenId)) {
+            throw new BusinessNotFoundException(new GlobalBusinessException(
+                    DomainErrorMessage.BUSINESS_NOT_FOUND,
+                    new ErrorField("destinoAlmacenId", "El almacén destino debe ser diferente al almacén origen.")));
         }
 
         if (!almacenDestino.getFinca().getId().equals(origen.getAlmacen().getFinca().getId())) {
@@ -365,13 +416,14 @@ public class AlmacenFincaProductoServiceImpl implements IAlmacenFincaProductoSer
         destino.setStock(stockNuevoDestino);
         repositoryCommand.save(destino);
 
+        UUID referenciaTransferencia = UUID.randomUUID();
         String desc = "Transferencia a " + almacenDestino.getNombre() + " - " + observaciones;
-        registrarMovimiento(origen, TipoMovimientoStock.TRANSFERENCIA_SALIDA, cantidad,
-                stockAnteriorOrigen, stockNuevoOrigen, desc);
+        registrarMovimientoTransferencia(origen, TipoMovimientoStock.TRANSFERENCIA_SALIDA, cantidad,
+                stockAnteriorOrigen, stockNuevoOrigen, referenciaTransferencia, desc);
 
         String descDestino = "Transferencia desde " + origen.getAlmacen().getNombre() + " - " + observaciones;
-        registrarMovimiento(destino, TipoMovimientoStock.TRANSFERENCIA_ENTRADA, cantidad,
-                stockAnteriorDestino, stockNuevoDestino, descDestino);
+        registrarMovimientoTransferencia(destino, TipoMovimientoStock.TRANSFERENCIA_ENTRADA, cantidad,
+                stockAnteriorDestino, stockNuevoDestino, referenciaTransferencia, descDestino);
 
         log.info("Transferencia completada: {}→{}, producto={}, cantidad={}",
                 origen.getAlmacen().getNombre(), almacenDestino.getNombre(),
@@ -495,6 +547,24 @@ public class AlmacenFincaProductoServiceImpl implements IAlmacenFincaProductoSer
         }
     }
 
+    private void validarStockNoNegativo(Double stock, String campo) {
+        if (stock != null && stock < 0) {
+            throw new BusinessNotFoundException(new GlobalBusinessException(
+                    DomainErrorMessage.BUSINESS_NOT_FOUND,
+                    new ErrorField(campo, "El stock no puede ser negativo.")));
+        }
+    }
+
+    private void validarLimites(Double stockMinimo, Double stockMaximo) {
+        validarStockNoNegativo(stockMinimo, "stockMinimo");
+        validarStockNoNegativo(stockMaximo, "stockMaximo");
+        if (stockMinimo != null && stockMaximo != null && stockMaximo < stockMinimo) {
+            throw new BusinessNotFoundException(new GlobalBusinessException(
+                    DomainErrorMessage.BUSINESS_NOT_FOUND,
+                    new ErrorField("stockMaximo", "El stock máximo no puede ser menor que el mínimo.")));
+        }
+    }
+
     private void validarReferenciaProduccion(UUID produccionId) {
         if (produccionId == null) {
             throw new BusinessNotFoundException(new GlobalBusinessException(
@@ -585,6 +655,26 @@ public class AlmacenFincaProductoServiceImpl implements IAlmacenFincaProductoSer
                 .referenciaTabla(produccionId != null ? "produccion_terminada" : null)
                 .descripcion(descripcion)
                 .centroCosto(centroCosto)
+                .build();
+        movimientoStockService.registrar(movimiento);
+    }
+
+    private void registrarMovimientoTransferencia(AlmacenFincaProducto afp, TipoMovimientoStock tipo,
+                                                   Double cantidad, Double stockAnterior, Double stockNuevo,
+                                                   UUID transferenciaId, String descripcion) {
+        MovimientoStockDto movimiento = MovimientoStockDto.builder()
+                .id(UUID.randomUUID())
+                .fincaProductoId(afp.getFincaProducto().getId())
+                .fincaId(afp.getFincaProducto().getFinca().getId())
+                .productoId(afp.getFincaProducto().getProducto().getId())
+                .almacenId(afp.getAlmacen().getId())
+                .tipo(tipo)
+                .cantidad(cantidad)
+                .stockAnterior(stockAnterior)
+                .stockNuevo(stockNuevo)
+                .referenciaId(transferenciaId)
+                .referenciaTabla("transferencia_almacen")
+                .descripcion(descripcion)
                 .build();
         movimientoStockService.registrar(movimiento);
     }

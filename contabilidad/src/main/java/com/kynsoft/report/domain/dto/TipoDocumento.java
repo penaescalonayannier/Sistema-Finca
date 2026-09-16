@@ -3,7 +3,8 @@ package com.kynsoft.report.domain.dto;
 public enum TipoDocumento {
     VALE("VALE"),
     FACTURA("FAC"),
-    RECIBO("REC");
+    RECIBO("REC"),
+    PRODUCCION("PT");
 
     private final String prefijo;
 

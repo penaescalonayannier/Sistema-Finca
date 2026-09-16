@@ -33,10 +33,10 @@ El script realiza automáticamente, en este orden:
 2. Conserva fuera del código los archivos locales de conexión (`application*.properties`) y los `.env*` del frontend.
 3. Compila `share`, el backend y el frontend.
 4. Instala el JAR nuevo.
-5. Ejecuta todas las migraciones Flyway pendientes antes de iniciar el sistema, incluidas `V20__liquidacion_salida_y_caja.sql`, `V21__control_caja_denominaciones.sql`, `V22__arqueos_sorpresivos_caja.sql`, `V23__caja_oficial_control.sql`, `V24__control_banco_y_documentos_caja.sql` y `V25__documento_caja_movimiento_efectivo.sql` cuando la PC aún no las tenga aplicadas.
+5. Ejecuta todas las migraciones Flyway pendientes antes de iniciar el sistema, incluidas `V20__liquidacion_salida_y_caja.sql`, `V21__control_caja_denominaciones.sql`, `V22__arqueos_sorpresivos_caja.sql`, `V23__caja_oficial_control.sql`, `V24__control_banco_y_documentos_caja.sql`, `V25__documento_caja_movimiento_efectivo.sql`, `V26__documento_produccion_snapshot.sql` y `V27__salida_finca_consecutivo_unico.sql` cuando la PC aún no las tenga aplicadas.
 6. Reinicia los servicios y consulta `http://127.0.0.1:9908/actuator/health`.
 
-Las migraciones son idempotentes: se pueden ejecutar en ambas PC sin repetir datos ni alterar registros existentes. V17 y V18 dejan las existencias y cantidades de movimientos con precisión de cuatro decimales. V20 añade la trazabilidad de liquidación de vales/facturas, caja física y entregas al banco; V21 añade el arqueo por denominaciones; V22 incorpora las actas de arqueo sorpresivo de Caja; V23 añade fondos autorizados, actas de responsabilidad, incidencias y tablero de Caja; V24 añade documentos oficiales de Caja, cheques/transferencias y conciliación bancaria; y V25 permite que un documento nuevo afecte Caja con desglose de billetes, sin duplicar liquidaciones existentes. V22-V25 no modifican los movimientos ni el saldo histórico de Caja. Así, valores como `1.5` se conservan en productos de finca, almacenes, entradas, salidas, transferencias, vales y reportes.
+Las migraciones son idempotentes: se pueden ejecutar en ambas PC sin repetir datos ni alterar registros existentes. V17 y V18 dejan las existencias y cantidades de movimientos con precisión de cuatro decimales. V20 añade la trazabilidad de liquidación de vales/facturas, caja física y entregas al banco; V21 añade el arqueo por denominaciones; V22 incorpora las actas de arqueo sorpresivo de Caja; V23 añade fondos autorizados, actas de responsabilidad, incidencias y tablero de Caja; V24 añade documentos oficiales de Caja, cheques/transferencias y conciliación bancaria; V25 permite que un documento nuevo afecte Caja con desglose de billetes, sin duplicar liquidaciones existentes; V26 conserva el snapshot y consecutivo de Producción Terminada; y V27 refuerza la finca y unicidad de consecutivos de vales/facturas. V22-V27 no modifican los movimientos ni el saldo histórico de Caja. Así, valores como `1.5` se conservan en productos de finca, almacenes, entradas, salidas, transferencias, vales y reportes.
 
 ## Después de actualizar
 
@@ -45,6 +45,7 @@ Las migraciones son idempotentes: se pueden ejecutar en ambas PC sin repetir dat
 3. Registre una entrada o transferencia de prueba solamente si la operación lo permite; confirme que el valor no se redondea.
 4. Repita exactamente el mismo comando en la segunda PC.
 5. En **Finanzas**, valide las nuevas vistas **Fondos y Control de Caja**, **Documentos de Caja** y **Banco y Conciliación**. Registre primero los fondos/custodio de una finca y realice una prueba documental no operativa antes de utilizar los comprobantes reales.
+6. En **Almacenes**, compruebe una entrada de producción y una salida múltiple de prueba. Las entradas de factura/conduce requieren ahora su número fuente; las operaciones físicas no se registran desde Gestión de Productos por Finca.
 
 ## Si falla
 

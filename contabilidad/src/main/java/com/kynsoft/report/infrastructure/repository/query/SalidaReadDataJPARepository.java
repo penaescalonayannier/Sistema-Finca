@@ -113,4 +113,11 @@ public interface SalidaReadDataJPARepository extends JpaRepository<Salida, UUID>
     List<Salida> findByFincaIdAndFechaBetween(@Param("fincaId") UUID fincaId,
                                                @Param("fechaInicio") java.time.LocalDateTime fechaInicio,
                                                @Param("fechaFin") java.time.LocalDateTime fechaFin);
+
+    @Query("SELECT s.numero FROM Salida s WHERE s.fincaId = :fincaId AND s.tipo = :tipo "
+            + "AND s.fecha >= :inicio AND s.fecha < :fin")
+    List<String> findNumerosPorFincaTipoYAnio(@Param("fincaId") UUID fincaId,
+                                                @Param("tipo") TipoSalida tipo,
+                                                @Param("inicio") LocalDateTime inicio,
+                                                @Param("fin") LocalDateTime fin);
 }

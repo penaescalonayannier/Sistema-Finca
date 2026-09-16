@@ -16,6 +16,9 @@ public class EntradaProduccionTerminadaAlmacenCommand implements ICommand {
     private final UUID trabajadorEntregaId;
     private final UUID trabajadorRecibeId;
     private final String observaciones;
+    private final Double costoUnitario;
+    private final String lote;
+    private final String centroCosto;
     private UUID produccionTerminadaId;
     private Double stockNuevo;
 
@@ -25,13 +28,19 @@ public class EntradaProduccionTerminadaAlmacenCommand implements ICommand {
             Double cantidadTerminada,
             UUID trabajadorEntregaId,
             UUID trabajadorRecibeId,
-            String observaciones) {
+            String observaciones,
+            Double costoUnitario,
+            String lote,
+            String centroCosto) {
         this.almacenId = almacenId;
         this.almacenFincaProductoId = almacenFincaProductoId;
         this.cantidadTerminada = cantidadTerminada;
         this.trabajadorEntregaId = trabajadorEntregaId;
         this.trabajadorRecibeId = trabajadorRecibeId;
         this.observaciones = observaciones;
+        this.costoUnitario = costoUnitario;
+        this.lote = lote;
+        this.centroCosto = centroCosto;
     }
 
     public static EntradaProduccionTerminadaAlmacenCommand fromRequest(
@@ -42,7 +51,10 @@ public class EntradaProduccionTerminadaAlmacenCommand implements ICommand {
                 request.getCantidadTerminada(),
                 request.getTrabajadorEntregaId(),
                 request.getTrabajadorRecibeId(),
-                request.getObservaciones());
+                request.getObservaciones(),
+                request.getCostoUnitario(),
+                request.getLote(),
+                request.getCentroCosto());
     }
 
     @Override

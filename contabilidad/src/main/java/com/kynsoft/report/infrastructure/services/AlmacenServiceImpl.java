@@ -309,6 +309,18 @@ public class AlmacenServiceImpl implements IAlmacenService {
                     DomainErrorMessage.BUSINESS_NOT_FOUND,
                     new ErrorField("fincaProductoId", "Producto no encontrado."))));
 
+        if (!Boolean.TRUE.equals(almacen.getActivo())) {
+            throw new BusinessNotFoundException(new GlobalBusinessException(
+                    DomainErrorMessage.BUSINESS_NOT_FOUND,
+                    new ErrorField("almacenId", "No se pueden agregar productos a un almacén inactivo.")));
+        }
+        if (!Boolean.TRUE.equals(fincaProducto.getActivo())
+                || !almacen.getFinca().getId().equals(fincaProducto.getFinca().getId())) {
+            throw new BusinessNotFoundException(new GlobalBusinessException(
+                    DomainErrorMessage.BUSINESS_NOT_FOUND,
+                    new ErrorField("fincaProductoId", "El producto debe estar activo y pertenecer a la misma finca del almacén.")));
+        }
+
         // Verificar si ya existe la relación
         if (afpReadRepository.existsByAlmacenIdAndFincaProductoIdAndActivoTrue(almacenId, fincaProductoId)) {
             throw new BusinessNotFoundException(new GlobalBusinessException(
@@ -340,6 +352,17 @@ public class AlmacenServiceImpl implements IAlmacenService {
             throw new BusinessNotFoundException(new GlobalBusinessException(
                     DomainErrorMessage.BUSINESS_NOT_FOUND,
                     new ErrorField("almacenId", "Producto no pertenece a este almacén.")));
+        }
+
+        if (!Boolean.TRUE.equals(afp.getActivo())) {
+            throw new BusinessNotFoundException(new GlobalBusinessException(
+                    DomainErrorMessage.BUSINESS_NOT_FOUND,
+                    new ErrorField("fincaProductoId", "El producto ya está inactivo en el almacén.")));
+        }
+        if (afp.getStock() != null && afp.getStock() > 0) {
+            throw new BusinessNotFoundException(new GlobalBusinessException(
+                    DomainErrorMessage.BUSINESS_NOT_FOUND,
+                    new ErrorField("fincaProductoId", "No se puede remover un producto con existencias. Transfiéralo o ajústelo mediante un movimiento documentado.")));
         }
 
         // Soft delete

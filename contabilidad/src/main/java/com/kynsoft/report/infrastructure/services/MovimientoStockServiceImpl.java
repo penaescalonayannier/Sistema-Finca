@@ -444,7 +444,7 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
 
         for (MovimientoStock m : movimientos) {
             TipoMovimientoStock tipo = m.getTipo();
-            double cantidad = m.getCantidad();
+            double cantidad = cantidadFisica(m);
 
             if (tipo.isEntrada()) {
                 entradas.merge(tipo.name(), cantidad, Double::sum);
@@ -499,9 +499,9 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
 
             for (MovimientoStock m : movimientos) {
                 if (m.getTipo().isEntrada()) {
-                    totalEntradas += m.getCantidad();
+                    totalEntradas += cantidadFisica(m);
                 } else if (m.getTipo().isSalida()) {
-                    totalSalidas += m.getCantidad();
+                    totalSalidas += cantidadFisica(m);
                 }
             }
 

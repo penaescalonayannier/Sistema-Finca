@@ -1,8 +1,10 @@
 package com.kynsoft.report.domain.services;
 
 import com.kynsoft.report.domain.dto.TipoDocumento;
+import com.kynsoft.report.domain.dto.EstadoConsecutivoDocumentoDto;
 
 import java.util.UUID;
+import java.util.List;
 
 public interface INumeracionService {
 
@@ -36,4 +38,7 @@ public interface INumeracionService {
      * @return true si la secuencia está completa, false si hay huecos
      */
     boolean verificarIntegridadSecuencia(UUID fincaId, TipoDocumento tipo, Integer anio);
+
+    /** Consulta inmutable de consecutivos oficiales por finca y año. */
+    List<EstadoConsecutivoDocumentoDto> obtenerEstadoDocumentos(UUID fincaId, Integer anio);
 }

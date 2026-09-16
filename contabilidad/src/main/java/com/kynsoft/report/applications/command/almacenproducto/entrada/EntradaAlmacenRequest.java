@@ -18,5 +18,6 @@ public class EntradaAlmacenRequest {
     private TipoMovimientoStock tipo;
     private String descripcion;
     private String numeroFactura;
+    private String numeroConduce;
     private String centroCosto;  // Código del centro de costo (ej: 700.01.04 para Plátano)
 }

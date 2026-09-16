@@ -27,6 +27,9 @@ public class EntradaProduccionTerminadaAlmacenCommandHandler
                         .trabajadorEntregaId(command.getTrabajadorEntregaId())
                         .trabajadorRecibeId(command.getTrabajadorRecibeId())
                         .observaciones(command.getObservaciones())
+                        .costoUnitario(command.getCostoUnitario())
+                        .lote(command.getLote())
+                        .centroCosto(command.getCentroCosto())
                         .build());
 
         AlmacenFincaProductoDto almacenProducto = almacenFincaProductoService

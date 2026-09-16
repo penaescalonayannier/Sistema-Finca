@@ -125,14 +125,14 @@ public class ProduccionTerminadaPdfService {
         entity.add(infoLine("Código:", safe(empresa.getCodigo()), normal, bold));
         entity.add(infoLine("Dirección:", safe(empresa.getDireccionCompleta()), normal, bold));
         entity.add(infoLine("Área productora:", finca(produccion), normal, bold));
-        entity.add(infoLine("Almacén receptor:", almacen(almacenProducto), normal, bold));
+        entity.add(infoLine("Almacén receptor:", almacen(produccion, almacenProducto), normal, bold));
         header.addCell(entity);
 
         Cell model = borderedCell().setTextAlignment(TextAlignment.CENTER);
         model.add(new Paragraph("MODELO SC-2-06").setFont(bold).setFontSize(11).setMarginBottom(4));
         model.add(new Paragraph("ENTREGA DE PRODUCTOS\nTERMINADOS AL ALMACÉN")
                 .setFont(bold).setFontSize(10).setMarginBottom(8));
-        model.add(infoLine("Consecutivo:", consecutivo(produccion.getId()), normal, bold)
+        model.add(infoLine("Consecutivo:", consecutivo(produccion), normal, bold)
                 .setTextAlignment(TextAlignment.LEFT));
         model.add(infoLine("Fecha:", produccion.getFecha() != null
                 ? produccion.getFecha().format(DATE_FORMAT) : "", normal, bold)
@@ -153,15 +153,20 @@ public class ProduccionTerminadaPdfService {
         }
 
         double cantidad = value(produccion.getCantidadTerminada());
-        double costo = producto != null ? value(producto.getPrice()) : 0d;
-        double importe = cantidad * costo;
-        String unidad = producto != null && producto.getUnidadMedida() != null
-                ? producto.getUnidadMedida().name() : "";
-        String codigo = firstNotBlank(produccion.getProductoCode(), producto != null ? producto.getCode() : null);
-        String nombre = firstNotBlank(produccion.getProductoName(), producto != null ? producto.getName() : null);
-        String saldo = almacenProducto != null && almacenProducto.getStock() != null
-                ? quantity(almacenProducto.getStock()) : "--";
-        String[] values = {codigo, nombre, unidad, quantity(cantidad), quantity(cantidad), money(costo), money(importe), saldo};
+        Double costo = produccion.getCostoUnitario();
+        Double importe = produccion.getImporte();
+        String unidad = firstNotBlank(produccion.getUnidadMedidaSnapshot(),
+                producto != null && producto.getUnidadMedida() != null ? producto.getUnidadMedida().name() : null);
+        String codigo = firstNotBlank(produccion.getProductoCodigoSnapshot(),
+                firstNotBlank(produccion.getProductoCode(), producto != null ? producto.getCode() : null));
+        String nombre = firstNotBlank(produccion.getProductoNombreSnapshot(),
+                firstNotBlank(produccion.getProductoName(), producto != null ? producto.getName() : null));
+        // Solo se muestra un saldo congelado. Consultar el saldo actual del
+        // almacén convertiría un comprobante histórico en una cifra falsa.
+        String saldo = produccion.getSaldoPosterior() == null ? "No registrado" : quantity(produccion.getSaldoPosterior());
+        String costoTexto = costo == null ? "No registrado" : money(costo);
+        String importeTexto = importe == null ? "No registrado" : money(importe);
+        String[] values = {codigo, nombre, unidad, quantity(cantidad), quantity(cantidad), costoTexto, importeTexto, saldo};
         for (int index = 0; index < values.length; index++) {
             TextAlignment alignment = index == 1 ? TextAlignment.LEFT : TextAlignment.CENTER;
             if (index == 5 || index == 6 || index == 7) alignment = TextAlignment.RIGHT;
@@ -173,18 +178,20 @@ public class ProduccionTerminadaPdfService {
         total.add(new Paragraph("TOTAL").setFont(bold).setFontSize(8).setTextAlignment(TextAlignment.RIGHT));
         table.addCell(total);
         table.addCell(borderedCell().setPadding(4)
-                .add(new Paragraph(money(importe)).setFont(bold).setFontSize(8).setTextAlignment(TextAlignment.RIGHT)));
+                .add(new Paragraph(importeTexto).setFont(bold).setFontSize(8).setTextAlignment(TextAlignment.RIGHT)));
         table.addCell(borderedCell().setPadding(4)
                 .add(new Paragraph(saldo).setFont(bold).setFontSize(8).setTextAlignment(TextAlignment.RIGHT)));
         return table;
     }
 
     private Table observaciones(ProduccionTerminadaDto produccion, PdfFont normal, PdfFont bold) {
-        Table table = new Table(UnitValue.createPercentArray(new float[]{50, 50}))
+        Table table = new Table(UnitValue.createPercentArray(new float[]{34, 33, 33}))
                 .setWidth(UnitValue.createPercentValue(100)).setMarginBottom(12);
-        String referencia = firstNotBlank(produccion.getObservaciones(), "Producción " + consecutivo(produccion.getId()));
+        String referencia = firstNotBlank(produccion.getLote(), "No registrado");
         table.addCell(borderedCell().setPadding(5)
                 .add(infoLine("Orden/lote (referencia):", referencia, normal, bold)));
+        table.addCell(borderedCell().setPadding(5)
+                .add(infoLine("Centro de costo:", firstNotBlank(produccion.getCentroCosto(), "No registrado"), normal, bold)));
         table.addCell(borderedCell().setPadding(5)
                 .add(infoLine("Observaciones:", safe(produccion.getObservaciones()), normal, bold)));
         return table;
@@ -226,15 +233,21 @@ public class ProduccionTerminadaPdfService {
         return code.isBlank() ? name : (name.isBlank() ? code : code + " - " + name);
     }
 
-    private String almacen(AlmacenFincaProductoDto almacenProducto) {
+    private String almacen(ProduccionTerminadaDto produccion, AlmacenFincaProductoDto almacenProducto) {
+        String nombreSnapshot = safe(produccion.getAlmacenNombreSnapshot());
+        String inventarioSnapshot = safe(produccion.getAlmacenInventarioSnapshot());
+        if (!nombreSnapshot.isBlank() || !inventarioSnapshot.isBlank()) {
+            return nombreSnapshot.isBlank() ? inventarioSnapshot
+                    : (inventarioSnapshot.isBlank() ? nombreSnapshot : nombreSnapshot + " (" + inventarioSnapshot + ")");
+        }
         if (almacenProducto == null) return "Sin almacén asociado";
         String nombre = safe(almacenProducto.getAlmacenNombre());
         String inventario = safe(almacenProducto.getAlmacenInventario());
         return nombre.isBlank() ? inventario : (inventario.isBlank() ? nombre : nombre + " (" + inventario + ")");
     }
 
-    private String consecutivo(UUID id) {
-        return id == null ? "SIN-CONSECUTIVO" : id.toString().substring(0, 8).toUpperCase(Locale.ROOT);
+    private String consecutivo(ProduccionTerminadaDto produccion) {
+        return firstNotBlank(produccion.getNumeroDocumento(), "SIN-NÚMERO HISTÓRICO");
     }
 
     private String quantity(double value) {

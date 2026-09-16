@@ -26,6 +26,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,9 +57,8 @@ public class ProduccionTerminadaController {
     @PostMapping
     public ResponseEntity<CreateProduccionTerminadaMessage> create(
             @RequestBody CreateProduccionTerminadaRequest request) {
-        CreateProduccionTerminadaCommand command = CreateProduccionTerminadaCommand.fromRequest(request);
-        CreateProduccionTerminadaMessage response = mediator.send(command);
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+        throw new ResponseStatusException(HttpStatus.CONFLICT,
+                "La producción terminada debe registrarse desde la entrada del almacén receptor.");
     }
 
     @PutMapping("/{id}")

@@ -39,10 +39,16 @@ import com.kynsoft.report.applications.query.responseObject.AlmacenResponse;
 import com.kynsoft.report.domain.dto.AlmacenFincaProductoDto;
 import com.kynsoft.report.domain.services.IAlmacenFincaProductoService;
 import com.kynsoft.report.domain.services.IAlmacenService;
+import com.kynsoft.share.core.domain.exception.BusinessNotFoundException;
+import com.kynsoft.share.core.domain.exception.DomainErrorMessage;
+import com.kynsoft.share.core.domain.exception.GlobalBusinessException;
+import com.kynsoft.share.core.domain.response.ErrorField;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -178,7 +184,7 @@ public class AlmacenController {
     @PostMapping("/{almacenId}/entrada")
     public ResponseEntity<?> entradaStock(@PathVariable UUID almacenId,
                                            @RequestBody EntradaAlmacenRequest request) {
-        request.setAlmacenFincaProductoId(request.getAlmacenFincaProductoId());
+        validarProductoPerteneceAlmacen(almacenId, request.getAlmacenFincaProductoId());
         EntradaAlmacenCommand command = EntradaAlmacenCommand.fromRequest(request);
         EntradaAlmacenMessage response = mediator.send(command);
         return ResponseEntity.ok(response);
@@ -203,10 +209,8 @@ public class AlmacenController {
     @PostMapping("/{almacenId}/salida")
     public ResponseEntity<?> salidaStock(@PathVariable UUID almacenId,
                                           @RequestBody SalidaAlmacenRequest request) {
-        request.setAlmacenFincaProductoId(request.getAlmacenFincaProductoId());
-        SalidaAlmacenCommand command = SalidaAlmacenCommand.fromRequest(request);
-        SalidaAlmacenMessage response = mediator.send(command);
-        return ResponseEntity.ok(response);
+        throw new ResponseStatusException(HttpStatus.CONFLICT,
+                "Toda salida debe generar un vale o factura; use salida-multiple incluso para un solo producto.");
     }
 
     @PostMapping("/{almacenId}/salida-multiple")
@@ -223,7 +227,7 @@ public class AlmacenController {
     @PostMapping("/{almacenId}/transferir")
     public ResponseEntity<?> transferirStock(@PathVariable UUID almacenId,
                                               @RequestBody TransferenciaAlmacenRequest request) {
-        request.setAlmacenFincaProductoId(request.getAlmacenFincaProductoId());
+        validarProductoPerteneceAlmacen(almacenId, request.getAlmacenFincaProductoId());
         TransferenciaAlmacenCommand command = TransferenciaAlmacenCommand.fromRequest(request);
         TransferenciaAlmacenMessage response = mediator.send(command);
         return ResponseEntity.ok(response);
@@ -277,5 +281,24 @@ public class AlmacenController {
     @lombok.AllArgsConstructor
     public static class AsignarProductoResponse {
         private UUID id;
+    }
+
+    /**
+     * Evita que el identificador de un producto de otro almacén sea usado con
+     * una URL diferente. Además de ser una validación de seguridad, preserva
+     * la trazabilidad física exigida para los movimientos de inventario.
+     */
+    private void validarProductoPerteneceAlmacen(UUID almacenId, UUID almacenFincaProductoId) {
+        if (almacenFincaProductoId == null) {
+            throw new BusinessNotFoundException(new GlobalBusinessException(
+                    DomainErrorMessage.BUSINESS_NOT_FOUND,
+                    new ErrorField("almacenFincaProductoId", "Debe indicar el producto del almacén.")));
+        }
+        AlmacenFincaProductoDto productoAlmacen = almacenFincaProductoService.findById(almacenFincaProductoId);
+        if (!almacenId.equals(productoAlmacen.getAlmacenId())) {
+            throw new BusinessNotFoundException(new GlobalBusinessException(
+                    DomainErrorMessage.BUSINESS_NOT_FOUND,
+                    new ErrorField("almacenFincaProductoId", "El producto no pertenece al almacén indicado en la operación.")));
+        }
     }
 }

@@ -30,6 +30,14 @@ public class ProduccionTerminadaResponse implements IResponse {
     private UUID trabajadorRecibeId;
     private String trabajadorRecibeNombre;
     private String observaciones;
+    private String numeroDocumento;
+    private String almacenNombre;
+    private String almacenInventario;
+    private Double costoUnitario;
+    private Double importe;
+    private Double saldoPosterior;
+    private String lote;
+    private String centroCosto;
     private Boolean activo;
 
     public ProduccionTerminadaResponse(ProduccionTerminadaDto dto) {
@@ -48,6 +56,14 @@ public class ProduccionTerminadaResponse implements IResponse {
         this.trabajadorRecibeId = dto.getTrabajadorRecibeId();
         this.trabajadorRecibeNombre = dto.getTrabajadorRecibeNombre();
         this.observaciones = dto.getObservaciones();
+        this.numeroDocumento = dto.getNumeroDocumento();
+        this.almacenNombre = dto.getAlmacenNombreSnapshot();
+        this.almacenInventario = dto.getAlmacenInventarioSnapshot();
+        this.costoUnitario = dto.getCostoUnitario();
+        this.importe = dto.getImporte();
+        this.saldoPosterior = dto.getSaldoPosterior();
+        this.lote = dto.getLote();
+        this.centroCosto = dto.getCentroCosto();
         this.activo = dto.getActivo();
     }
 }

@@ -16,17 +16,19 @@ public class EntradaAlmacenCommand implements ICommand {
     private TipoMovimientoStock tipo;
     private String descripcion;
     private String numeroFactura;
+    private String numeroConduce;
     private String centroCosto;
     private Double stockNuevo;
 
     public EntradaAlmacenCommand(UUID almacenFincaProductoId, Double cantidad,
                                   TipoMovimientoStock tipo, String descripcion,
-                                  String numeroFactura, String centroCosto) {
+                                  String numeroFactura, String numeroConduce, String centroCosto) {
         this.almacenFincaProductoId = almacenFincaProductoId;
         this.cantidad = cantidad;
         this.tipo = tipo;
         this.descripcion = descripcion;
         this.numeroFactura = numeroFactura;
+        this.numeroConduce = numeroConduce;
         this.centroCosto = centroCosto;
     }
 
@@ -37,6 +39,7 @@ public class EntradaAlmacenCommand implements ICommand {
                 request.getTipo(),
                 request.getDescripcion(),
                 request.getNumeroFactura(),
+                request.getNumeroConduce(),
                 request.getCentroCosto()
         );
     }

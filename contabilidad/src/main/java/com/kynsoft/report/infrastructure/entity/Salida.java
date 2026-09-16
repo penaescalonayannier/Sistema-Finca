@@ -48,6 +48,10 @@ public class Salida {
     @Column(name = "numero", nullable = false)
     private String numero;
 
+    /** Finca congelada para proteger la unicidad del consecutivo por finca. */
+    @Column(name = "finca_id", nullable = false)
+    private UUID fincaId;
+
     @Column(name = "finca_producto_id", nullable = false)
     private UUID fincaProductoId;
 
@@ -83,6 +87,7 @@ public class Salida {
         this.tipo = dto.getTipo();
         this.destino = dto.getDestino();
         this.numero = dto.getNumero();
+        this.fincaId = dto.getFincaId();
         this.fincaProductoId = dto.getFincaProductoId();
         this.fecha = dto.getFecha() != null ? dto.getFecha() : LocalDateTime.now();
         this.observaciones = dto.getObservaciones();
@@ -95,6 +100,7 @@ public class Salida {
                 .tipo(tipo)
                 .destino(destino)
                 .numero(numero)
+                .fincaId(fincaId)
                 .fincaProductoId(fincaProductoId)
                 .fincaCode(fincaProducto != null && fincaProducto.getFinca() != null ? fincaProducto.getFinca().getCode() : null)
                 .fincaName(fincaProducto != null && fincaProducto.getFinca() != null ? fincaProducto.getFinca().getName() : null)

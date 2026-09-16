@@ -16,10 +16,12 @@ import com.kynsoft.report.domain.dto.SalidaDto;
 import com.kynsoft.report.domain.dto.TipoMovimiento;
 import com.kynsoft.report.domain.dto.TipoMovimientoStock;
 import com.kynsoft.report.domain.dto.TipoSalida;
+import com.kynsoft.report.domain.dto.TrabajadorDto;
 import com.kynsoft.report.domain.services.IDeudaTrabajadorDetalleService;
 import com.kynsoft.report.domain.services.IDeudaTrabajadorService;
 import com.kynsoft.report.domain.services.IMovimientoStockService;
 import com.kynsoft.report.domain.services.INumeracionService;
+import com.kynsoft.report.domain.services.ITrabajadorService;
 import com.kynsoft.report.domain.dto.TipoDocumento;
 
 import java.time.LocalDate;
@@ -68,6 +70,7 @@ public class SalidaServiceImpl implements ISalidaService {
     private final IDeudaTrabajadorDetalleService deudaDetalleService;
     private final IMovimientoStockService movimientoStockService;
     private final INumeracionService numeracionService;
+    private final ITrabajadorService trabajadorService;
 
     public SalidaServiceImpl(
             SalidaWriteDataJPARepository repositoryCommand,
@@ -81,7 +84,8 @@ public class SalidaServiceImpl implements ISalidaService {
             IDeudaTrabajadorService deudaTrabajadorService,
             IDeudaTrabajadorDetalleService deudaDetalleService,
             IMovimientoStockService movimientoStockService,
-            INumeracionService numeracionService) {
+            INumeracionService numeracionService,
+            ITrabajadorService trabajadorService) {
         this.repositoryCommand = repositoryCommand;
         this.repositoryQuery = repositoryQuery;
         this.itemRepositoryCommand = itemRepositoryCommand;
@@ -94,6 +98,7 @@ public class SalidaServiceImpl implements ISalidaService {
         this.deudaDetalleService = deudaDetalleService;
         this.movimientoStockService = movimientoStockService;
         this.numeracionService = numeracionService;
+        this.trabajadorService = trabajadorService;
     }
 
     @Override
@@ -104,6 +109,7 @@ public class SalidaServiceImpl implements ISalidaService {
         if (dto.getId() == null) {
             dto.setId(UUID.randomUUID());
         }
+        validarItemsDeSalida(dto, items);
 
         // Validar que existe el FincaProducto (con producto cargado para obtener precios)
         FincaProducto fincaProducto = fincaProductoReadRepository.findByIdWithDetails(dto.getFincaProductoId())
@@ -135,6 +141,7 @@ public class SalidaServiceImpl implements ISalidaService {
 
         // Crear la salida
         Salida salida = new Salida(dto);
+        salida.setFincaId(fincaId);
         repositoryCommand.save(salida);
 
         // Obtener el precio según el destino
@@ -217,7 +224,7 @@ public class SalidaServiceImpl implements ISalidaService {
                 fincaProducto.getFinca().getId(),
                 fincaProducto.getProducto().getId(),
                 tipoMovimiento,
-                -cantidadTotal,
+                cantidadTotal,
                 stockAnterior,
                 stockNuevo,
                 salida.getId(),
@@ -270,9 +277,13 @@ public class SalidaServiceImpl implements ISalidaService {
                     if (!trabajadoresProducto.add(comprador.getTrabajadorId())) {
                         throw validationError("trabajadorId", "No puede repetir un trabajador para el mismo producto.");
                     }
+                    TrabajadorDto trabajador = trabajadorService.findById(comprador.getTrabajadorId());
+                    if (!afpPerteneceAFinca(almacenId, linea.getAlmacenFincaProductoId(), trabajador.getFincaId())) {
+                        throw validationError("trabajadorId", "El trabajador receptor no pertenece a la finca del almacén.");
+                    }
                     cantidadAsignada += comprador.getCantidad();
                 }
-                if (Double.compare(cantidadAsignada, linea.getCantidad()) != 0) {
+                if (Math.abs(cantidadAsignada - linea.getCantidad()) > 0.000001d) {
                     throw validationError("cantidad", "La cantidad asignada a los trabajadores debe coincidir con la cantidad del producto.");
                 }
             }
@@ -311,6 +322,7 @@ public class SalidaServiceImpl implements ISalidaService {
                 // Se conserva para compatibilidad con vales históricos y filtros por finca.
                 .fincaProductoId(productoReferencia.getId())
                 .numero(numeracionService.generarSiguienteNumero(productoReferencia.getFinca().getId(), TipoDocumento.fromTipoSalida(tipo)))
+                .fincaId(productoReferencia.getFinca().getId())
                 .observaciones(observaciones)
                 .build();
         Salida salida = new Salida(salidaDto);
@@ -380,7 +392,7 @@ public class SalidaServiceImpl implements ISalidaService {
             almacenFincaProductoWriteRepository.save(afp);
             movimientoStockService.registrarMovimiento(
                     fincaProducto.getId(), fincaProducto.getFinca().getId(), fincaProducto.getProducto().getId(),
-                    determinarTipoMovimientoSegunDestino(destino), -linea.getCantidad(), stockAnterior, stockNuevo,
+                    determinarTipoMovimientoSegunDestino(destino), linea.getCantidad(), stockAnterior, stockNuevo,
                     salida.getId(), "salida", "Salida " + salida.getNumero() + " - " + destino, almacenId);
         }
         return List.of(salida.getId());
@@ -389,6 +401,48 @@ public class SalidaServiceImpl implements ISalidaService {
     private BusinessNotFoundException validationError(String field, String message) {
         return new BusinessNotFoundException(new GlobalBusinessException(
                 DomainErrorMessage.BUSINESS_NOT_FOUND, new ErrorField(field, message)));
+    }
+
+    private void validarItemsDeSalida(SalidaDto dto, List<ItemSalidaDto> items) {
+        if (dto == null || dto.getDestino() == null) {
+            throw validationError("destino", "Debe indicar el destino de la salida.");
+        }
+        if (dto.getFincaProductoId() == null) {
+            throw validationError("fincaProductoId", "Debe indicar el producto de finca.");
+        }
+        if (dto.getAlmacenFincaProductoId() == null) {
+            throw validationError("almacenFincaProductoId", "Toda salida física debe indicar el almacén de origen.");
+        }
+        if (items == null || items.isEmpty()) {
+            throw validationError("items", "La salida debe incluir al menos un producto o destinatario.");
+        }
+        Set<UUID> trabajadores = new HashSet<>();
+        for (ItemSalidaDto item : items) {
+            if (item == null || item.getCantidad() == null || item.getCantidad() <= 0) {
+                throw validationError("cantidad", "Cada cantidad de salida debe ser mayor que cero.");
+            }
+            if (dto.getDestino() == DestinoSalida.TRABAJADORES) {
+                if (item.getTrabajadorId() == null) {
+                    throw validationError("trabajadorId", "Debe indicar el trabajador receptor.");
+                }
+                if (!trabajadores.add(item.getTrabajadorId())) {
+                    throw validationError("trabajadorId", "No puede repetir un trabajador en la misma salida de producto.");
+                }
+                TrabajadorDto trabajador = trabajadorService.findById(item.getTrabajadorId());
+                FincaProducto fincaProducto = fincaProductoReadRepository.findByIdWithDetails(dto.getFincaProductoId())
+                        .orElseThrow(() -> validationError("fincaProductoId", "No se encontró el producto de finca."));
+                if (!fincaProducto.getFinca().getId().equals(trabajador.getFincaId())) {
+                    throw validationError("trabajadorId", "El trabajador receptor no pertenece a la finca del producto.");
+                }
+            }
+        }
+    }
+
+    private boolean afpPerteneceAFinca(UUID almacenId, UUID almacenFincaProductoId, UUID fincaId) {
+        return almacenFincaProductoReadRepository.findById(almacenFincaProductoId)
+                .map(afp -> almacenId.equals(afp.getAlmacen().getId())
+                        && fincaId.equals(afp.getAlmacen().getFinca().getId()))
+                .orElse(false);
     }
 
     @Override
@@ -504,7 +558,7 @@ public class SalidaServiceImpl implements ISalidaService {
                     fincaProducto.getFinca().getId(),
                     fincaProducto.getProducto().getId(),
                     tipoMov,
-                    diferencia,
+                    Math.abs(diferencia),
                     stockAnterior,
                     stockNuevo,
                     salida.getId(),

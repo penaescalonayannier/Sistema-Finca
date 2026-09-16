@@ -23,6 +23,9 @@ public class UpdateProduccionTerminadaCommandHandler implements ICommandHandler<
                 .trabajadorEntregaId(command.getTrabajadorEntregaId())
                 .trabajadorRecibeId(command.getTrabajadorRecibeId())
                 .observaciones(command.getObservaciones())
+                .costoUnitario(command.getCostoUnitario())
+                .lote(command.getLote())
+                .centroCosto(command.getCentroCosto())
                 .build();
 
         // El servicio maneja todas las validaciones y ajuste de stock

@@ -31,6 +31,19 @@ public class ProduccionTerminadaDto {
     private String observaciones;
     private Boolean activo;
 
+    /** Datos congelados del SC-2-06, independientes del catálogo actual. */
+    private String numeroDocumento;
+    private String productoCodigoSnapshot;
+    private String productoNombreSnapshot;
+    private String unidadMedidaSnapshot;
+    private String almacenNombreSnapshot;
+    private String almacenInventarioSnapshot;
+    private Double costoUnitario;
+    private Double importe;
+    private Double saldoPosterior;
+    private String lote;
+    private String centroCosto;
+
     /** Almacén que recibió físicamente la producción, cuando fue registrada desde una entrada. */
     private UUID almacenFincaProductoId;
 

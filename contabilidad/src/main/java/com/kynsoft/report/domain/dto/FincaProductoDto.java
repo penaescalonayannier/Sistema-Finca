@@ -29,6 +29,7 @@ public class FincaProductoDto {
     private String productoCode;
     private String productoName;
     private Double productoPrice;
+    private UnidadMedida unidadMedida;
     private TipoProducto productoTipo;
     private Boolean activo;
 

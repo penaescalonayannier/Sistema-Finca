@@ -60,6 +60,16 @@ public class FincaProductoServiceImpl implements IFincaProductoService {
 
     @Override
     public UUID asignarProductoAFinca(UUID fincaId, UUID productoId, Double stock, Double stockMinimo) {
+        if (stock == null || stock < 0) {
+            throw new BusinessNotFoundException(new GlobalBusinessException(
+                    DomainErrorMessage.BUSINESS_NOT_FOUND,
+                    new ErrorField("stock", "El stock inicial no puede ser negativo.")));
+        }
+        if (stockMinimo != null && stockMinimo < 0) {
+            throw new BusinessNotFoundException(new GlobalBusinessException(
+                    DomainErrorMessage.BUSINESS_NOT_FOUND,
+                    new ErrorField("stockMinimo", "El stock mínimo no puede ser negativo.")));
+        }
         // Validar que la finca exista
         Finca finca = fincaRepository.findById(fincaId)
                 .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
@@ -157,6 +167,11 @@ public class FincaProductoServiceImpl implements IFincaProductoService {
 
     @Override
     public void actualizarStock(UUID fincaId, UUID productoId, Double stock) {
+        if (stock == null || stock < 0) {
+            throw new BusinessNotFoundException(new GlobalBusinessException(
+                    DomainErrorMessage.BUSINESS_NOT_FOUND,
+                    new ErrorField("stock", "El stock no puede ser negativo.")));
+        }
         FincaProducto fincaProducto = repositoryQuery.findByFincaIdAndProductoId(fincaId, productoId)
                 .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
                 DomainErrorMessage.BUSINESS_NOT_FOUND,
@@ -174,7 +189,7 @@ public class FincaProductoServiceImpl implements IFincaProductoService {
                 fincaId,
                 productoId,
                 TipoMovimientoStock.AJUSTE_MANUAL,
-                diferencia,
+                Math.abs(diferencia),
                 stockAnterior,
                 stock,
                 null,
@@ -474,7 +489,7 @@ public class FincaProductoServiceImpl implements IFincaProductoService {
                 fincaId,
                 productoId,
                 tipo,
-                -cantidad,
+                cantidad,
                 stockAnterior,
                 nuevoStock,
                 referenciaId,
@@ -493,6 +508,7 @@ public class FincaProductoServiceImpl implements IFincaProductoService {
                 .productoCode(fp.getProducto().getCode())
                 .productoName(fp.getProducto().getName())
                 .productoPrice(fp.getProducto().getPrice())
+                .unidadMedida(fp.getProducto().getUnidadMedida())
                 .productoTipo(fp.getProducto().getTipoProducto())
                 .stock(fp.getStock())
                 .stockMinimo(fp.getStockMinimo())

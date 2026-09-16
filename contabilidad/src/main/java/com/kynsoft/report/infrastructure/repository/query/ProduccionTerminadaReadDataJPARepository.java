@@ -53,4 +53,10 @@ public interface ProduccionTerminadaReadDataJPARepository
     List<ProduccionTerminada> findByFechaBetween(LocalDateTime fechaInicio, LocalDateTime fechaFin);
     List<ProduccionTerminada> findByTrabajadorEntregaId(UUID trabajadorId);
     List<ProduccionTerminada> findByTrabajadorRecibeId(UUID trabajadorId);
+
+    @Query("SELECT pt.numeroDocumento FROM ProduccionTerminada pt WHERE pt.fincaId = :fincaId "
+            + "AND pt.fecha >= :inicio AND pt.fecha < :fin")
+    List<String> findNumerosDocumentoPorFincaYAnio(@Param("fincaId") UUID fincaId,
+                                                     @Param("inicio") LocalDateTime inicio,
+                                                     @Param("fin") LocalDateTime fin);
 }

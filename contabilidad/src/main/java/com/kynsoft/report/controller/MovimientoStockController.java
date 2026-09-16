@@ -135,11 +135,11 @@ public class MovimientoStockController {
 
         double totalEntradas = movimientos.stream()
                 .filter(m -> m.getTipo().isEntrada())
-                .mapToDouble(MovimientoStockDto::getCantidad)
+                .mapToDouble(m -> Math.abs(m.getCantidad() == null ? 0.0 : m.getCantidad()))
                 .sum();
         double totalSalidas = movimientos.stream()
                 .filter(m -> m.getTipo().isSalida())
-                .mapToDouble(MovimientoStockDto::getCantidad)
+                .mapToDouble(m -> Math.abs(m.getCantidad() == null ? 0.0 : m.getCantidad()))
                 .sum();
 
         Map<String, Object> response = new HashMap<>();

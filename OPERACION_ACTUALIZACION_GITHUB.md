@@ -131,6 +131,19 @@ Las migraciones `V23__caja_oficial_control.sql`, `V24__control_banco_y_documento
 
 Como control operativo, el efectivo por depositar debe entregarse al banco a más tardar el siguiente día hábil bancario; los arqueos sorpresivos se realizan al menos una vez al mes y los expedientes de diferencias se mantienen visibles hasta su resolución.
 
+### Entradas, salidas y consecutivos de almacén (V26 y V27)
+
+La gestión física de inventario se centraliza en **Almacenes**. La aplicación ya no permite crear producción, factura, conduce, ajuste o salida física desde una relación general Finca–Producto: se debe seleccionar el almacén realmente afectado, para conservar existencia, responsable y documento origen.
+
+- Una entrada por **Producción** crea de forma atómica la Producción Terminada (modelo SC-2-06) y su movimiento. El documento conserva su consecutivo `PT-AÑO-#####`, lote, centro de costo, costo, importe, producto, almacén y saldo al momento de emitirlo. Al reimprimir nunca consulta el precio ni el saldo actuales.
+- Una entrada por **Factura** o **Conduce** exige el número fuente. Las entradas genéricas no aceptan producción.
+- Toda salida se registra como salida documental múltiple, aun cuando tenga un solo producto; así genera un vale o factura y no existe una salida física sin documento.
+- La secuencia de vales, facturas y producciones se asigna por finca, tipo y año bajo bloqueo transaccional. V27 materializa la finca en las salidas y garantiza la unicidad de su número en PostgreSQL. Si una instalación histórica contiene duplicados, la migración preserva el primero y marca los demás con `-HIST-DUP-n`; no elimina documentos.
+
+Las migraciones `V26__documento_produccion_snapshot.sql` y `V27__salida_finca_consecutivo_unico.sql` se aplican automáticamente. Después de actualizar una PC, realice una entrada de producción de prueba desde un almacén, descargue su SC-2-06, y compruebe que el consecutivo y saldo impresos siguen iguales después de otro movimiento. Luego registre una salida simple mediante la salida múltiple y valide que se emite un vale/factura consecutivo.
+
+En **Finanzas → Consecutivos documentales** se consulta el registro oficial de Facturas, Vales y Producciones Terminadas por finca y año. Muestra prefijo, último número emitido, próximo número, cantidad de documentos e integridad de la secuencia. Es una consulta de auditoría: no existen opciones para editar, reiniciar o reutilizar consecutivos. Un estado de advertencia debe revisarse antes de emitir nuevos documentos.
+
 ## Estado registrado el 2026-09-16
 
 | PC | Estado | Observaciones |

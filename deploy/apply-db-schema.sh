@@ -58,3 +58,7 @@ PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
     -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V24__control_banco_y_documentos_caja.sql"
 PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
     -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V25__documento_caja_movimiento_efectivo.sql"
+PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
+    -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V26__documento_produccion_snapshot.sql"
+PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
+    -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V27__salida_finca_consecutivo_unico.sql"

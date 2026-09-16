@@ -41,6 +41,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/finca-producto")
@@ -66,17 +67,14 @@ public class FincaProductoController {
     @PutMapping("/stock")
     public ResponseEntity<ActualizarStockFincaProductoMessage> actualizarStock(
             @RequestBody ActualizarStockFincaProductoRequest request) {
-        ActualizarStockFincaProductoCommand command = ActualizarStockFincaProductoCommand.fromRequest(request);
-        ActualizarStockFincaProductoMessage response = mediator.send(command);
-        return ResponseEntity.ok(response);
+        throw movimientoFisicoDebeIndicarAlmacen();
     }
 
     @PostMapping("/entrada-produccion")
     public ResponseEntity<EntradaProduccionMessage> entradaProduccion(
             @RequestBody EntradaProduccionRequest request) {
-        EntradaProduccionCommand command = EntradaProduccionCommand.fromRequest(request);
-        EntradaProduccionMessage response = mediator.send(command);
-        return ResponseEntity.ok(response);
+        throw new ResponseStatusException(HttpStatus.CONFLICT,
+                "La producción debe registrarse como Producción Terminada desde el almacén receptor.");
     }
 
     @DeleteMapping("/remover")
@@ -121,27 +119,21 @@ public class FincaProductoController {
     public ResponseEntity<EntradaFacturaMessage> entradaFactura(
             @PathVariable UUID id,
             @RequestBody EntradaFacturaRequest request) {
-        EntradaFacturaCommand command = EntradaFacturaCommand.fromRequest(id, request);
-        EntradaFacturaMessage response = mediator.send(command);
-        return ResponseEntity.ok(response);
+        throw movimientoFisicoDebeIndicarAlmacen();
     }
 
     @PostMapping("/{id}/entrada-conduce")
     public ResponseEntity<EntradaConduceMessage> entradaConduce(
             @PathVariable UUID id,
             @RequestBody EntradaConduceRequest request) {
-        EntradaConduceCommand command = EntradaConduceCommand.fromRequest(id, request);
-        EntradaConduceMessage response = mediator.send(command);
-        return ResponseEntity.ok(response);
+        throw movimientoFisicoDebeIndicarAlmacen();
     }
 
     @PostMapping("/{id}/ajuste")
     public ResponseEntity<AjusteStockMessage> ajusteStock(
             @PathVariable UUID id,
             @RequestBody AjusteStockRequest request) {
-        AjusteStockCommand command = AjusteStockCommand.fromRequest(id, request);
-        AjusteStockMessage response = mediator.send(command);
-        return ResponseEntity.ok(response);
+        throw movimientoFisicoDebeIndicarAlmacen();
     }
 
     @GetMapping("/alertas")
@@ -171,5 +163,11 @@ public class FincaProductoController {
         FincaProductoDto dto = fincaProductoService.actualizarStockMinMax(id, stockMinimo, stockMaximo);
         FincaProductoResponse response = new FincaProductoResponse(dto);
         return ResponseEntity.ok(response);
+    }
+
+    private ResponseStatusException movimientoFisicoDebeIndicarAlmacen() {
+        return new ResponseStatusException(HttpStatus.CONFLICT,
+                "El movimiento físico debe registrarse desde el almacén afectado; use /api/almacen/{almacenId}."
+        );
     }
 }
