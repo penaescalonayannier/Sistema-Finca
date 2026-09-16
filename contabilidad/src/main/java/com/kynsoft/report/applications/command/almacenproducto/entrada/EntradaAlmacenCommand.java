@@ -12,14 +12,14 @@ import java.util.UUID;
 @Setter
 public class EntradaAlmacenCommand implements ICommand {
     private UUID almacenFincaProductoId;
-    private Integer cantidad;
+    private Double cantidad;
     private TipoMovimientoStock tipo;
     private String descripcion;
     private String numeroFactura;
     private String centroCosto;
     private Double stockNuevo;
 
-    public EntradaAlmacenCommand(UUID almacenFincaProductoId, Integer cantidad,
+    public EntradaAlmacenCommand(UUID almacenFincaProductoId, Double cantidad,
                                   TipoMovimientoStock tipo, String descripcion,
                                   String numeroFactura, String centroCosto) {
         this.almacenFincaProductoId = almacenFincaProductoId;

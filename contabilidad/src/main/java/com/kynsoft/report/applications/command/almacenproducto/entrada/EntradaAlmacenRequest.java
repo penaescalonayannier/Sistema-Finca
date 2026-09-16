@@ -14,7 +14,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class EntradaAlmacenRequest {
     private UUID almacenFincaProductoId;
-    private Integer cantidad;
+    private Double cantidad;
     private TipoMovimientoStock tipo;
     private String descripcion;
     private String numeroFactura;

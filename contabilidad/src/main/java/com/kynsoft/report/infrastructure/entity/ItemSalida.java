@@ -52,13 +52,17 @@ public class ItemSalida {
     private Trabajador trabajador;
 
     @Column(name = "cantidad", nullable = false)
-    private Integer cantidad;
+    private Double cantidad;
 
     @Column(name = "precio", nullable = false)
     private Double precio;
 
     @Column(name = "pagado")
     private Boolean pagado;
+
+    public void setCantidad(Number cantidad) {
+        this.cantidad = cantidad != null ? cantidad.doubleValue() : null;
+    }
 
     public ItemSalida(ItemSalidaDto dto) {
         this.id = dto.getId();

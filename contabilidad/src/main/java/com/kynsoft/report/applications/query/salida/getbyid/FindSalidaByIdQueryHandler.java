@@ -55,7 +55,7 @@ public class FindSalidaByIdQueryHandler implements IQueryHandler<FindSalidaByIdQ
                 dto.getStockActual(),
                 dto.getFecha(),
                 dto.getObservaciones(),
-                dto.getCantidadTotal(),
+                dto.getCantidadTotal() != null ? dto.getCantidadTotal().doubleValue() : 0.0,
                 items
         );
     }

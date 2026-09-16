@@ -102,7 +102,7 @@ public class FacturaPdfService {
                 String key = String.join("|", valor(codigo), valor(nombre), valor(unidad));
                 ResumenProducto resumen = productos.computeIfAbsent(key,
                         ignored -> new ResumenProducto(codigo, nombre, unidad));
-                int cantidad = item.getCantidad() != null ? item.getCantidad() : 0;
+                double cantidad = item.getCantidad() != null ? item.getCantidad() : 0;
                 double precio = item.getPrecio() != null ? item.getPrecio() : 0d;
                 resumen.cantidad += cantidad;
                 resumen.importe += cantidad * precio;
@@ -170,7 +170,7 @@ public class FacturaPdfService {
             for (ItemSalidaDto item : salida.getItems()) {
                 Color fondo = alternar ? LIGHT_GRAY : ColorConstants.WHITE;
                 alternar = !alternar;
-                int cantidad = item.getCantidad() != null ? item.getCantidad() : 0;
+                double cantidad = item.getCantidad() != null ? item.getCantidad() : 0;
                 double importe = cantidad * (item.getPrecio() != null ? item.getPrecio() : 0d);
                 detalleTable.addCell(crearCeldaTabla(String.valueOf(consecutivo++), fontNormal, TextAlignment.CENTER, fondo));
                 if (esDestinoTrabajadores) {
@@ -361,7 +361,7 @@ public class FacturaPdfService {
         // Fila del producto
         List<ItemSalidaDto> items = salida.getItems();
         double totalGeneral = 0.0;
-        int totalCantidad = 0;
+        double totalCantidad = 0.0;
 
         if (items != null && !items.isEmpty()) {
             for (ItemSalidaDto item : items) {
@@ -374,7 +374,7 @@ public class FacturaPdfService {
         if (items != null && !items.isEmpty()) {
             int consecutivo = 1;
             for (ItemSalidaDto item : items) {
-                int cantidad = item.getCantidad() != null ? item.getCantidad() : 0;
+                double cantidad = item.getCantidad() != null ? item.getCantidad() : 0;
                 double precio = item.getPrecio() != null ? item.getPrecio() : 0.0;
                 itemsTable.addCell(crearCeldaTabla(String.valueOf(consecutivo++), fontNormal, TextAlignment.CENTER, ColorConstants.WHITE));
                 itemsTable.addCell(crearCeldaTabla(productoCode(salida, item), fontNormal, TextAlignment.CENTER, ColorConstants.WHITE));

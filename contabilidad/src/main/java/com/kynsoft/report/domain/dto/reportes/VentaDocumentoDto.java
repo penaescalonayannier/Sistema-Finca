@@ -15,6 +15,6 @@ public class VentaDocumentoDto {
     private String destino;
     private String fincaNombre;
     private String productoNombre;
-    private Integer cantidad;
+    private Double cantidad;
     private Double valorTotal;
 }

@@ -21,6 +21,6 @@ public class ItemSalidaResponse {
     private String unidadMedida;
     private UUID trabajadorId;
     private String trabajadorNombre;
-    private Integer cantidad;
+    private Double cantidad;
     private Double precio;
 }

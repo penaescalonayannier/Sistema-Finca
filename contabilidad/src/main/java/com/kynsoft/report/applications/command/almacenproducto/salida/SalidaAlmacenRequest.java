@@ -13,7 +13,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class SalidaAlmacenRequest {
     private UUID almacenFincaProductoId;
-    private Integer cantidad;
+    private Double cantidad;
     private String descripcion;
     private UUID trabajadorId;
     private String destino;

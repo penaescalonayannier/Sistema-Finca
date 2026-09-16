@@ -11,13 +11,13 @@ import java.util.UUID;
 @Setter
 public class SalidaAlmacenCommand implements ICommand {
     private UUID almacenFincaProductoId;
-    private Integer cantidad;
+    private Double cantidad;
     private String descripcion;
     private UUID trabajadorId;
     private String destino;
     private Double stockNuevo;
 
-    public SalidaAlmacenCommand(UUID almacenFincaProductoId, Integer cantidad,
+    public SalidaAlmacenCommand(UUID almacenFincaProductoId, Double cantidad,
                                  String descripcion, UUID trabajadorId, String destino) {
         this.almacenFincaProductoId = almacenFincaProductoId;
         this.cantidad = cantidad;

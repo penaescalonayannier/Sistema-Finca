@@ -101,7 +101,7 @@ public class Salida {
                 .stockActual(fincaProducto != null ? fincaProducto.getStock() : null)
                 .fecha(fecha)
                 .observaciones(observaciones)
-                .cantidadTotal(items != null ? items.stream().mapToInt(ItemSalida::getCantidad).sum() : 0)
+                .cantidadTotal(items != null ? items.stream().mapToDouble(ItemSalida::getCantidad).sum() : 0.0)
                 .activo(activo)
                 .build();
     }

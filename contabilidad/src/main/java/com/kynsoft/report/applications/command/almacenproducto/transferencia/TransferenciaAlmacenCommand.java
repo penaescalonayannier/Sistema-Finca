@@ -12,13 +12,13 @@ import java.util.UUID;
 public class TransferenciaAlmacenCommand implements ICommand {
     private UUID almacenFincaProductoId;
     private UUID destinoAlmacenId;
-    private Integer cantidad;
+    private Double cantidad;
     private String observaciones;
     private Double stockOrigenNuevo;
     private Double stockDestinoNuevo;
 
     public TransferenciaAlmacenCommand(UUID almacenFincaProductoId, UUID destinoAlmacenId,
-                                        Integer cantidad, String observaciones) {
+                                        Double cantidad, String observaciones) {
         this.almacenFincaProductoId = almacenFincaProductoId;
         this.destinoAlmacenId = destinoAlmacenId;
         this.cantidad = cantidad;

@@ -12,7 +12,7 @@ public class DetalleFacturacionDto {
     private String tipo;
     private String destino;
     private Integer documentos;
-    private Integer cantidad;
+    private Double cantidad;
     private Double valor;
     private Double porcentaje;
 }

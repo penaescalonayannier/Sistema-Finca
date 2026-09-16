@@ -11,7 +11,7 @@ import java.util.UUID;
 public class TransferenciaAlmacenMessage implements ICommandMessage {
     private UUID almacenOrigenId;
     private UUID almacenDestinoId;
-    private Integer cantidad;
+    private Double cantidad;
     private Double stockOrigenNuevo;
     private Double stockDestinoNuevo;
     private final String command = "TRANSFERENCIA_ALMACEN";

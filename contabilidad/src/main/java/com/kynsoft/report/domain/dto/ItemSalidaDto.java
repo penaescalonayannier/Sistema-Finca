@@ -23,7 +23,14 @@ public class ItemSalidaDto {
     private String unidadMedida;
     private UUID trabajadorId;
     private String trabajadorNombre;
-    private Integer cantidad;
+    private Double cantidad;
     private Double precio;
     private Boolean pagado;
+
+    public static class ItemSalidaDtoBuilder {
+        public ItemSalidaDtoBuilder cantidad(Number cantidad) {
+            this.cantidad = cantidad != null ? cantidad.doubleValue() : null;
+            return this;
+        }
+    }
 }

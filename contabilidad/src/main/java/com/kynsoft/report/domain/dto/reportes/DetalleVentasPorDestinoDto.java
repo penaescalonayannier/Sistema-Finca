@@ -10,7 +10,7 @@ import lombok.*;
 public class DetalleVentasPorDestinoDto {
     private String destino;
     private Integer cantidadSalidas;
-    private Integer cantidadItems;
+    private Double cantidadItems;
     private Double valor;
     private Double porcentaje;
 }

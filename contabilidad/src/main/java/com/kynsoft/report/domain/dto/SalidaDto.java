@@ -30,7 +30,7 @@ public class SalidaDto {
     private Double stockActual;
     private LocalDateTime fecha;
     private String observaciones;
-    private Integer cantidadTotal;
+    private Double cantidadTotal;
     private List<ItemSalidaDto> items;
     private Boolean activo;
 }

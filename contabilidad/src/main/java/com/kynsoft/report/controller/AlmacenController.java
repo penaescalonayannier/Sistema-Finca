@@ -165,8 +165,8 @@ public class AlmacenController {
     }
 
     @GetMapping("/{almacenId}/stock/total")
-    public ResponseEntity<Integer> getStockTotalAlmacen(@PathVariable UUID almacenId) {
-        Integer total = almacenFincaProductoService.getStockTotalAlmacen(almacenId);
+    public ResponseEntity<Double> getStockTotalAlmacen(@PathVariable UUID almacenId) {
+        Double total = almacenFincaProductoService.getStockTotalAlmacen(almacenId);
         return ResponseEntity.ok(total);
     }
 
@@ -251,9 +251,9 @@ public class AlmacenController {
     @lombok.AllArgsConstructor
     public static class AsignarProductoStockRequest {
         private UUID fincaProductoId;
-        private Integer stockInicial;
-        private Integer stockMinimo;
-        private Integer stockMaximo;
+        private Double stockInicial;
+        private Double stockMinimo;
+        private Double stockMaximo;
     }
 
     @lombok.Getter

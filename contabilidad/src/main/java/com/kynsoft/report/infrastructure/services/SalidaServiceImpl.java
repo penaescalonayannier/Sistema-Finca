@@ -115,7 +115,7 @@ public class SalidaServiceImpl implements ISalidaService {
         Hibernate.initialize(fincaProducto.getProducto());
 
         // Calcular cantidad total
-        int cantidadTotal = items.stream().mapToInt(ItemSalidaDto::getCantidad).sum();
+        double cantidadTotal = items.stream().mapToDouble(ItemSalidaDto::getCantidad).sum();
 
         // Validar stock suficiente
         if (fincaProducto.getStock() < cantidadTotal) {
@@ -256,7 +256,7 @@ public class SalidaServiceImpl implements ISalidaService {
                     throw validationError("items", "Debe indicar los trabajadores que compraron cada producto.");
                 }
                 Set<UUID> trabajadoresProducto = new HashSet<>();
-                int cantidadAsignada = 0;
+                double cantidadAsignada = 0.0;
                 for (ItemSalidaDto comprador : linea.getItems()) {
                     if (comprador == null || comprador.getTrabajadorId() == null) {
                         throw validationError("trabajadorId", "Debe seleccionar el trabajador que compró cada producto.");
@@ -269,7 +269,7 @@ public class SalidaServiceImpl implements ISalidaService {
                     }
                     cantidadAsignada += comprador.getCantidad();
                 }
-                if (cantidadAsignada != linea.getCantidad()) {
+                if (Double.compare(cantidadAsignada, linea.getCantidad()) != 0) {
                     throw validationError("cantidad", "La cantidad asignada a los trabajadores debe coincidir con la cantidad del producto.");
                 }
             }
@@ -400,10 +400,10 @@ public class SalidaServiceImpl implements ISalidaService {
         if (itemsAnteriores.stream().anyMatch(item -> item.getFincaProductoId() != null)) {
             throw validationError("id", "Los vales de varios productos no se editan. Anúlelo y registre uno nuevo.");
         }
-        int cantidadAnterior = itemsAnteriores.stream().mapToInt(ItemSalida::getCantidad).sum();
+        double cantidadAnterior = itemsAnteriores.stream().mapToDouble(ItemSalida::getCantidad).sum();
 
         // Calcular nueva cantidad total
-        int nuevaCantidadTotal = items.stream().mapToInt(ItemSalidaDto::getCantidad).sum();
+        double nuevaCantidadTotal = items.stream().mapToDouble(ItemSalidaDto::getCantidad).sum();
 
         // Obtener FincaProducto (con producto cargado para obtener precios)
         FincaProducto fincaProducto = fincaProductoReadRepository.findByIdWithDetails(dto.getFincaProductoId())
@@ -537,7 +537,7 @@ public class SalidaServiceImpl implements ISalidaService {
                     new ErrorField("id", "No se puede eliminar la salida: tiene items pagados.")));
         }
 
-        int cantidadTotal = items.stream().mapToInt(ItemSalida::getCantidad).sum();
+        double cantidadTotal = items.stream().mapToDouble(ItemSalida::getCantidad).sum();
 
         // Revertir deudas si el destino era TRABAJADORES
         if (salida.getDestino() == DestinoSalida.TRABAJADORES) {
@@ -628,7 +628,7 @@ public class SalidaServiceImpl implements ISalidaService {
                         s.getFincaProducto() != null ? s.getFincaProducto().getStock() : null,
                         s.getFecha(),
                         s.getObservaciones(),
-                        s.getItems() != null ? s.getItems().stream().mapToInt(ItemSalida::getCantidad).sum() : 0
+                        s.getItems() != null ? s.getItems().stream().mapToDouble(ItemSalida::getCantidad).sum() : 0.0
                 ))
                 .collect(Collectors.toList());
 

@@ -37,10 +37,10 @@ public interface AlmacenFincaProductoReadDataJPARepository
     boolean existsByAlmacenIdAndFincaProductoIdAndActivoTrue(UUID almacenId, UUID fincaProductoId);
 
     @Query("SELECT SUM(afp.stock) FROM AlmacenFincaProducto afp WHERE afp.almacen.id = :almacenId AND afp.activo = true")
-    Integer sumStockByAlmacenId(@Param("almacenId") UUID almacenId);
+    Double sumStockByAlmacenId(@Param("almacenId") UUID almacenId);
 
     @Query("SELECT SUM(afp.stock) FROM AlmacenFincaProducto afp WHERE afp.fincaProducto.id = :fincaProductoId AND afp.activo = true")
-    Integer sumStockByFincaProductoId(@Param("fincaProductoId") UUID fincaProductoId);
+    Double sumStockByFincaProductoId(@Param("fincaProductoId") UUID fincaProductoId);
 
     @Query("SELECT COUNT(afp) FROM AlmacenFincaProducto afp WHERE afp.almacen.id = :almacenId AND afp.activo = true")
     Long countByAlmacenIdAndActivoTrue(@Param("almacenId") UUID almacenId);

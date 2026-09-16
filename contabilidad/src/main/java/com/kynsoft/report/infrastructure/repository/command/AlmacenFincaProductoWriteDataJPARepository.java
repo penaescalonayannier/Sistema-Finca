@@ -12,9 +12,9 @@ public interface AlmacenFincaProductoWriteDataJPARepository extends JpaRepositor
 
     @Modifying
     @Query("UPDATE AlmacenFincaProducto afp SET afp.stock = afp.stock + :cantidad WHERE afp.id = :id")
-    void incrementarStock(@Param("id") UUID id, @Param("cantidad") Integer cantidad);
+    void incrementarStock(@Param("id") UUID id, @Param("cantidad") Double cantidad);
 
     @Modifying
     @Query("UPDATE AlmacenFincaProducto afp SET afp.stock = afp.stock - :cantidad WHERE afp.id = :id AND afp.stock >= :cantidad")
-    int decrementarStock(@Param("id") UUID id, @Param("cantidad") Integer cantidad);
+    int decrementarStock(@Param("id") UUID id, @Param("cantidad") Double cantidad);
 }

@@ -84,6 +84,7 @@ main() {
     require_command java
     require_command node
     require_command npm
+    require_command psql
     require_command flock
 
     mkdir -p "$BASE_DIR" "$CONFIG_DIR"

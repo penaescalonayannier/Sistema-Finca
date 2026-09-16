@@ -11,6 +11,6 @@ public class ResumenFacturacionDto {
     private Integer totalDocumentos;
     private Integer totalVales;
     private Integer totalFacturas;
-    private Integer cantidadProductos;
+    private Double cantidadProductos;
     private Double valorTotal;
 }

@@ -25,7 +25,7 @@ public class DeudaTrabajadorDetalleDto {
     private UUID productoId;
     private String productoCodigo;
     private String productoNombre;
-    private Integer cantidad;
+    private Double cantidad;
     private Double precioUnitario;
     private Double importe;
     private LocalDateTime fecha;
@@ -35,4 +35,11 @@ public class DeudaTrabajadorDetalleDto {
     private FormaPago formaPago;
     private String referenciaBancaria;
     private String observaciones;
+
+    public static class DeudaTrabajadorDetalleDtoBuilder {
+        public DeudaTrabajadorDetalleDtoBuilder cantidad(Number cantidad) {
+            this.cantidad = cantidad != null ? cantidad.doubleValue() : null;
+            return this;
+        }
+    }
 }

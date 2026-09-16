@@ -13,12 +13,12 @@ public interface IAlmacenFincaProductoService {
 
     // ==================== CRUD ====================
 
-    UUID asignarProducto(UUID almacenId, UUID fincaProductoId, Integer stockInicial,
-                         Integer stockMinimo, Integer stockMaximo);
+    UUID asignarProducto(UUID almacenId, UUID fincaProductoId, Double stockInicial,
+                         Double stockMinimo, Double stockMaximo);
 
-    void actualizarStock(UUID id, Integer nuevoStock);
+    void actualizarStock(UUID id, Double nuevoStock);
 
-    void actualizarLimites(UUID id, Integer stockMinimo, Integer stockMaximo);
+    void actualizarLimites(UUID id, Double stockMinimo, Double stockMaximo);
 
     void removerProducto(UUID id);
 
@@ -26,32 +26,32 @@ public interface IAlmacenFincaProductoService {
 
     // ==================== ENTRADAS ====================
 
-    void entradaProduccion(UUID almacenFincaProductoId, Integer cantidad, String descripcion);
+    void entradaProduccion(UUID almacenFincaProductoId, Double cantidad, String descripcion);
 
-    void entradaProduccion(UUID almacenFincaProductoId, Integer cantidad, String descripcion, String centroCosto);
+    void entradaProduccion(UUID almacenFincaProductoId, Double cantidad, String descripcion, String centroCosto);
 
-    void entradaFactura(UUID almacenFincaProductoId, Integer cantidad, String numeroFactura, String descripcion);
+    void entradaFactura(UUID almacenFincaProductoId, Double cantidad, String numeroFactura, String descripcion);
 
-    void entradaConduce(UUID almacenFincaProductoId, Integer cantidad, String observaciones);
+    void entradaConduce(UUID almacenFincaProductoId, Double cantidad, String observaciones);
 
-    void entrada(UUID almacenFincaProductoId, Integer cantidad, TipoMovimientoStock tipo, String descripcion);
+    void entrada(UUID almacenFincaProductoId, Double cantidad, TipoMovimientoStock tipo, String descripcion);
 
-    void entrada(UUID almacenFincaProductoId, Integer cantidad, TipoMovimientoStock tipo, String descripcion, String centroCosto);
+    void entrada(UUID almacenFincaProductoId, Double cantidad, TipoMovimientoStock tipo, String descripcion, String centroCosto);
 
     // ==================== SALIDAS ====================
 
-    void salida(UUID almacenFincaProductoId, Integer cantidad, String descripcion);
+    void salida(UUID almacenFincaProductoId, Double cantidad, String descripcion);
 
-    void salidaTrabajador(UUID almacenFincaProductoId, Integer cantidad, UUID trabajadorId, String descripcion);
+    void salidaTrabajador(UUID almacenFincaProductoId, Double cantidad, UUID trabajadorId, String descripcion);
 
-    void salidaComedor(UUID almacenFincaProductoId, Integer cantidad, String descripcion);
+    void salidaComedor(UUID almacenFincaProductoId, Double cantidad, String descripcion);
 
     // ==================== TRANSFERENCIAS ====================
 
-    void transferir(UUID origenId, UUID destinoAlmacenId, Integer cantidad, String observaciones);
+    void transferir(UUID origenId, UUID destinoAlmacenId, Double cantidad, String observaciones);
 
     void transferirConDestino(UUID origenAlmacenId, UUID fincaProductoId,
-                               UUID destinoAlmacenId, Integer cantidad, String observaciones);
+                                      UUID destinoAlmacenId, Double cantidad, String observaciones);
 
     // ==================== QUERIES ====================
 
@@ -69,9 +69,9 @@ public interface IAlmacenFincaProductoService {
 
     // ==================== UTILIDADES ====================
 
-    Integer getStockTotalAlmacen(UUID almacenId);
+    Double getStockTotalAlmacen(UUID almacenId);
 
-    Integer getStockTotalProductoEnFinca(UUID fincaProductoId);
+    Double getStockTotalProductoEnFinca(UUID fincaProductoId);
 
     boolean existsProductoEnAlmacen(UUID almacenId, UUID fincaProductoId);
 

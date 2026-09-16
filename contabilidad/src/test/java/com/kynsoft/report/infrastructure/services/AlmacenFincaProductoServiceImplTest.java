@@ -115,9 +115,9 @@ class AlmacenFincaProductoServiceImplTest {
         @DisplayName("Debe registrar entrada y actualizar stock de almacen y finca")
         void debeRegistrarEntradaYActualizarStockDeAlmacenYFinca() {
             // Arrange
-            Integer cantidad = 30;
-            Integer stockAlmacenAnterior = 50;
-            Integer stockFincaAnterior = 100;
+            Double cantidad = 30.0;
+            Double stockAlmacenAnterior = 50.0;
+            Double stockFincaAnterior = 100.0;
 
             almacenFincaProducto.setStock(stockAlmacenAnterior);
             fincaProducto.setStock(stockFincaAnterior);
@@ -151,7 +151,7 @@ class AlmacenFincaProductoServiceImplTest {
             // Act & Assert
             assertThrows(
                     BusinessNotFoundException.class,
-                    () -> service.entrada(almacenFincaProducto.getId(), -10,
+                    () -> service.entrada(almacenFincaProducto.getId(), -10.0,
                             TipoMovimientoStock.ENTRADA_PRODUCCION, "Test")
             );
         }
@@ -162,7 +162,7 @@ class AlmacenFincaProductoServiceImplTest {
             // Act & Assert
             assertThrows(
                     BusinessNotFoundException.class,
-                    () -> service.entrada(almacenFincaProducto.getId(), 0,
+                    () -> service.entrada(almacenFincaProducto.getId(), 0.0,
                             TipoMovimientoStock.ENTRADA_PRODUCCION, "Test")
             );
         }
@@ -188,7 +188,7 @@ class AlmacenFincaProductoServiceImplTest {
             // Act & Assert
             assertThrows(
                     BusinessNotFoundException.class,
-                    () -> service.entrada(idInexistente, 10,
+                    () -> service.entrada(idInexistente, 10.0,
                             TipoMovimientoStock.ENTRADA_PRODUCCION, "Test")
             );
         }
@@ -205,7 +205,7 @@ class AlmacenFincaProductoServiceImplTest {
                     .thenAnswer(inv -> inv.getArgument(0));
 
             // Act
-            service.entradaFactura(almacenFincaProducto.getId(), 20, "FACT-001", "Compra");
+            service.entradaFactura(almacenFincaProducto.getId(), 20.0, "FACT-001", "Compra");
 
             // Assert
             verify(repositoryCommand).save(any(AlmacenFincaProducto.class));
@@ -224,9 +224,9 @@ class AlmacenFincaProductoServiceImplTest {
         @DisplayName("Debe registrar salida y actualizar stock de almacen y finca")
         void debeRegistrarSalidaYActualizarStockDeAlmacenYFinca() {
             // Arrange
-            Integer cantidad = 20;
-            Integer stockAlmacenAnterior = 50;
-            Integer stockFincaAnterior = 100;
+            Double cantidad = 20.0;
+            Double stockAlmacenAnterior = 50.0;
+            Double stockFincaAnterior = 100.0;
 
             almacenFincaProducto.setStock(stockAlmacenAnterior);
             fincaProducto.setStock(stockFincaAnterior);
@@ -264,7 +264,7 @@ class AlmacenFincaProductoServiceImplTest {
             // Act & Assert
             assertThrows(
                     BusinessNotFoundException.class,
-                    () -> service.salida(almacenFincaProducto.getId(), 50, "Test")
+                    () -> service.salida(almacenFincaProducto.getId(), 50.0, "Test")
             );
         }
 
@@ -272,7 +272,7 @@ class AlmacenFincaProductoServiceImplTest {
         @DisplayName("Debe permitir salida con stock exacto")
         void debePermitirSalidaConStockExacto() {
             // Arrange
-            Integer stockActual = 30;
+            Double stockActual = 30.0;
             almacenFincaProducto.setStock(stockActual);
             fincaProducto.setStock(stockActual);
 
@@ -307,7 +307,7 @@ class AlmacenFincaProductoServiceImplTest {
                     .thenAnswer(inv -> inv.getArgument(0));
 
             // Act
-            service.salida(almacenFincaProducto.getId(), 30, "Salida");
+            service.salida(almacenFincaProducto.getId(), 30.0, "Salida");
 
             // Assert - Stock de finca debería ser max(0, 20-30) = 0, no -10
             ArgumentCaptor<FincaProducto> fpCaptor = ArgumentCaptor.forClass(FincaProducto.class);
@@ -321,7 +321,7 @@ class AlmacenFincaProductoServiceImplTest {
             // Act & Assert
             assertThrows(
                     BusinessNotFoundException.class,
-                    () -> service.salida(almacenFincaProducto.getId(), -10, "Test")
+                    () -> service.salida(almacenFincaProducto.getId(), -10.0, "Test")
             );
         }
     }
@@ -355,9 +355,9 @@ class AlmacenFincaProductoServiceImplTest {
         @DisplayName("Debe transferir entre almacenes de la misma finca")
         void debeTransferirEntreAlmacenesDeLaMismaFinca() {
             // Arrange
-            Integer cantidad = 15;
-            Integer stockOrigenAnterior = 50;
-            Integer stockDestinoAnterior = 20;
+            Double cantidad = 15.0;
+            Double stockOrigenAnterior = 50.0;
+            Double stockDestinoAnterior = 20.0;
 
             almacenFincaProducto.setStock(stockOrigenAnterior);
             afpDestino.setStock(stockDestinoAnterior);
@@ -394,7 +394,7 @@ class AlmacenFincaProductoServiceImplTest {
             assertThrows(
                     BusinessNotFoundException.class,
                     () -> service.transferir(almacenFincaProducto.getId(),
-                            almacenDestino.getId(), 50, "Test")
+                            almacenDestino.getId(), 50.0, "Test")
             );
         }
 
@@ -420,7 +420,7 @@ class AlmacenFincaProductoServiceImplTest {
             assertThrows(
                     BusinessNotFoundException.class,
                     () -> service.transferir(almacenFincaProducto.getId(),
-                            almacenOtraFinca.getId(), 10, "Test")
+                            almacenOtraFinca.getId(), 10.0, "Test")
             );
         }
 
@@ -439,7 +439,7 @@ class AlmacenFincaProductoServiceImplTest {
             assertThrows(
                     BusinessNotFoundException.class,
                     () -> service.transferir(almacenFincaProducto.getId(),
-                            almacenDestino.getId(), 10, "Test")
+                            almacenDestino.getId(), 10.0, "Test")
             );
         }
 
@@ -447,7 +447,7 @@ class AlmacenFincaProductoServiceImplTest {
         @DisplayName("Debe crear producto en almacen destino si no existe")
         void debeCrearProductoEnAlmacenDestinoSiNoExiste() {
             // Arrange
-            Integer cantidad = 15;
+            Double cantidad = 15.0;
             almacenFincaProducto.setStock(50);
 
             when(repositoryQuery.findById(almacenFincaProducto.getId()))
@@ -484,10 +484,10 @@ class AlmacenFincaProductoServiceImplTest {
         @DisplayName("Debe actualizar stock y sincronizar con finca (incremento)")
         void debeActualizarStockYSincronizarConFincaIncremento() {
             // Arrange
-            Integer stockAnterior = 50;
-            Integer nuevoStock = 80;
-            Integer diferencia = nuevoStock - stockAnterior; // +30
-            Integer stockFincaAnterior = 100;
+            Double stockAnterior = 50.0;
+            Double nuevoStock = 80.0;
+            Double diferencia = nuevoStock - stockAnterior; // +30
+            Double stockFincaAnterior = 100.0;
 
             almacenFincaProducto.setStock(stockAnterior);
             fincaProducto.setStock(stockFincaAnterior);
@@ -516,10 +516,10 @@ class AlmacenFincaProductoServiceImplTest {
         @DisplayName("Debe actualizar stock y sincronizar con finca (decremento)")
         void debeActualizarStockYSincronizarConFincaDecremento() {
             // Arrange
-            Integer stockAnterior = 50;
-            Integer nuevoStock = 30;
-            Integer diferencia = nuevoStock - stockAnterior; // -20
-            Integer stockFincaAnterior = 100;
+            Double stockAnterior = 50.0;
+            Double nuevoStock = 30.0;
+            Double diferencia = nuevoStock - stockAnterior; // -20
+            Double stockFincaAnterior = 100.0;
 
             almacenFincaProducto.setStock(stockAnterior);
             fincaProducto.setStock(stockFincaAnterior);
@@ -555,7 +555,7 @@ class AlmacenFincaProductoServiceImplTest {
                     .thenAnswer(inv -> inv.getArgument(0));
 
             // Act
-            service.actualizarStock(almacenFincaProducto.getId(), 0); // Diferencia: -100
+            service.actualizarStock(almacenFincaProducto.getId(), 0.0); // Diferencia: -100
 
             // Assert
             ArgumentCaptor<FincaProducto> fpCaptor = ArgumentCaptor.forClass(FincaProducto.class);
@@ -582,7 +582,7 @@ class AlmacenFincaProductoServiceImplTest {
                     .thenAnswer(inv -> inv.getArgument(0));
 
             // Act
-            UUID result = service.asignarProducto(almacenId, fincaProductoId, 100, 10, 500);
+            UUID result = service.asignarProducto(almacenId, fincaProductoId, 100.0, 10.0, 500.0);
 
             // Assert
             assertNotNull(result);
@@ -604,7 +604,7 @@ class AlmacenFincaProductoServiceImplTest {
             // Act & Assert
             assertThrows(
                     BusinessNotFoundException.class,
-                    () -> service.asignarProducto(almacenId, fincaProductoId, 100, 10, 500)
+                    () -> service.asignarProducto(almacenId, fincaProductoId, 100.0, 10.0, 500.0)
             );
         }
 
@@ -620,7 +620,7 @@ class AlmacenFincaProductoServiceImplTest {
             // Act & Assert
             assertThrows(
                     BusinessNotFoundException.class,
-                    () -> service.asignarProducto(almacenId, fincaProductoId, 100, 10, 500)
+                    () -> service.asignarProducto(almacenId, fincaProductoId, 100.0, 10.0, 500.0)
             );
         }
 
@@ -636,7 +636,7 @@ class AlmacenFincaProductoServiceImplTest {
                     .thenAnswer(inv -> inv.getArgument(0));
 
             // Act
-            service.asignarProducto(almacenId, fincaProductoId, 0, 10, 500);
+            service.asignarProducto(almacenId, fincaProductoId, 0.0, 10.0, 500.0);
 
             // Assert
             verify(movimientoStockService, never()).registrar(any());
@@ -692,10 +692,10 @@ class AlmacenFincaProductoServiceImplTest {
         @DisplayName("Debe calcular stock total del almacen")
         void debeCalcularStockTotalDelAlmacen() {
             // Arrange
-            when(repositoryQuery.sumStockByAlmacenId(almacenId)).thenReturn(250);
+            when(repositoryQuery.sumStockByAlmacenId(almacenId)).thenReturn(250.0);
 
             // Act
-            Integer total = service.getStockTotalAlmacen(almacenId);
+            Double total = service.getStockTotalAlmacen(almacenId);
 
             // Assert
             assertEquals(250, total);
@@ -708,7 +708,7 @@ class AlmacenFincaProductoServiceImplTest {
             when(repositoryQuery.sumStockByAlmacenId(almacenId)).thenReturn(null);
 
             // Act
-            Integer total = service.getStockTotalAlmacen(almacenId);
+            Double total = service.getStockTotalAlmacen(almacenId);
 
             // Assert
             assertEquals(0, total);

@@ -10,7 +10,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class EntradaAlmacenMessage implements ICommandMessage {
     private UUID almacenFincaProductoId;
-    private Integer cantidad;
+    private Double cantidad;
     private Double stockNuevo;
     private final String command = "ENTRADA_ALMACEN";
 }

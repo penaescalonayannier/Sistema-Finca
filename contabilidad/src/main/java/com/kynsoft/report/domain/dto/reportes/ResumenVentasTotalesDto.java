@@ -10,7 +10,7 @@ import java.util.Map;
 @Builder
 public class ResumenVentasTotalesDto {
     private Integer totalSalidas;
-    private Integer totalItems;
+    private Double totalItems;
     private Double valorTotal;
     private Map<String, Double> valorPorDestino;
 }

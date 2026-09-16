@@ -62,8 +62,8 @@ public class AlmacenFincaProductoServiceImpl implements IAlmacenFincaProductoSer
     // ==================== CRUD ====================
 
     @Override
-    public UUID asignarProducto(UUID almacenId, UUID fincaProductoId, Integer stockInicial,
-                                 Integer stockMinimo, Integer stockMaximo) {
+    public UUID asignarProducto(UUID almacenId, UUID fincaProductoId, Double stockInicial,
+                                 Double stockMinimo, Double stockMaximo) {
         Almacen almacen = almacenRepository.findById(almacenId)
                 .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
                         DomainErrorMessage.BUSINESS_NOT_FOUND,
@@ -84,26 +84,26 @@ public class AlmacenFincaProductoServiceImpl implements IAlmacenFincaProductoSer
         afp.setId(UUID.randomUUID());
         afp.setAlmacen(almacen);
         afp.setFincaProducto(fincaProducto);
-        afp.setStock(stockInicial != null ? stockInicial.doubleValue() : 0.0);
-        afp.setStockMinimo(stockMinimo != null ? stockMinimo.doubleValue() : 0.0);
-        afp.setStockMaximo(stockMaximo != null ? stockMaximo.doubleValue() : null);
+        afp.setStock(stockInicial != null ? stockInicial : 0.0);
+        afp.setStockMinimo(stockMinimo != null ? stockMinimo : 0.0);
+        afp.setStockMaximo(stockMaximo);
         afp.setActivo(true);
 
         repositoryCommand.save(afp);
 
         if (stockInicial != null && stockInicial > 0) {
             registrarMovimiento(afp, TipoMovimientoStock.ENTRADA_AJUSTE, stockInicial,
-                    0.0, stockInicial.doubleValue(), "Stock inicial al asignar producto");
+                    0.0, stockInicial, "Stock inicial al asignar producto");
         }
 
         return afp.getId();
     }
 
     @Override
-    public void actualizarStock(UUID id, Integer nuevoStock) {
+    public void actualizarStock(UUID id, Double nuevoStock) {
         AlmacenFincaProducto afp = findEntityById(id);
         Double stockAnterior = afp.getStock();
-        afp.setStock(nuevoStock.doubleValue());
+        afp.setStock(nuevoStock);
         repositoryCommand.save(afp);
 
         double diferencia = nuevoStock - stockAnterior;
@@ -114,14 +114,14 @@ public class AlmacenFincaProductoServiceImpl implements IAlmacenFincaProductoSer
         fincaProductoWriteRepository.save(fp);
 
         TipoMovimientoStock tipo = diferencia > 0 ? TipoMovimientoStock.ENTRADA_AJUSTE : TipoMovimientoStock.SALIDA_AJUSTE;
-        registrarMovimiento(afp, tipo, diferencia, stockAnterior, nuevoStock.doubleValue(), "Ajuste manual de stock");
+        registrarMovimiento(afp, tipo, diferencia, stockAnterior, nuevoStock, "Ajuste manual de stock");
     }
 
     @Override
-    public void actualizarLimites(UUID id, Integer stockMinimo, Integer stockMaximo) {
+    public void actualizarLimites(UUID id, Double stockMinimo, Double stockMaximo) {
         AlmacenFincaProducto afp = findEntityById(id);
-        if (stockMinimo != null) afp.setStockMinimo(stockMinimo.doubleValue());
-        if (stockMaximo != null) afp.setStockMaximo(stockMaximo.doubleValue());
+        if (stockMinimo != null) afp.setStockMinimo(stockMinimo);
+        if (stockMaximo != null) afp.setStockMaximo(stockMaximo);
         repositoryCommand.save(afp);
     }
 
@@ -159,33 +159,33 @@ public class AlmacenFincaProductoServiceImpl implements IAlmacenFincaProductoSer
     // ==================== ENTRADAS ====================
 
     @Override
-    public void entradaProduccion(UUID almacenFincaProductoId, Integer cantidad, String descripcion) {
+    public void entradaProduccion(UUID almacenFincaProductoId, Double cantidad, String descripcion) {
         entrada(almacenFincaProductoId, cantidad, TipoMovimientoStock.ENTRADA_PRODUCCION, descripcion, null);
     }
 
     @Override
-    public void entradaProduccion(UUID almacenFincaProductoId, Integer cantidad, String descripcion, String centroCosto) {
+    public void entradaProduccion(UUID almacenFincaProductoId, Double cantidad, String descripcion, String centroCosto) {
         entrada(almacenFincaProductoId, cantidad, TipoMovimientoStock.ENTRADA_PRODUCCION, descripcion, centroCosto);
     }
 
     @Override
-    public void entradaFactura(UUID almacenFincaProductoId, Integer cantidad, String numeroFactura, String descripcion) {
+    public void entradaFactura(UUID almacenFincaProductoId, Double cantidad, String numeroFactura, String descripcion) {
         String desc = "Factura: " + numeroFactura + (descripcion != null ? " - " + descripcion : "");
         entrada(almacenFincaProductoId, cantidad, TipoMovimientoStock.ENTRADA_FACTURA, desc, null);
     }
 
     @Override
-    public void entradaConduce(UUID almacenFincaProductoId, Integer cantidad, String observaciones) {
+    public void entradaConduce(UUID almacenFincaProductoId, Double cantidad, String observaciones) {
         entrada(almacenFincaProductoId, cantidad, TipoMovimientoStock.ENTRADA_CONDUCE, observaciones, null);
     }
 
     @Override
-    public void entrada(UUID almacenFincaProductoId, Integer cantidad, TipoMovimientoStock tipo, String descripcion) {
+    public void entrada(UUID almacenFincaProductoId, Double cantidad, TipoMovimientoStock tipo, String descripcion) {
         entrada(almacenFincaProductoId, cantidad, tipo, descripcion, null);
     }
 
     @Override
-    public void entrada(UUID almacenFincaProductoId, Integer cantidad, TipoMovimientoStock tipo, String descripcion, String centroCosto) {
+    public void entrada(UUID almacenFincaProductoId, Double cantidad, TipoMovimientoStock tipo, String descripcion, String centroCosto) {
         validarCantidadPositiva(cantidad);
         AlmacenFincaProducto afp = findEntityById(almacenFincaProductoId);
 
@@ -207,7 +207,7 @@ public class AlmacenFincaProductoServiceImpl implements IAlmacenFincaProductoSer
     // ==================== SALIDAS ====================
 
     @Override
-    public void salida(UUID almacenFincaProductoId, Integer cantidad, String descripcion) {
+    public void salida(UUID almacenFincaProductoId, Double cantidad, String descripcion) {
         validarCantidadPositiva(cantidad);
         AlmacenFincaProducto afp = findEntityById(almacenFincaProductoId);
 
@@ -233,19 +233,19 @@ public class AlmacenFincaProductoServiceImpl implements IAlmacenFincaProductoSer
     }
 
     @Override
-    public void salidaTrabajador(UUID almacenFincaProductoId, Integer cantidad, UUID trabajadorId, String descripcion) {
+    public void salidaTrabajador(UUID almacenFincaProductoId, Double cantidad, UUID trabajadorId, String descripcion) {
         salida(almacenFincaProductoId, cantidad, "Trabajador: " + trabajadorId + " - " + descripcion);
     }
 
     @Override
-    public void salidaComedor(UUID almacenFincaProductoId, Integer cantidad, String descripcion) {
+    public void salidaComedor(UUID almacenFincaProductoId, Double cantidad, String descripcion) {
         salida(almacenFincaProductoId, cantidad, "Comedor - " + descripcion);
     }
 
     // ==================== TRANSFERENCIAS ====================
 
     @Override
-    public void transferir(UUID origenId, UUID destinoAlmacenId, Integer cantidad, String observaciones) {
+    public void transferir(UUID origenId, UUID destinoAlmacenId, Double cantidad, String observaciones) {
         validarCantidadPositiva(cantidad);
         AlmacenFincaProducto origen = findEntityById(origenId);
 
@@ -310,7 +310,7 @@ public class AlmacenFincaProductoServiceImpl implements IAlmacenFincaProductoSer
 
     @Override
     public void transferirConDestino(UUID origenAlmacenId, UUID fincaProductoId,
-                                      UUID destinoAlmacenId, Integer cantidad, String observaciones) {
+                                      UUID destinoAlmacenId, Double cantidad, String observaciones) {
         AlmacenFincaProducto origen = repositoryQuery
                 .findByAlmacenIdAndFincaProductoIdAndActivoTrue(origenAlmacenId, fincaProductoId)
                 .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
@@ -378,15 +378,15 @@ public class AlmacenFincaProductoServiceImpl implements IAlmacenFincaProductoSer
     // ==================== UTILIDADES ====================
 
     @Override
-    public Integer getStockTotalAlmacen(UUID almacenId) {
-        Integer total = repositoryQuery.sumStockByAlmacenId(almacenId);
-        return total != null ? total : 0;
+    public Double getStockTotalAlmacen(UUID almacenId) {
+        Double total = repositoryQuery.sumStockByAlmacenId(almacenId);
+        return total != null ? total : 0.0;
     }
 
     @Override
-    public Integer getStockTotalProductoEnFinca(UUID fincaProductoId) {
-        Integer total = repositoryQuery.sumStockByFincaProductoId(fincaProductoId);
-        return total != null ? total : 0;
+    public Double getStockTotalProductoEnFinca(UUID fincaProductoId) {
+        Double total = repositoryQuery.sumStockByFincaProductoId(fincaProductoId);
+        return total != null ? total : 0.0;
     }
 
     @Override
@@ -417,7 +417,7 @@ public class AlmacenFincaProductoServiceImpl implements IAlmacenFincaProductoSer
                         new ErrorField("id", "Producto-Almacén no encontrado."))));
     }
 
-    private void validarCantidadPositiva(Integer cantidad) {
+    private void validarCantidadPositiva(Double cantidad) {
         if (cantidad == null || cantidad <= 0) {
             throw new BusinessNotFoundException(new GlobalBusinessException(
                     DomainErrorMessage.BUSINESS_NOT_FOUND,
@@ -426,13 +426,13 @@ public class AlmacenFincaProductoServiceImpl implements IAlmacenFincaProductoSer
     }
 
     private void registrarMovimiento(AlmacenFincaProducto afp, TipoMovimientoStock tipo,
-                                      Integer cantidad, Double stockAnterior, Double stockNuevo,
+                                      Double cantidad, Double stockAnterior, Double stockNuevo,
                                       String descripcion) {
         registrarMovimiento(afp, tipo, cantidad, stockAnterior, stockNuevo, descripcion, null);
     }
 
     private void registrarMovimiento(AlmacenFincaProducto afp, TipoMovimientoStock tipo,
-                                      Integer cantidad, Double stockAnterior, Double stockNuevo,
+                                      Double cantidad, Double stockAnterior, Double stockNuevo,
                                       String descripcion, String centroCosto) {
         MovimientoStockDto movimiento = MovimientoStockDto.builder()
                 .fincaProductoId(afp.getFincaProducto().getId())
@@ -440,7 +440,7 @@ public class AlmacenFincaProductoServiceImpl implements IAlmacenFincaProductoSer
                 .productoId(afp.getFincaProducto().getProducto().getId())
                 .almacenId(afp.getAlmacen().getId())
                 .tipo(tipo)
-                .cantidad(cantidad != null ? cantidad.doubleValue() : 0.0)
+                .cantidad(cantidad != null ? cantidad : 0.0)
                 .stockAnterior(stockAnterior)
                 .stockNuevo(stockNuevo)
                 .descripcion(descripcion)
@@ -449,20 +449,4 @@ public class AlmacenFincaProductoServiceImpl implements IAlmacenFincaProductoSer
         movimientoStockService.registrar(movimiento);
     }
 
-    private void registrarMovimiento(AlmacenFincaProducto afp, TipoMovimientoStock tipo,
-                                      Double cantidad, Double stockAnterior, Double stockNuevo,
-                                      String descripcion) {
-        MovimientoStockDto movimiento = MovimientoStockDto.builder()
-                .fincaProductoId(afp.getFincaProducto().getId())
-                .fincaId(afp.getFincaProducto().getFinca().getId())
-                .productoId(afp.getFincaProducto().getProducto().getId())
-                .almacenId(afp.getAlmacen().getId())
-                .tipo(tipo)
-                .cantidad(cantidad)
-                .stockAnterior(stockAnterior)
-                .stockNuevo(stockNuevo)
-                .descripcion(descripcion)
-                .build();
-        movimientoStockService.registrar(movimiento);
-    }
 }

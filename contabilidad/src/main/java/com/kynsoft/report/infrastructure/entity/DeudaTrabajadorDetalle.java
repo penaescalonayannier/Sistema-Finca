@@ -60,7 +60,7 @@ public class DeudaTrabajadorDetalle {
     private String productoNombre;
 
     @Column(name = "cantidad")
-    private Integer cantidad;
+    private Double cantidad;
 
     @Column(name = "precio_unitario")
     private Double precioUnitario;
@@ -90,6 +90,10 @@ public class DeudaTrabajadorDetalle {
 
     @Column(name = "observaciones", length = 500)
     private String observaciones;
+
+    public void setCantidad(Number cantidad) {
+        this.cantidad = cantidad != null ? cantidad.doubleValue() : null;
+    }
 
     public DeudaTrabajadorDetalle(DeudaTrabajadorDetalleDto dto) {
         this.id = dto.getId();

@@ -184,9 +184,9 @@ public class ReportesConsolidadosServiceImpl implements IReportesConsolidadosSer
         // Calculate totals
         int totalVales = (int) salidas.stream().filter(s -> TipoSalida.VALE.equals(s.getTipo())).count();
         int totalFacturas = (int) salidas.stream().filter(s -> TipoSalida.FACTURA.equals(s.getTipo())).count();
-        int cantidadProductos = salidas.stream()
+        double cantidadProductos = salidas.stream()
                 .flatMap(s -> s.getItems().stream())
-                .mapToInt(ItemSalida::getCantidad)
+                .mapToDouble(ItemSalida::getCantidad)
                 .sum();
         double valorTotal = salidas.stream()
                 .flatMap(s -> s.getItems().stream())
@@ -207,7 +207,7 @@ public class ReportesConsolidadosServiceImpl implements IReportesConsolidadosSer
         // Build documentos list
         List<DocumentoFacturacionDto> documentos = salidas.stream()
                 .map(s -> {
-                    int cantidad = s.getItems().stream().mapToInt(ItemSalida::getCantidad).sum();
+                    double cantidad = s.getItems().stream().mapToDouble(ItemSalida::getCantidad).sum();
                     double valor = s.getItems().stream()
                             .mapToDouble(item -> item.getCantidad() * (item.getPrecio() != null ? item.getPrecio() : 0))
                             .sum();
@@ -273,9 +273,9 @@ public class ReportesConsolidadosServiceImpl implements IReportesConsolidadosSer
 
     private DetalleFacturacionDto buildDetalleItem(String finca, String tipo, String destino, List<Salida> salidas, double valorTotal) {
         int docs = salidas.size();
-        int cantidad = salidas.stream()
+        double cantidad = salidas.stream()
                 .flatMap(s -> s.getItems().stream())
-                .mapToInt(ItemSalida::getCantidad)
+                .mapToDouble(ItemSalida::getCantidad)
                 .sum();
         double valor = salidas.stream()
                 .flatMap(s -> s.getItems().stream())
@@ -634,9 +634,9 @@ public class ReportesConsolidadosServiceImpl implements IReportesConsolidadosSer
         }
 
         // Calculate totals
-        int totalItems = salidas.stream()
+        double totalItems = salidas.stream()
                 .flatMap(s -> s.getItems().stream())
-                .mapToInt(ItemSalida::getCantidad)
+                .mapToDouble(ItemSalida::getCantidad)
                 .sum();
 
         double valorTotal = salidas.stream()
@@ -652,9 +652,9 @@ public class ReportesConsolidadosServiceImpl implements IReportesConsolidadosSer
         List<DetalleVentasPorDestinoDto> detallePorDestino = new ArrayList<>();
 
         for (Map.Entry<String, List<Salida>> entry : porDestino.entrySet()) {
-            int cantItems = entry.getValue().stream()
+            double cantItems = entry.getValue().stream()
                     .flatMap(s -> s.getItems().stream())
-                    .mapToInt(ItemSalida::getCantidad)
+                    .mapToDouble(ItemSalida::getCantidad)
                     .sum();
             double valor = entry.getValue().stream()
                     .flatMap(s -> s.getItems().stream())
@@ -684,7 +684,7 @@ public class ReportesConsolidadosServiceImpl implements IReportesConsolidadosSer
         // Build documents list
         List<VentaDocumentoDto> documentos = salidas.stream()
                 .map(s -> {
-                    int cantidad = s.getItems().stream().mapToInt(ItemSalida::getCantidad).sum();
+                    double cantidad = s.getItems().stream().mapToDouble(ItemSalida::getCantidad).sum();
                     double valor = s.getItems().stream()
                             .mapToDouble(item -> item.getCantidad() * (item.getPrecio() != null ? item.getPrecio() : 0))
                             .sum();

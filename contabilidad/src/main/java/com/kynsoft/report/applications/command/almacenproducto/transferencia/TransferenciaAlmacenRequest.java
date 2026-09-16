@@ -14,6 +14,6 @@ import java.util.UUID;
 public class TransferenciaAlmacenRequest {
     private UUID almacenFincaProductoId;
     private UUID destinoAlmacenId;
-    private Integer cantidad;
+    private Double cantidad;
     private String observaciones;
 }

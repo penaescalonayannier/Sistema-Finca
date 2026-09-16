@@ -16,7 +16,14 @@ import java.util.UUID;
 @AllArgsConstructor
 public class LineaSalidaMultipleAlmacenDto {
     private UUID almacenFincaProductoId;
-    private Integer cantidad;
+    private Double cantidad;
     /** Compradores del producto cuando el destino de la salida es TRABAJADORES. */
     private List<ItemSalidaDto> items;
+
+    public static class LineaSalidaMultipleAlmacenDtoBuilder {
+        public LineaSalidaMultipleAlmacenDtoBuilder cantidad(Number cantidad) {
+            this.cantidad = cantidad != null ? cantidad.doubleValue() : null;
+            return this;
+        }
+    }
 }

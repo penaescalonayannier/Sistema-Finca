@@ -14,7 +14,7 @@ public class DocumentoFacturacionDto {
     private String numero;
     private LocalDate fecha;
     private String producto;
-    private Integer cantidad;
+    private Double cantidad;
     private String destino;
     private Double valor;
 }
