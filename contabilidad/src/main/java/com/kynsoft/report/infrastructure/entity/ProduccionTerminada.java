@@ -81,11 +81,13 @@ public class ProduccionTerminada {
     private String almacenNombreSnapshot;
     @Column(name = "almacen_inventario_snapshot", length = 50)
     private String almacenInventarioSnapshot;
-    @Column(name = "costo_unitario", precision = 19, scale = 4)
+    // La precisión la impone V26 como NUMERIC(19,4). Hibernate no permite
+    // declarar scale sobre una propiedad Double (la interpreta como FLOAT).
+    @Column(name = "costo_unitario")
     private Double costoUnitario;
-    @Column(name = "importe", precision = 19, scale = 4)
+    @Column(name = "importe")
     private Double importe;
-    @Column(name = "saldo_posterior", precision = 19, scale = 4)
+    @Column(name = "saldo_posterior")
     private Double saldoPosterior;
     @Column(name = "lote", length = 100)
     private String lote;
