@@ -3,6 +3,7 @@ package com.kynsoft.report.controller;
 import com.kynsoft.share.core.domain.request.PageableUtil;
 import com.kynsoft.share.core.domain.request.SearchRequest;
 import com.kynsoft.share.core.domain.response.PaginatedResponse;
+import com.kynsoft.share.core.domain.exception.BusinessNotFoundException;
 import com.kynsoft.share.core.infrastructure.bus.IMediator;
 import com.kynsoft.report.applications.command.produccionterminada.create.CreateProduccionTerminadaCommand;
 import com.kynsoft.report.applications.command.produccionterminada.create.CreateProduccionTerminadaMessage;
@@ -17,11 +18,16 @@ import com.kynsoft.report.applications.query.produccionterminada.getbyid.FindPro
 import com.kynsoft.report.applications.query.responseObject.ProduccionTerminadaResponse;
 import com.kynsoft.report.domain.dto.ProduccionTerminadaDto;
 import com.kynsoft.report.domain.services.IProduccionTerminadaService;
+import com.kynsoft.report.infrastructure.services.ProduccionTerminadaPdfService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -34,12 +40,17 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/produccion-terminada")
 public class ProduccionTerminadaController {
 
+    private static final Logger log = LoggerFactory.getLogger(ProduccionTerminadaController.class);
+
     private final IMediator mediator;
     private final IProduccionTerminadaService service;
+    private final ProduccionTerminadaPdfService produccionTerminadaPdfService;
 
-    public ProduccionTerminadaController(IMediator mediator, IProduccionTerminadaService service) {
+    public ProduccionTerminadaController(IMediator mediator, IProduccionTerminadaService service,
+                                         ProduccionTerminadaPdfService produccionTerminadaPdfService) {
         this.mediator = mediator;
         this.service = service;
+        this.produccionTerminadaPdfService = produccionTerminadaPdfService;
     }
 
     @PostMapping
@@ -71,6 +82,29 @@ public class ProduccionTerminadaController {
         FindProduccionTerminadaByIdQuery query = new FindProduccionTerminadaByIdQuery(id);
         ProduccionTerminadaResponse response = mediator.send(query);
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Descarga el modelo SC-2-06 de una producción ya registrada. Esta operación
+     * es de solo lectura: no modifica producción, almacén, existencias ni contabilidad.
+     */
+    @GetMapping(value = "/{id}/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> descargarModeloOficial(@PathVariable UUID id) {
+        try {
+            byte[] pdf = produccionTerminadaPdfService.generar(id);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment", "SC-2-06_produccion_"
+                    + id.toString().substring(0, 8) + ".pdf");
+            headers.setContentLength(pdf.length);
+            return ResponseEntity.ok().headers(headers).body(pdf);
+        } catch (BusinessNotFoundException exception) {
+            log.warn("No fue posible generar el modelo SC-2-06 de producción {}: {}", id, exception.getMessage());
+            return ResponseEntity.notFound().build();
+        } catch (Exception exception) {
+            log.error("Error al generar el modelo SC-2-06 de producción {}", id, exception);
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     @PostMapping("/search")

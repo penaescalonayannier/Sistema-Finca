@@ -3,6 +3,7 @@ package com.kynsoft.report.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kynsoft.share.core.infrastructure.bus.IMediator;
 import com.kynsoft.report.domain.services.IProduccionTerminadaService;
+import com.kynsoft.report.infrastructure.services.ProduccionTerminadaPdfService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -18,6 +19,7 @@ import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.mockito.Mockito.when;
 
 @WebMvcTest(ProduccionTerminadaController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -35,6 +37,9 @@ class ProduccionTerminadaControllerIntegrationTest {
 
     @MockBean
     private IProduccionTerminadaService service;
+
+    @MockBean
+    private ProduccionTerminadaPdfService produccionTerminadaPdfService;
 
     private UUID produccionId;
     private UUID fincaId;
@@ -126,6 +131,24 @@ class ProduccionTerminadaControllerIntegrationTest {
             // Act & Assert
             mockMvc.perform(get("/api/produccion-terminada/{id}", produccionId))
                     .andExpect(status().is2xxSuccessful()); // Will fail without full mediator setup
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /api/produccion-terminada/{id}/pdf endpoint")
+    class DescargarPdfEndpointTests {
+
+        @Test
+        @DisplayName("Debe descargar el modelo SC-2-06 sin modificar la producción")
+        void debeDescargarModeloSc206() throws Exception {
+            byte[] pdf = "%PDF-1.7".getBytes();
+            when(produccionTerminadaPdfService.generar(produccionId)).thenReturn(pdf);
+
+            mockMvc.perform(get("/api/produccion-terminada/{id}/pdf", produccionId))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_PDF))
+                    .andExpect(header().string("Content-Disposition",
+                            org.hamcrest.Matchers.containsString("SC-2-06_produccion_")));
         }
     }
 }
