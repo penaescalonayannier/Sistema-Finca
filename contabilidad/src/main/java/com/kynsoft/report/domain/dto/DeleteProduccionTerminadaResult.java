@@ -17,5 +17,12 @@ public class DeleteProduccionTerminadaResult {
     private UUID id;
     private Double stockAnterior;
     private Double stockNuevo;
-    private Integer cantidadRevertida;
+    private Double cantidadRevertida;
+
+    public static class DeleteProduccionTerminadaResultBuilder {
+        public DeleteProduccionTerminadaResultBuilder cantidadRevertida(Number cantidadRevertida) {
+            this.cantidadRevertida = cantidadRevertida != null ? cantidadRevertida.doubleValue() : null;
+            return this;
+        }
+    }
 }

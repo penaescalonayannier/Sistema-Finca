@@ -13,11 +13,11 @@ import java.util.UUID;
 public class EntradaProduccionMessage implements ICommandMessage {
     private UUID fincaId;
     private UUID productoId;
-    private Integer cantidadAgregada;
+    private Double cantidadAgregada;
     private Double nuevoStock;
     private String mensaje;
 
-    public EntradaProduccionMessage(UUID fincaId, UUID productoId, Integer cantidadAgregada) {
+    public EntradaProduccionMessage(UUID fincaId, UUID productoId, Double cantidadAgregada) {
         this.fincaId = fincaId;
         this.productoId = productoId;
         this.cantidadAgregada = cantidadAgregada;

@@ -22,6 +22,14 @@ public interface IProduccionTerminadaService {
     CreateProduccionTerminadaResult create(ProduccionTerminadaDto dto);
 
     /**
+     * Crea una producción terminada cuya entrada física se registra en un almacén.
+     * El producto y la finca se derivan de la relación almacén-producto para impedir
+     * que se incremente el inventario general dos veces.
+     */
+    CreateProduccionTerminadaResult createEnAlmacen(UUID almacenId, UUID almacenFincaProductoId,
+                                                     ProduccionTerminadaDto dto);
+
+    /**
      * Actualiza una producción terminada.
      * - Ajusta stock según diferencia de cantidad (RN-06)
      * - Valida trabajadores de misma finca (RN-04)

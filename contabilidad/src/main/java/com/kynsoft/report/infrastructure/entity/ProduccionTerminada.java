@@ -47,7 +47,10 @@ public class ProduccionTerminada {
     private LocalDateTime fecha;
 
     @Column(name = "cantidad_terminada", nullable = false)
-    private Integer cantidadTerminada;
+    private Double cantidadTerminada;
+
+    @Column(name = "almacen_finca_producto_id")
+    private UUID almacenFincaProductoId;
 
     @Column(name = "trabajador_entrega_id", nullable = false)
     private UUID trabajadorEntregaId;
@@ -82,6 +85,7 @@ public class ProduccionTerminada {
         this.productoId = dto.getProductoId();
         this.fecha = dto.getFecha() != null ? dto.getFecha() : LocalDateTime.now();
         this.cantidadTerminada = dto.getCantidadTerminada();
+        this.almacenFincaProductoId = dto.getAlmacenFincaProductoId();
         this.trabajadorEntregaId = dto.getTrabajadorEntregaId();
         this.trabajadorRecibeId = dto.getTrabajadorRecibeId();
         this.observaciones = dto.getObservaciones();
@@ -99,6 +103,7 @@ public class ProduccionTerminada {
                 .productoName(producto != null ? producto.getName() : null)
                 .fecha(fecha)
                 .cantidadTerminada(cantidadTerminada)
+                .almacenFincaProductoId(almacenFincaProductoId)
                 .trabajadorEntregaId(trabajadorEntregaId)
                 .trabajadorEntregaNombre(trabajadorEntrega != null ? trabajadorEntrega.getNombre() : null)
                 .trabajadorRecibeId(trabajadorRecibeId)
@@ -106,5 +111,9 @@ public class ProduccionTerminada {
                 .observaciones(observaciones)
                 .activo(activo)
                 .build();
+    }
+
+    public void setCantidadTerminada(Number cantidadTerminada) {
+        this.cantidadTerminada = cantidadTerminada != null ? cantidadTerminada.doubleValue() : null;
     }
 }

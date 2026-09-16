@@ -15,7 +15,8 @@ public class CreateProduccionTerminadaCommand implements ICommand {
     private UUID fincaId;
     private UUID productoId;
     private LocalDateTime fecha;
-    private Integer cantidadTerminada;
+    private Double cantidadTerminada;
+    private UUID almacenFincaProductoId;
     private UUID trabajadorEntregaId;
     private UUID trabajadorRecibeId;
     private String observaciones;
@@ -28,7 +29,7 @@ public class CreateProduccionTerminadaCommand implements ICommand {
             UUID fincaId,
             UUID productoId,
             LocalDateTime fecha,
-            Integer cantidadTerminada,
+            Double cantidadTerminada,
             UUID trabajadorEntregaId,
             UUID trabajadorRecibeId,
             String observaciones) {
@@ -52,6 +53,10 @@ public class CreateProduccionTerminadaCommand implements ICommand {
                 request.getTrabajadorRecibeId(),
                 request.getObservaciones()
         );
+    }
+
+    public void setCantidadTerminada(Number cantidadTerminada) {
+        this.cantidadTerminada = cantidadTerminada != null ? cantidadTerminada.doubleValue() : null;
     }
 
     @Override

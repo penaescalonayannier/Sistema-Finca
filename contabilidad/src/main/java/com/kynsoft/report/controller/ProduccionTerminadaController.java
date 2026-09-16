@@ -179,8 +179,8 @@ public class ProduccionTerminadaController {
                 .map(ProduccionTerminadaResponse::new)
                 .collect(Collectors.toList());
 
-        Integer totalCantidad = producciones.stream()
-                .mapToInt(ProduccionTerminadaDto::getCantidadTerminada)
+        Double totalCantidad = producciones.stream()
+                .mapToDouble(ProduccionTerminadaDto::getCantidadTerminada)
                 .sum();
 
         Map<String, Object> response = new HashMap<>();

@@ -8,7 +8,11 @@ import java.util.UUID;
 @Getter
 @Setter
 public class UpdateProduccionTerminadaRequest {
-    private Integer cantidadTerminada;
+    private Double cantidadTerminada;
+
+    public void setCantidadTerminada(Number cantidadTerminada) {
+        this.cantidadTerminada = cantidadTerminada != null ? cantidadTerminada.doubleValue() : null;
+    }
     private UUID trabajadorEntregaId;
     private UUID trabajadorRecibeId;
     private String observaciones;

@@ -267,21 +267,21 @@ public class FincaProductoServiceImpl implements IFincaProductoService {
     }
 
     @Override
-    public void entradaProduccion(UUID fincaId, UUID productoId, Integer cantidad, String descripcion) {
+    public void entradaProduccion(UUID fincaId, UUID productoId, Double cantidad, String descripcion) {
         entradaProduccionInternal(fincaId, productoId, cantidad, descripcion, null, null);
     }
 
     @Override
-    public void entradaProduccion(UUID fincaId, UUID productoId, Integer cantidad, String descripcion, String centroCosto) {
+    public void entradaProduccion(UUID fincaId, UUID productoId, Double cantidad, String descripcion, String centroCosto) {
         entradaProduccionInternal(fincaId, productoId, cantidad, descripcion, null, centroCosto);
     }
 
     @Override
-    public void entradaProduccion(UUID fincaId, UUID productoId, Integer cantidad, String descripcion, UUID referenciaId) {
+    public void entradaProduccion(UUID fincaId, UUID productoId, Double cantidad, String descripcion, UUID referenciaId) {
         entradaProduccionInternal(fincaId, productoId, cantidad, descripcion, referenciaId, null);
     }
 
-    private void entradaProduccionInternal(UUID fincaId, UUID productoId, Integer cantidad, String descripcion, UUID referenciaId, String centroCosto) {
+    private void entradaProduccionInternal(UUID fincaId, UUID productoId, Double cantidad, String descripcion, UUID referenciaId, String centroCosto) {
         if (cantidad <= 0) {
             throw new BusinessNotFoundException(new GlobalBusinessException(
                     DomainErrorMessage.BUSINESS_NOT_FOUND,
@@ -304,7 +304,7 @@ public class FincaProductoServiceImpl implements IFincaProductoService {
                 fincaId,
                 productoId,
                 TipoMovimientoStock.ENTRADA_PRODUCCION,
-                cantidad.doubleValue(),
+                cantidad,
                 stockAnterior,
                 nuevoStock,
                 referenciaId,
@@ -440,12 +440,12 @@ public class FincaProductoServiceImpl implements IFincaProductoService {
     }
 
     @Override
-    public void decrementarStock(UUID fincaId, UUID productoId, Integer cantidad) {
+    public void decrementarStock(UUID fincaId, UUID productoId, Double cantidad) {
         decrementarStock(fincaId, productoId, cantidad, TipoMovimientoStock.AJUSTE_EDICION, null, null);
     }
 
     @Override
-    public void decrementarStock(UUID fincaId, UUID productoId, Integer cantidad,
+    public void decrementarStock(UUID fincaId, UUID productoId, Double cantidad,
                                   TipoMovimientoStock tipo, UUID referenciaId, String referenciaTabla) {
         if (cantidad <= 0) {
             throw new BusinessNotFoundException(new GlobalBusinessException(
@@ -474,7 +474,7 @@ public class FincaProductoServiceImpl implements IFincaProductoService {
                 fincaId,
                 productoId,
                 tipo,
-                -cantidad.doubleValue(),
+                -cantidad,
                 stockAnterior,
                 nuevoStock,
                 referenciaId,

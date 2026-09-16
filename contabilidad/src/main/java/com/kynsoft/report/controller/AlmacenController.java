@@ -19,6 +19,9 @@ import com.kynsoft.report.applications.command.almacen.establecerprincipal.Estab
 import com.kynsoft.report.applications.command.almacenproducto.entrada.EntradaAlmacenCommand;
 import com.kynsoft.report.applications.command.almacenproducto.entrada.EntradaAlmacenMessage;
 import com.kynsoft.report.applications.command.almacenproducto.entrada.EntradaAlmacenRequest;
+import com.kynsoft.report.applications.command.almacenproducto.produccionterminada.EntradaProduccionTerminadaAlmacenCommand;
+import com.kynsoft.report.applications.command.almacenproducto.produccionterminada.EntradaProduccionTerminadaAlmacenMessage;
+import com.kynsoft.report.applications.command.almacenproducto.produccionterminada.EntradaProduccionTerminadaAlmacenRequest;
 import com.kynsoft.report.applications.command.almacenproducto.salida.SalidaAlmacenCommand;
 import com.kynsoft.report.applications.command.almacenproducto.salida.SalidaAlmacenMessage;
 import com.kynsoft.report.applications.command.almacenproducto.salida.SalidaAlmacenRequest;
@@ -178,6 +181,20 @@ public class AlmacenController {
         request.setAlmacenFincaProductoId(request.getAlmacenFincaProductoId());
         EntradaAlmacenCommand command = EntradaAlmacenCommand.fromRequest(request);
         EntradaAlmacenMessage response = mediator.send(command);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Registra una producción terminada directamente en el almacén. La operación
+     * crea el documento y actualiza el inventario físico y el de finca una sola vez.
+     */
+    @PostMapping("/{almacenId}/entrada-produccion-terminada")
+    public ResponseEntity<EntradaProduccionTerminadaAlmacenMessage> entradaProduccionTerminada(
+            @PathVariable UUID almacenId,
+            @RequestBody EntradaProduccionTerminadaAlmacenRequest request) {
+        EntradaProduccionTerminadaAlmacenCommand command =
+                EntradaProduccionTerminadaAlmacenCommand.fromRequest(almacenId, request);
+        EntradaProduccionTerminadaAlmacenMessage response = mediator.send(command);
         return ResponseEntity.ok(response);
     }
 

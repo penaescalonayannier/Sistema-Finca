@@ -4,10 +4,12 @@ import com.kynsoft.share.core.domain.exception.BusinessNotFoundException;
 import com.kynsoft.report.domain.dto.CreateProduccionTerminadaResult;
 import com.kynsoft.report.domain.dto.DeleteProduccionTerminadaResult;
 import com.kynsoft.report.domain.dto.FincaProductoDto;
+import com.kynsoft.report.domain.dto.AlmacenFincaProductoDto;
 import com.kynsoft.report.domain.dto.ProduccionTerminadaDto;
 import com.kynsoft.report.domain.dto.TrabajadorDto;
 import com.kynsoft.report.domain.dto.UpdateProduccionTerminadaResult;
 import com.kynsoft.report.domain.services.IFincaProductoService;
+import com.kynsoft.report.domain.services.IAlmacenFincaProductoService;
 import com.kynsoft.report.domain.services.ITrabajadorService;
 import com.kynsoft.report.infrastructure.entity.ProduccionTerminada;
 import com.kynsoft.report.infrastructure.repository.command.ProduccionTerminadaWriteDataJPARepository;
@@ -44,6 +46,9 @@ class ProduccionTerminadaServiceImplTest {
 
     @Mock
     private ITrabajadorService trabajadorService;
+
+    @Mock
+    private IAlmacenFincaProductoService almacenFincaProductoService;
 
     @InjectMocks
     private ProduccionTerminadaServiceImpl produccionTerminadaService;
@@ -272,10 +277,47 @@ class ProduccionTerminadaServiceImplTest {
             verify(fincaProductoService).entradaProduccion(
                     eq(fincaId),
                     eq(productoId),
-                    eq(50),
+                    eq(50.0),
                     anyString(),
                     any(UUID.class)
             );
+        }
+
+        @Test
+        @DisplayName("Debe crear producción vinculada y registrar una única entrada de almacén")
+        void debeCrearProduccionVinculadaAlAlmacen() {
+            UUID almacenId = UUID.randomUUID();
+            UUID almacenFincaProductoId = UUID.randomUUID();
+            UUID fincaProductoId = fincaProductoDto.getId();
+            AlmacenFincaProductoDto almacenProducto = AlmacenFincaProductoDto.builder()
+                    .id(almacenFincaProductoId)
+                    .almacenId(almacenId)
+                    .fincaProductoId(fincaProductoId)
+                    .stock(10.0)
+                    .build();
+            ProduccionTerminadaDto dto = ProduccionTerminadaDto.builder()
+                    .cantidadTerminada(1.5)
+                    .trabajadorEntregaId(trabajadorEntregaId)
+                    .trabajadorRecibeId(trabajadorRecibeId)
+                    .observaciones("Yuca cosechada")
+                    .build();
+
+            when(almacenFincaProductoService.findById(almacenFincaProductoId)).thenReturn(almacenProducto);
+            when(fincaProductoService.getById(fincaProductoId)).thenReturn(fincaProductoDto);
+            when(trabajadorService.findById(trabajadorEntregaId)).thenReturn(trabajadorEntrega);
+            when(trabajadorService.findById(trabajadorRecibeId)).thenReturn(trabajadorRecibe);
+            when(repositoryCommand.save(any(ProduccionTerminada.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+            CreateProduccionTerminadaResult result = produccionTerminadaService
+                    .createEnAlmacen(almacenId, almacenFincaProductoId, dto);
+
+            assertNotNull(result.getId());
+            assertEquals(10.0, result.getStockAnterior());
+            assertEquals(11.5, result.getStockNuevo());
+            verify(almacenFincaProductoService).registrarEntradaProduccionTerminada(
+                    almacenFincaProductoId, 1.5, result.getId(), contains("Yuca cosechada"), isNull());
+            verify(fincaProductoService, never()).entradaProduccion(
+                    any(), any(), any(), anyString(), any(UUID.class));
         }
     }
 
@@ -390,12 +432,12 @@ class ProduccionTerminadaServiceImplTest {
             assertNotNull(result);
             assertEquals(100, result.getStockAnterior());
             assertEquals(120, result.getStockNuevo()); // 100 + 20
-            assertEquals(20, result.getAjuste());
+            assertEquals(20.0, result.getAjuste());
 
             verify(fincaProductoService).entradaProduccion(
                     eq(fincaId),
                     eq(productoId),
-                    eq(20),
+                    eq(20.0),
                     anyString(),
                     eq(produccionId)
             );
@@ -483,12 +525,12 @@ class ProduccionTerminadaServiceImplTest {
             assertNotNull(result);
             assertEquals(100, result.getStockAnterior());
             assertEquals(50, result.getStockNuevo()); // 100 - 50
-            assertEquals(50, result.getCantidadRevertida());
+            assertEquals(50.0, result.getCantidadRevertida());
 
             verify(fincaProductoService).decrementarStock(
                     eq(fincaId),
                     eq(productoId),
-                    eq(50),
+                    eq(50.0),
                     any(),
                     eq(produccionId),
                     eq("produccion_terminada")
@@ -523,7 +565,7 @@ class ProduccionTerminadaServiceImplTest {
             // Assert
             assertNotNull(result);
             assertEquals(produccionId, result.getId());
-            assertEquals(50, result.getCantidadTerminada());
+            assertEquals(50.0, result.getCantidadTerminada());
         }
 
         @Test

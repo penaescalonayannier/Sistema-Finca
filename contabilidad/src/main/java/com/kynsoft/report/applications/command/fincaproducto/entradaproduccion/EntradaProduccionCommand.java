@@ -14,7 +14,7 @@ import java.util.UUID;
 public class EntradaProduccionCommand implements ICommand {
     private UUID fincaId;
     private UUID productoId;
-    private Integer cantidad;
+    private Double cantidad;
     private String descripcion;
     private String centroCosto;
 
@@ -26,6 +26,10 @@ public class EntradaProduccionCommand implements ICommand {
                 request.getDescripcion(),
                 request.getCentroCosto()
         );
+    }
+
+    public void setCantidad(Number cantidad) {
+        this.cantidad = cantidad != null ? cantidad.doubleValue() : null;
     }
 
     @Override

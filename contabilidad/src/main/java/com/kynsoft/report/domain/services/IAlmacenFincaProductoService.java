@@ -38,6 +38,55 @@ public interface IAlmacenFincaProductoService {
 
     void entrada(UUID almacenFincaProductoId, Double cantidad, TipoMovimientoStock tipo, String descripcion, String centroCosto);
 
+    /**
+     * Registra la entrada física producida por un documento de producción
+     * terminada. Actualiza el almacén y el total de la finca en una única
+     * operación de inventario, dejando el movimiento enlazado al documento.
+     */
+    void registrarEntradaProduccionTerminada(UUID almacenFincaProductoId, Double cantidad,
+                                             UUID produccionId, String descripcion, String centroCosto);
+
+    /**
+     * Ajusta la entrada vinculada a una producción. Se conserva para los
+     * consumidores que todavía no transmiten la referencia del documento.
+     */
+    void actualizarEntradaProduccion(UUID almacenFincaProductoId, Double cantidadAnterior,
+                                     Double cantidadNueva, String descripcion);
+
+    /**
+     * Ajusta la entrada de un documento de producción y conserva su
+     * referencia de auditoría.
+     */
+    void actualizarEntradaProduccion(UUID almacenFincaProductoId, Double cantidadAnterior,
+                                     Double cantidadNueva, UUID produccionId, String descripcion);
+
+    /**
+     * Variante trazable del ajuste de una producción terminada.
+     */
+    void actualizarEntradaProduccion(UUID almacenFincaProductoId, Double cantidadAnterior,
+                                     Double cantidadNueva, UUID produccionId,
+                                     String descripcion, String centroCosto);
+
+    /**
+     * Revierte una entrada de producción. Se conserva para consumidores sin
+     * referencia; las operaciones de producción deben usar la sobrecarga
+     * trazable.
+     */
+    void revertirEntradaProduccion(UUID almacenFincaProductoId, Double cantidad, String descripcion);
+
+    /**
+     * Revierte la entrada de un documento de producción y conserva su
+     * referencia de auditoría.
+     */
+    void revertirEntradaProduccion(UUID almacenFincaProductoId, Double cantidad,
+                                   UUID produccionId, String descripcion);
+
+    /**
+     * Variante trazable de la reversión de una producción terminada.
+     */
+    void revertirEntradaProduccion(UUID almacenFincaProductoId, Double cantidad,
+                                   UUID produccionId, String descripcion, String centroCosto);
+
     // ==================== SALIDAS ====================
 
     void salida(UUID almacenFincaProductoId, Double cantidad, String descripcion);

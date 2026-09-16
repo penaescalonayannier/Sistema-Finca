@@ -12,7 +12,12 @@ public class CreateProduccionTerminadaRequest {
     private UUID fincaId;
     private UUID productoId;
     private LocalDateTime fecha;
-    private Integer cantidadTerminada;
+    private Double cantidadTerminada;
+    private UUID almacenFincaProductoId;
+
+    public void setCantidadTerminada(Number cantidadTerminada) {
+        this.cantidadTerminada = cantidadTerminada != null ? cantidadTerminada.doubleValue() : null;
+    }
     private UUID trabajadorEntregaId;
     private UUID trabajadorRecibeId;
     private String observaciones;

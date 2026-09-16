@@ -11,7 +11,7 @@ import java.util.UUID;
 @Setter
 public class UpdateProduccionTerminadaCommand implements ICommand {
     private UUID id;
-    private Integer cantidadTerminada;
+    private Double cantidadTerminada;
     private UUID trabajadorEntregaId;
     private UUID trabajadorRecibeId;
     private String observaciones;
@@ -19,11 +19,11 @@ public class UpdateProduccionTerminadaCommand implements ICommand {
     // Resultado del servicio
     private Double stockAnterior;
     private Double stockNuevo;
-    private Integer ajuste;
+    private Double ajuste;
 
     public UpdateProduccionTerminadaCommand(
             UUID id,
-            Integer cantidadTerminada,
+            Double cantidadTerminada,
             UUID trabajadorEntregaId,
             UUID trabajadorRecibeId,
             String observaciones) {
@@ -32,6 +32,14 @@ public class UpdateProduccionTerminadaCommand implements ICommand {
         this.trabajadorEntregaId = trabajadorEntregaId;
         this.trabajadorRecibeId = trabajadorRecibeId;
         this.observaciones = observaciones;
+    }
+
+    public void setCantidadTerminada(Number cantidadTerminada) {
+        this.cantidadTerminada = cantidadTerminada != null ? cantidadTerminada.doubleValue() : null;
+    }
+
+    public void setAjuste(Number ajuste) {
+        this.ajuste = ajuste != null ? ajuste.doubleValue() : null;
     }
 
     public static UpdateProduccionTerminadaCommand fromRequest(UpdateProduccionTerminadaRequest request, UUID id) {

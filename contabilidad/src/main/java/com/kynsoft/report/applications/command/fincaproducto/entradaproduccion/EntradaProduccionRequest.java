@@ -14,7 +14,11 @@ import java.util.UUID;
 public class EntradaProduccionRequest {
     private UUID fincaId;
     private UUID productoId;
-    private Integer cantidad;
+    private Double cantidad;
     private String descripcion;
     private String centroCosto;  // Código del centro de costo para contabilidad (ej: 700.01.04)
+
+    public void setCantidad(Number cantidad) {
+        this.cantidad = cantidad != null ? cantidad.doubleValue() : null;
+    }
 }

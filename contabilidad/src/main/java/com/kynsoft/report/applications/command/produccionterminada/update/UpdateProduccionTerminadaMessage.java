@@ -10,10 +10,10 @@ public class UpdateProduccionTerminadaMessage implements ICommandMessage {
     private final UUID id;
     private final Double stockAnterior;
     private final Double stockNuevo;
-    private final Integer ajuste;
+    private final Double ajuste;
     private final String command = "UPDATE_PRODUCCION_TERMINADA";
 
-    public UpdateProduccionTerminadaMessage(UUID id, Double stockAnterior, Double stockNuevo, Integer ajuste) {
+    public UpdateProduccionTerminadaMessage(UUID id, Double stockAnterior, Double stockNuevo, Double ajuste) {
         this.id = id;
         this.stockAnterior = stockAnterior;
         this.stockNuevo = stockNuevo;

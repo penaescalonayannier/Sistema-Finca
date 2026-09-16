@@ -23,7 +23,8 @@ public class ProduccionTerminadaResponse implements IResponse {
     private String productoCode;
     private String productoName;
     private LocalDateTime fecha;
-    private Integer cantidadTerminada;
+    private Double cantidadTerminada;
+    private UUID almacenFincaProductoId;
     private UUID trabajadorEntregaId;
     private String trabajadorEntregaNombre;
     private UUID trabajadorRecibeId;
@@ -41,6 +42,7 @@ public class ProduccionTerminadaResponse implements IResponse {
         this.productoName = dto.getProductoName();
         this.fecha = dto.getFecha();
         this.cantidadTerminada = dto.getCantidadTerminada();
+        this.almacenFincaProductoId = dto.getAlmacenFincaProductoId();
         this.trabajadorEntregaId = dto.getTrabajadorEntregaId();
         this.trabajadorEntregaNombre = dto.getTrabajadorEntregaNombre();
         this.trabajadorRecibeId = dto.getTrabajadorRecibeId();

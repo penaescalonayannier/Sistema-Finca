@@ -1,6 +1,7 @@
 package com.kynsoft.report.infrastructure.services;
 
 import com.kynsoft.share.core.domain.exception.BusinessNotFoundException;
+import com.kynsoft.report.domain.dto.MovimientoStockDto;
 import com.kynsoft.report.domain.dto.TipoMovimientoStock;
 import com.kynsoft.report.domain.services.IMovimientoStockService;
 import com.kynsoft.report.infrastructure.entity.Almacen;
@@ -211,6 +212,92 @@ class AlmacenFincaProductoServiceImplTest {
             verify(repositoryCommand).save(any(AlmacenFincaProducto.class));
             verify(fincaProductoWriteRepository).save(any(FincaProducto.class));
             verify(movimientoStockService).registrar(any());
+        }
+    }
+
+    // ==================== PRODUCCIÓN TERMINADA TESTS ====================
+
+    @Nested
+    @DisplayName("movimientos de producción terminada")
+    class ProduccionTerminadaTests {
+
+        private UUID produccionId;
+
+        @BeforeEach
+        void setUpProduccionTerminada() {
+            produccionId = UUID.randomUUID();
+            when(repositoryQuery.findById(almacenFincaProducto.getId()))
+                    .thenReturn(Optional.of(almacenFincaProducto));
+            when(repositoryCommand.save(any(AlmacenFincaProducto.class)))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
+            when(fincaProductoWriteRepository.save(any(FincaProducto.class)))
+                    .thenAnswer(invocation -> invocation.getArgument(0));
+        }
+
+        @Test
+        @DisplayName("debe incrementar ambos stocks y registrar un único movimiento enlazado")
+        void debeRegistrarEntradaDeProduccionTerminadaUnaSolaVez() {
+            service.registrarEntradaProduccionTerminada(almacenFincaProducto.getId(), 12.5,
+                    produccionId, "Cosecha del día", "CC-01");
+
+            assertEquals(62.5, almacenFincaProducto.getStock());
+            assertEquals(112.5, fincaProducto.getStock());
+            verify(repositoryCommand, times(1)).save(almacenFincaProducto);
+            verify(fincaProductoWriteRepository, times(1)).save(fincaProducto);
+
+            ArgumentCaptor<MovimientoStockDto> movimiento = ArgumentCaptor.forClass(MovimientoStockDto.class);
+            verify(movimientoStockService, times(1)).registrar(movimiento.capture());
+            assertEquals(TipoMovimientoStock.ENTRADA_PRODUCCION, movimiento.getValue().getTipo());
+            assertEquals(12.5, movimiento.getValue().getCantidad());
+            assertEquals(produccionId, movimiento.getValue().getReferenciaId());
+            assertEquals("produccion_terminada", movimiento.getValue().getReferenciaTabla());
+            assertEquals(almacenId, movimiento.getValue().getAlmacenId());
+        }
+
+        @Test
+        @DisplayName("debe disminuir ambos stocks al corregir la cantidad y conservar la referencia")
+        void debeAjustarProduccionTerminadaAlDisminuir() {
+            service.actualizarEntradaProduccion(almacenFincaProducto.getId(), 20.0, 12.5,
+                    produccionId, "Corrección de cantidad");
+
+            assertEquals(42.5, almacenFincaProducto.getStock());
+            assertEquals(92.5, fincaProducto.getStock());
+            ArgumentCaptor<MovimientoStockDto> movimiento = ArgumentCaptor.forClass(MovimientoStockDto.class);
+            verify(movimientoStockService, times(1)).registrar(movimiento.capture());
+            assertEquals(TipoMovimientoStock.AJUSTE_EDICION, movimiento.getValue().getTipo());
+            assertEquals(7.5, movimiento.getValue().getCantidad());
+            assertEquals(produccionId, movimiento.getValue().getReferenciaId());
+            assertEquals("produccion_terminada", movimiento.getValue().getReferenciaTabla());
+        }
+
+        @Test
+        @DisplayName("debe rechazar ajuste negativo cuando no hay stock suficiente en el almacén")
+        void debeRechazarAjusteNegativoSinStockEnAlmacen() {
+            almacenFincaProducto.setStock(5.0);
+
+            assertThrows(BusinessNotFoundException.class,
+                    () -> service.actualizarEntradaProduccion(almacenFincaProducto.getId(), 20.0, 10.0,
+                            produccionId, "Corrección"));
+
+            verify(repositoryCommand, never()).save(any());
+            verify(fincaProductoWriteRepository, never()).save(any());
+            verify(movimientoStockService, never()).registrar(any());
+        }
+
+        @Test
+        @DisplayName("debe revertir ambos stocks y registrar un único movimiento enlazado")
+        void debeRevertirProduccionTerminada() {
+            service.revertirEntradaProduccion(almacenFincaProducto.getId(), 20.0,
+                    produccionId, "Anulación de producción");
+
+            assertEquals(30.0, almacenFincaProducto.getStock());
+            assertEquals(80.0, fincaProducto.getStock());
+            ArgumentCaptor<MovimientoStockDto> movimiento = ArgumentCaptor.forClass(MovimientoStockDto.class);
+            verify(movimientoStockService, times(1)).registrar(movimiento.capture());
+            assertEquals(TipoMovimientoStock.REVERSION_PRODUCCION, movimiento.getValue().getTipo());
+            assertEquals(20.0, movimiento.getValue().getCantidad());
+            assertEquals(produccionId, movimiento.getValue().getReferenciaId());
+            assertEquals("produccion_terminada", movimiento.getValue().getReferenciaTabla());
         }
     }
 

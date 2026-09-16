@@ -17,5 +17,12 @@ public class UpdateProduccionTerminadaResult {
     private UUID id;
     private Double stockAnterior;
     private Double stockNuevo;
-    private Integer ajuste;
+    private Double ajuste;
+
+    public static class UpdateProduccionTerminadaResultBuilder {
+        public UpdateProduccionTerminadaResultBuilder ajuste(Number ajuste) {
+            this.ajuste = ajuste != null ? ajuste.doubleValue() : null;
+            return this;
+        }
+    }
 }

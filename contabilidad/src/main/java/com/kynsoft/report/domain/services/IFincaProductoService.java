@@ -39,13 +39,13 @@ public interface IFincaProductoService {
     Double obtenerStock(UUID fincaId, UUID productoId);
 
     // Entrada de producción: suma cantidad al stock existente
-    void entradaProduccion(UUID fincaId, UUID productoId, Integer cantidad, String descripcion);
+    void entradaProduccion(UUID fincaId, UUID productoId, Double cantidad, String descripcion);
 
     // Entrada de producción con centro de costo para contabilidad
-    void entradaProduccion(UUID fincaId, UUID productoId, Integer cantidad, String descripcion, String centroCosto);
+    void entradaProduccion(UUID fincaId, UUID productoId, Double cantidad, String descripcion, String centroCosto);
 
     // Entrada de producción con referencia para auditoría
-    void entradaProduccion(UUID fincaId, UUID productoId, Integer cantidad, String descripcion, UUID referenciaId);
+    void entradaProduccion(UUID fincaId, UUID productoId, Double cantidad, String descripcion, UUID referenciaId);
 
     // Entrada por factura: requiere número de factura
     void entradaFactura(UUID id, Integer cantidad, String numeroFactura, String observaciones);
@@ -57,10 +57,10 @@ public interface IFincaProductoService {
     void ajusteManual(UUID id, Double cantidad, String observaciones);
 
     // Salida/Reverso de producción: resta cantidad del stock existente
-    void decrementarStock(UUID fincaId, UUID productoId, Integer cantidad);
+    void decrementarStock(UUID fincaId, UUID productoId, Double cantidad);
 
     // Decremento con tipo y referencia para auditoría
-    void decrementarStock(UUID fincaId, UUID productoId, Integer cantidad,
+    void decrementarStock(UUID fincaId, UUID productoId, Double cantidad,
                           TipoMovimientoStock tipo, UUID referenciaId, String referenciaTabla);
 
     // Búsqueda paginada con filtros

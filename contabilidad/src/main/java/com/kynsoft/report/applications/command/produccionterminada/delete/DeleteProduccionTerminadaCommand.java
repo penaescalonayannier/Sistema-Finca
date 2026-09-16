@@ -15,10 +15,14 @@ public class DeleteProduccionTerminadaCommand implements ICommand {
     // Resultado del servicio
     private Double stockAnterior;
     private Double stockNuevo;
-    private Integer cantidadRevertida;
+    private Double cantidadRevertida;
 
     public DeleteProduccionTerminadaCommand(UUID id) {
         this.id = id;
+    }
+
+    public void setCantidadRevertida(Number cantidadRevertida) {
+        this.cantidadRevertida = cantidadRevertida != null ? cantidadRevertida.doubleValue() : null;
     }
 
     @Override

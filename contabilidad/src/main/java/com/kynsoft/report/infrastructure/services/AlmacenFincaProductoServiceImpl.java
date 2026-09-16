@@ -204,6 +204,76 @@ public class AlmacenFincaProductoServiceImpl implements IAlmacenFincaProductoSer
                 afp.getAlmacen().getNombre(), fp.getProducto().getName(), cantidad, stockNuevo, fp.getStock(), centroCosto);
     }
 
+    // ==================== PRODUCCIÓN TERMINADA ====================
+
+    /**
+     * Esta operación no delega en {@link #entrada} porque la producción
+     * terminada debe dejar un solo MovimientoStock, con la referencia del
+     * documento, y debe afectar el almacén y FincaProducto exactamente una
+     * vez dentro de la misma transacción.
+     */
+    @Override
+    public void registrarEntradaProduccionTerminada(UUID almacenFincaProductoId, Double cantidad,
+                                                     UUID produccionId, String descripcion,
+                                                     String centroCosto) {
+        validarCantidadPositiva(cantidad);
+        validarReferenciaProduccion(produccionId);
+        modificarStockPorProduccion(almacenFincaProductoId, cantidad,
+                TipoMovimientoStock.ENTRADA_PRODUCCION, produccionId, descripcion, centroCosto);
+    }
+
+    @Override
+    public void actualizarEntradaProduccion(UUID almacenFincaProductoId, Double cantidadAnterior,
+                                            Double cantidadNueva, String descripcion) {
+        actualizarEntradaProduccion(almacenFincaProductoId, cantidadAnterior, cantidadNueva,
+                null, descripcion, null);
+    }
+
+    @Override
+    public void actualizarEntradaProduccion(UUID almacenFincaProductoId, Double cantidadAnterior,
+                                            Double cantidadNueva, UUID produccionId, String descripcion) {
+        validarReferenciaProduccion(produccionId);
+        actualizarEntradaProduccion(almacenFincaProductoId, cantidadAnterior, cantidadNueva,
+                produccionId, descripcion, null);
+    }
+
+    @Override
+    public void actualizarEntradaProduccion(UUID almacenFincaProductoId, Double cantidadAnterior,
+                                            Double cantidadNueva, UUID produccionId,
+                                            String descripcion, String centroCosto) {
+        validarCantidadPositiva(cantidadAnterior);
+        validarCantidadPositiva(cantidadNueva);
+
+        double ajuste = cantidadNueva - cantidadAnterior;
+        if (Double.compare(ajuste, 0.0) == 0) {
+            return;
+        }
+
+        modificarStockPorProduccion(almacenFincaProductoId, ajuste,
+                ajuste > 0 ? TipoMovimientoStock.ENTRADA_PRODUCCION : TipoMovimientoStock.AJUSTE_EDICION,
+                produccionId, descripcion, centroCosto);
+    }
+
+    @Override
+    public void revertirEntradaProduccion(UUID almacenFincaProductoId, Double cantidad, String descripcion) {
+        revertirEntradaProduccion(almacenFincaProductoId, cantidad, null, descripcion, null);
+    }
+
+    @Override
+    public void revertirEntradaProduccion(UUID almacenFincaProductoId, Double cantidad,
+                                          UUID produccionId, String descripcion) {
+        validarReferenciaProduccion(produccionId);
+        revertirEntradaProduccion(almacenFincaProductoId, cantidad, produccionId, descripcion, null);
+    }
+
+    @Override
+    public void revertirEntradaProduccion(UUID almacenFincaProductoId, Double cantidad,
+                                          UUID produccionId, String descripcion, String centroCosto) {
+        validarCantidadPositiva(cantidad);
+        modificarStockPorProduccion(almacenFincaProductoId, -cantidad,
+                TipoMovimientoStock.REVERSION_PRODUCCION, produccionId, descripcion, centroCosto);
+    }
+
     // ==================== SALIDAS ====================
 
     @Override
@@ -425,6 +495,55 @@ public class AlmacenFincaProductoServiceImpl implements IAlmacenFincaProductoSer
         }
     }
 
+    private void validarReferenciaProduccion(UUID produccionId) {
+        if (produccionId == null) {
+            throw new BusinessNotFoundException(new GlobalBusinessException(
+                    DomainErrorMessage.BUSINESS_NOT_FOUND,
+                    new ErrorField("produccionId", "La producción terminada es requerida.")));
+        }
+    }
+
+    /**
+     * Modifica ambos saldos de inventario y deja exactamente un movimiento.
+     * El signo de {@code variacion} determina si la operación aumenta o
+     * disminuye las existencias; la cantidad almacenada en el movimiento es
+     * siempre positiva y el tipo expresa su dirección.
+     */
+    private void modificarStockPorProduccion(UUID almacenFincaProductoId, double variacion,
+                                             TipoMovimientoStock tipo, UUID produccionId,
+                                             String descripcion, String centroCosto) {
+        AlmacenFincaProducto afp = findEntityById(almacenFincaProductoId);
+        FincaProducto fincaProducto = afp.getFincaProducto();
+        Double stockAlmacenAnterior = afp.getStock() != null ? afp.getStock() : 0.0;
+        Double stockFincaAnterior = fincaProducto.getStock() != null ? fincaProducto.getStock() : 0.0;
+
+        if (variacion < 0) {
+            double cantidadADisminuir = Math.abs(variacion);
+            if (stockAlmacenAnterior < cantidadADisminuir) {
+                throw new BusinessNotFoundException(new GlobalBusinessException(
+                        DomainErrorMessage.BUSINESS_NOT_FOUND,
+                        new ErrorField("cantidad", "Stock insuficiente en el almacén. Disponible: "
+                                + stockAlmacenAnterior)));
+            }
+            if (stockFincaAnterior < cantidadADisminuir) {
+                throw new BusinessNotFoundException(new GlobalBusinessException(
+                        DomainErrorMessage.BUSINESS_NOT_FOUND,
+                        new ErrorField("cantidad", "Stock insuficiente en la finca. Disponible: "
+                                + stockFincaAnterior)));
+            }
+        }
+
+        Double stockAlmacenNuevo = stockAlmacenAnterior + variacion;
+        Double stockFincaNuevo = stockFincaAnterior + variacion;
+        afp.setStock(stockAlmacenNuevo);
+        fincaProducto.setStock(stockFincaNuevo);
+        repositoryCommand.save(afp);
+        fincaProductoWriteRepository.save(fincaProducto);
+
+        registrarMovimientoProduccion(afp, tipo, Math.abs(variacion), stockAlmacenAnterior,
+                stockAlmacenNuevo, produccionId, descripcion, centroCosto);
+    }
+
     private void registrarMovimiento(AlmacenFincaProducto afp, TipoMovimientoStock tipo,
                                       Double cantidad, Double stockAnterior, Double stockNuevo,
                                       String descripcion) {
@@ -443,6 +562,27 @@ public class AlmacenFincaProductoServiceImpl implements IAlmacenFincaProductoSer
                 .cantidad(cantidad != null ? cantidad : 0.0)
                 .stockAnterior(stockAnterior)
                 .stockNuevo(stockNuevo)
+                .descripcion(descripcion)
+                .centroCosto(centroCosto)
+                .build();
+        movimientoStockService.registrar(movimiento);
+    }
+
+    private void registrarMovimientoProduccion(AlmacenFincaProducto afp, TipoMovimientoStock tipo,
+                                                Double cantidad, Double stockAnterior, Double stockNuevo,
+                                                UUID produccionId, String descripcion, String centroCosto) {
+        MovimientoStockDto movimiento = MovimientoStockDto.builder()
+                .id(UUID.randomUUID())
+                .fincaProductoId(afp.getFincaProducto().getId())
+                .fincaId(afp.getFincaProducto().getFinca().getId())
+                .productoId(afp.getFincaProducto().getProducto().getId())
+                .almacenId(afp.getAlmacen().getId())
+                .tipo(tipo)
+                .cantidad(cantidad)
+                .stockAnterior(stockAnterior)
+                .stockNuevo(stockNuevo)
+                .referenciaId(produccionId)
+                .referenciaTabla(produccionId != null ? "produccion_terminada" : null)
                 .descripcion(descripcion)
                 .centroCosto(centroCosto)
                 .build();
