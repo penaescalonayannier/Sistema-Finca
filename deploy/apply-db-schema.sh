@@ -88,3 +88,5 @@ PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
     -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V35__ciclo_formal_evaluacion_desempeno.sql"
 PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
     -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V36__historial_salarial_trabajador.sql"
+PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
+    -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V37__consecutivo_asiento_contable_seguro.sql"

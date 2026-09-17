@@ -173,6 +173,10 @@ La actualización incorpora cuatro componentes de Recursos Humanos sin modificar
 
 Las migraciones `V33__estructura_organizativa_y_plazas.sql`, `V34__expediente_disciplina_laboral.sql`, `V35__ciclo_formal_evaluacion_desempeno.sql` y `V36__historial_salarial_trabajador.sql` son aditivas e idempotentes. Después de actualizar, compruebe que un trabajador histórico sigue abriendo normalmente, cree una plaza de prueba sin asignarla, consulte una evaluación existente y registre una vigencia salarial de prueba; no realice cálculos de nómina desde estas nuevas vistas.
 
+### Consecutivos seguros de asientos contables (V37)
+
+`V37__consecutivo_asiento_contable_seguro.sql` reemplaza el cálculo local del próximo asiento por una reserva atómica en PostgreSQL. Conserva el formato `AS-AAAAMMDD-####`, inicializa su contador desde los asientos históricos y evita duplicados si dos movimientos se registran a la vez. No renumera, altera ni elimina asientos existentes.
+
 ## Estado registrado el 2026-09-16
 
 | PC | Estado | Observaciones |

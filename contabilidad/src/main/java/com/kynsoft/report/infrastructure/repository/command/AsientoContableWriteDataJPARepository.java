@@ -6,10 +6,15 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 public interface AsientoContableWriteDataJPARepository extends JpaRepository<AsientoContable, UUID> {
+
+    /** Reserva el consecutivo en PostgreSQL para evitar colisiones entre transacciones. */
+    @Query(value = "SELECT generar_numero_asiento_diario(CAST(:fecha AS date))", nativeQuery = true)
+    String reservarSiguienteNumero(@Param("fecha") LocalDate fecha);
 
     @Modifying
     @Query("UPDATE AsientoContable a SET a.asentado = true, a.fechaAsentado = :fecha, a.usuarioAsento = :usuario WHERE a.id = :id")

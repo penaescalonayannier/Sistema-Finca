@@ -24,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -47,8 +46,6 @@ public class ContabilizacionAutomaticaServiceImpl implements IContabilizacionAut
     private final AsientoContableWriteDataJPARepository asientoWriteRepository;
     private final IProductoService productoService;
     private final ICuentaContableService cuentaContableService;
-
-    private static final DateTimeFormatter NUMERO_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     @Override
     @Transactional
@@ -91,8 +88,13 @@ public class ContabilizacionAutomaticaServiceImpl implements IContabilizacionAut
             return Optional.empty();
         }
 
-        // Generate entry number
-        String numeroAsiento = generarNumeroAsiento();
+        // El consecutivo se reserva en PostgreSQL bajo bloqueo de fila. No se
+        // calcula con MAX en memoria porque dos operaciones concurrentes podían
+        // recibir el mismo AS-AAAAMMDD-NNNN.
+        LocalDate fechaAsiento = movimiento.getFecha() != null
+                ? movimiento.getFecha().toLocalDate()
+                : LocalDate.now();
+        String numeroAsiento = asientoWriteRepository.reservarSiguienteNumero(fechaAsiento);
 
         // Build description from template or default
         String descripcion = buildDescripcion(regla, movimiento, producto);
@@ -105,9 +107,7 @@ public class ContabilizacionAutomaticaServiceImpl implements IContabilizacionAut
         AsientoContable asiento = new AsientoContable();
         asiento.setId(UUID.randomUUID());
         asiento.setNumero(numeroAsiento);
-        asiento.setFecha(movimiento.getFecha() != null
-                ? movimiento.getFecha().toLocalDate()
-                : LocalDate.now());
+        asiento.setFecha(fechaAsiento);
         asiento.setDescripcion(descripcion);
         asiento.setMovimientoStockId(movimiento.getId());
         asiento.setTablaOrigen("movimiento_stock");
@@ -179,25 +179,6 @@ public class ContabilizacionAutomaticaServiceImpl implements IContabilizacionAut
 
         // Default: general price (SALIDA_VENTA, entries, etc.)
         return BigDecimal.valueOf(producto.getPrice());
-    }
-
-    private String generarNumeroAsiento() {
-        String prefijo = "AS-" + LocalDate.now().format(NUMERO_FORMAT) + "-";
-        String maxNumero = asientoReadRepository.findMaxNumeroByPrefijo(prefijo);
-
-        int siguiente = 1;
-        if (maxNumero != null) {
-            String[] parts = maxNumero.split("-");
-            if (parts.length >= 3) {
-                try {
-                    siguiente = Integer.parseInt(parts[parts.length - 1]) + 1;
-                } catch (NumberFormatException e) {
-                    log.warn("Could not parse entry number: {}", maxNumero);
-                }
-            }
-        }
-
-        return prefijo + String.format("%04d", siguiente);
     }
 
     private String buildDescripcion(ReglaContabilizacionDto regla, MovimientoStockDto mov, ProductoDto producto) {
