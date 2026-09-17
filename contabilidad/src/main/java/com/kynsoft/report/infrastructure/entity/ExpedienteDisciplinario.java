@@ -7,6 +7,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -16,6 +17,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
+@Table(name = "expediente_disciplinario")
 public class ExpedienteDisciplinario {
     @Id private UUID id;
     @Column(name = "finca_id", nullable = false) private UUID fincaId;
