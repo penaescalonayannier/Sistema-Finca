@@ -39,6 +39,14 @@ public interface IAlmacenFincaProductoService {
     void entrada(UUID almacenFincaProductoId, Double cantidad, TipoMovimientoStock tipo, String descripcion, String centroCosto);
 
     /**
+     * Entrada física respaldada por un informe de recepción SC-2-04. El UUID
+     * devuelto identifica el movimiento de stock enlazado al expediente.
+     */
+    UUID entradaConInformeRecepcion(UUID almacenFincaProductoId, Double cantidad,
+                                    TipoMovimientoStock tipo, UUID informeRecepcionId, UUID movimientoStockId,
+                                    String descripcion);
+
+    /**
      * Registra la entrada física producida por un documento de producción
      * terminada. Actualiza el almacén y el total de la finca en una única
      * operación de inventario, dejando el movimiento enlazado al documento.

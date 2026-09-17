@@ -7,6 +7,8 @@ import com.kynsoft.report.infrastructure.repository.command.ConfiguracionNumerac
 import com.kynsoft.report.infrastructure.repository.query.ConfiguracionNumeracionReadDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.SalidaReadDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.ProduccionTerminadaReadDataJPARepository;
+import com.kynsoft.report.infrastructure.repository.query.TransferenciaAlmacenReadDataJPARepository;
+import com.kynsoft.report.infrastructure.repository.query.InformeRecepcionReadDataJPARepository;
 import com.kynsoft.report.infrastructure.security.TenantValidator;
 import com.kynsoft.report.domain.dto.EstadoConsecutivoDocumentoDto;
 import com.kynsoft.report.domain.dto.TipoSalida;
@@ -33,6 +35,8 @@ public class NumeracionServiceImpl implements INumeracionService {
     private final ConfiguracionNumeracionWriteDataJPARepository writeRepository;
     private final SalidaReadDataJPARepository salidaReadRepository;
     private final ProduccionTerminadaReadDataJPARepository produccionReadRepository;
+    private final TransferenciaAlmacenReadDataJPARepository transferenciaReadRepository;
+    private final InformeRecepcionReadDataJPARepository informeRecepcionReadRepository;
 
     @PersistenceContext(unitName = "WriteDB")
     private EntityManager writeEntityManager;
@@ -102,7 +106,8 @@ public class NumeracionServiceImpl implements INumeracionService {
             throw new IllegalArgumentException("La finca y un año válido son obligatorios.");
         }
         TenantValidator.validateReadAccess(fincaId);
-        return List.of(TipoDocumento.VALE, TipoDocumento.FACTURA, TipoDocumento.PRODUCCION).stream()
+        return List.of(TipoDocumento.VALE, TipoDocumento.FACTURA, TipoDocumento.PRODUCCION,
+                        TipoDocumento.TRANSFERENCIA_ALMACEN, TipoDocumento.RECEPCION).stream()
                 .map(tipo -> estado(fincaId, tipo, anio))
                 .toList();
     }
@@ -124,6 +129,14 @@ public class NumeracionServiceImpl implements INumeracionService {
         LocalDate fin = inicio.plusYears(1);
         if (tipo == TipoDocumento.PRODUCCION) {
             return produccionReadRepository.findNumerosDocumentoPorFincaYAnio(fincaId,
+                    inicio.atStartOfDay(), fin.atStartOfDay());
+        }
+        if (tipo == TipoDocumento.TRANSFERENCIA_ALMACEN) {
+            return transferenciaReadRepository.findNumerosDocumentoPorFincaYAnio(fincaId,
+                    inicio.atStartOfDay(), fin.atStartOfDay());
+        }
+        if (tipo == TipoDocumento.RECEPCION) {
+            return informeRecepcionReadRepository.findNumerosDocumentoPorFincaYAnio(fincaId,
                     inicio.atStartOfDay(), fin.atStartOfDay());
         }
         TipoSalida tipoSalida = tipo == TipoDocumento.VALE ? TipoSalida.VALE : TipoSalida.FACTURA;

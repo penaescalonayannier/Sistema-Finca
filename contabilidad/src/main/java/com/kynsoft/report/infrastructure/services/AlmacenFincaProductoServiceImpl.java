@@ -238,6 +238,43 @@ public class AlmacenFincaProductoServiceImpl implements IAlmacenFincaProductoSer
                 afp.getAlmacen().getNombre(), fp.getProducto().getName(), cantidad, stockNuevo, fp.getStock(), centroCosto);
     }
 
+    /**
+     * Variante documental de la entrada. No reutiliza la entrada genérica para
+     * evitar que el movimiento quede sin el vínculo bidireccional exigido por
+     * el expediente de recepción SC-2-04.
+     */
+    @Override
+    public UUID entradaConInformeRecepcion(UUID almacenFincaProductoId, Double cantidad,
+                                           TipoMovimientoStock tipo, UUID informeRecepcionId, UUID movimientoStockId,
+                                           String descripcion) {
+        validarCantidadPositiva(cantidad);
+        if (informeRecepcionId == null || (tipo != TipoMovimientoStock.ENTRADA_FACTURA
+                && tipo != TipoMovimientoStock.ENTRADA_CONDUCE)) {
+            throw new IllegalArgumentException("La entrada documental debe indicar un informe de recepción y su fuente.");
+        }
+        AlmacenFincaProducto afp = findEntityById(almacenFincaProductoId);
+        Double stockAnterior = afp.getStock();
+        Double stockNuevo = stockAnterior + cantidad;
+        afp.setStock(stockNuevo);
+        repositoryCommand.save(afp);
+        FincaProducto fp = afp.getFincaProducto();
+        fp.setStock(fp.getStock() + cantidad);
+        fincaProductoWriteRepository.save(fp);
+
+        UUID movimientoId = movimientoStockId == null ? UUID.randomUUID() : movimientoStockId;
+        MovimientoStockDto movimiento = MovimientoStockDto.builder()
+                .id(movimientoId)
+                .fincaProductoId(fp.getId())
+                .fincaId(fp.getFinca().getId())
+                .productoId(fp.getProducto().getId())
+                .almacenId(afp.getAlmacen().getId())
+                .tipo(tipo).cantidad(cantidad).stockAnterior(stockAnterior).stockNuevo(stockNuevo)
+                .referenciaId(informeRecepcionId).referenciaTabla("informe_recepcion")
+                .descripcion(descripcion).build();
+        movimientoStockService.registrar(movimiento);
+        return movimientoId;
+    }
+
     // ==================== PRODUCCIÓN TERMINADA ====================
 
     /**

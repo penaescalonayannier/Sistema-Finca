@@ -8,6 +8,7 @@ import com.kynsoft.share.core.domain.response.ErrorField;
 import com.kynsoft.report.domain.dto.AlmacenFincaProductoDto;
 import com.kynsoft.report.domain.dto.TipoMovimientoStock;
 import com.kynsoft.report.domain.services.IAlmacenFincaProductoService;
+import com.kynsoft.report.infrastructure.services.InformeRecepcionService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Component;
 public class EntradaAlmacenCommandHandler implements ICommandHandler<EntradaAlmacenCommand> {
 
     private final IAlmacenFincaProductoService service;
+    private final InformeRecepcionService informeRecepcionService;
 
     @Override
     public void handle(EntradaAlmacenCommand command) {
@@ -34,16 +36,13 @@ public class EntradaAlmacenCommandHandler implements ICommandHandler<EntradaAlma
                 if (isBlank(command.getNumeroFactura())) {
                     throw validationError("numeroFactura", "El número de factura es obligatorio para esta entrada.");
                 }
-                service.entradaFactura(command.getAlmacenFincaProductoId(),
-                        command.getCantidad(), command.getNumeroFactura(), command.getDescripcion());
+                registrarInforme(command);
                 break;
             case ENTRADA_CONDUCE:
                 if (isBlank(command.getNumeroConduce())) {
                     throw validationError("numeroConduce", "El número de conduce es obligatorio para esta entrada.");
                 }
-                service.entradaConduce(command.getAlmacenFincaProductoId(),
-                        command.getCantidad(), "Conduce: " + command.getNumeroConduce()
-                                + (isBlank(command.getDescripcion()) ? "" : " - " + command.getDescripcion()));
+                registrarInforme(command);
                 break;
             case ENTRADA_AJUSTE:
                 service.entrada(command.getAlmacenFincaProductoId(),
@@ -55,6 +54,13 @@ public class EntradaAlmacenCommandHandler implements ICommandHandler<EntradaAlma
 
         AlmacenFincaProductoDto updated = service.findById(command.getAlmacenFincaProductoId());
         command.setStockNuevo(updated.getStock());
+    }
+
+    private void registrarInforme(EntradaAlmacenCommand command) {
+        InformeRecepcionService.Resultado resultado = informeRecepcionService.registrar(command);
+        command.setInformeRecepcionId(resultado.informeId());
+        command.setMovimientoStockId(resultado.movimientoId());
+        command.setStockNuevo(resultado.stockNuevo());
     }
 
     private boolean isBlank(String value) {

@@ -37,8 +37,11 @@ import com.kynsoft.report.applications.query.almacen.porfinca.GetAlmacenesPorFin
 import com.kynsoft.report.applications.query.responseObject.AlmacenFincaProductoResponse;
 import com.kynsoft.report.applications.query.responseObject.AlmacenResponse;
 import com.kynsoft.report.domain.dto.AlmacenFincaProductoDto;
+import com.kynsoft.report.domain.dto.RecepcionTransferenciaAlmacenRequest;
+import com.kynsoft.report.domain.dto.TransferenciaAlmacenDetalleDto;
 import com.kynsoft.report.domain.services.IAlmacenFincaProductoService;
 import com.kynsoft.report.domain.services.IAlmacenService;
+import com.kynsoft.report.infrastructure.services.TransferenciaAlmacenControlService;
 import com.kynsoft.share.core.domain.exception.BusinessNotFoundException;
 import com.kynsoft.share.core.domain.exception.DomainErrorMessage;
 import com.kynsoft.share.core.domain.exception.GlobalBusinessException;
@@ -62,12 +65,15 @@ public class AlmacenController {
     private final IMediator mediator;
     private final IAlmacenService almacenService;
     private final IAlmacenFincaProductoService almacenFincaProductoService;
+    private final TransferenciaAlmacenControlService transferenciaControlService;
 
     public AlmacenController(IMediator mediator, IAlmacenService almacenService,
-                              IAlmacenFincaProductoService almacenFincaProductoService) {
+                              IAlmacenFincaProductoService almacenFincaProductoService,
+                              TransferenciaAlmacenControlService transferenciaControlService) {
         this.mediator = mediator;
         this.almacenService = almacenService;
         this.almacenFincaProductoService = almacenFincaProductoService;
+        this.transferenciaControlService = transferenciaControlService;
     }
 
     @PostMapping("")
@@ -231,6 +237,32 @@ public class AlmacenController {
         TransferenciaAlmacenCommand command = TransferenciaAlmacenCommand.fromRequest(request);
         TransferenciaAlmacenMessage response = mediator.send(command);
         return ResponseEntity.ok(response);
+    }
+
+    /** Pendientes de recepción del almacén seleccionado (SC-2-09). */
+    @GetMapping("/{almacenId}/transferencias-pendientes")
+    public ResponseEntity<List<TransferenciaAlmacenDetalleDto>> transferenciasPendientes(@PathVariable UUID almacenId) {
+        return ResponseEntity.ok(transferenciaControlService.pendientes(almacenId));
+    }
+
+    /** El receptor constata cantidades; diferencias se reintegran al origen. */
+    @PostMapping("/{almacenId}/transferencias/{transferenciaId}/recibir")
+    public ResponseEntity<TransferenciaAlmacenDetalleDto> recibirTransferencia(@PathVariable UUID almacenId,
+                                                                                 @PathVariable UUID transferenciaId,
+                                                                                 @RequestBody RecepcionTransferenciaAlmacenRequest request) {
+        return ResponseEntity.ok(transferenciaControlService.recibir(transferenciaId, almacenId, request));
+    }
+
+    @PostMapping("/{almacenId}/transferencias/{transferenciaId}/revertir")
+    public ResponseEntity<Void> revertirTransferencia(@PathVariable UUID almacenId, @PathVariable UUID transferenciaId,
+                                                        @RequestBody(required = false) java.util.Map<String, String> body) {
+        transferenciaControlService.revertir(transferenciaId, almacenId, body == null ? null : body.get("motivo"));
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/transferencias")
+    public ResponseEntity<List<TransferenciaAlmacenDetalleDto>> listarTransferencias(@RequestParam UUID fincaId) {
+        return ResponseEntity.ok(transferenciaControlService.listar(fincaId));
     }
 
     @GetMapping("/{almacenId}/productos/{fincaProductoId}/destinos-disponibles")

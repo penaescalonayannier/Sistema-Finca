@@ -12,5 +12,7 @@ public class EntradaAlmacenMessage implements ICommandMessage {
     private UUID almacenFincaProductoId;
     private Double cantidad;
     private Double stockNuevo;
+    private UUID informeRecepcionId;
+    private UUID movimientoStockId;
     private final String command = "ENTRADA_ALMACEN";
 }

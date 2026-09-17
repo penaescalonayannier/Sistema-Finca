@@ -152,6 +152,10 @@ históricos. El detalle de cumplimiento y las pruebas de aceptación están en
 
 En **Finanzas → Consecutivos documentales** se consulta el registro oficial de Facturas, Vales y Producciones Terminadas por finca y año. Muestra prefijo, último número emitido, próximo número, cantidad de documentos e integridad de la secuencia. Es una consulta de auditoría: no existen opciones para editar, reiniciar o reutilizar consecutivos. Un estado de advertencia debe revisarse antes de emitir nuevos documentos.
 
+### Inventario físico de almacén (V31)
+
+**Inventario → Inventario físico** abre el expediente SC-2-15 por almacén y congela el saldo teórico por producto. El cierre exige declarar todas las cantidades físicas, responsables y autorización. Si hubo movimientos desde la apertura, el expediente no se puede cerrar: debe abrirse uno nuevo para mantener el saldo teórico íntegro. Las diferencias, y solo ellas, generan el ajuste consecutivo SC-2-16 enlazado al expediente; un conteo sin diferencias no modifica existencias. Apertura, cierre y ajuste quedan en Auditoría y el expediente se descarga en PDF.
+
 ## Estado registrado el 2026-09-16
 
 | PC | Estado | Observaciones |

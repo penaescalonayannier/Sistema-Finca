@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.UUID;
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -19,6 +20,13 @@ public class EntradaAlmacenCommand implements ICommand {
     private String numeroConduce;
     private String centroCosto;
     private Double stockNuevo;
+    private String proveedor;
+    private String responsableEntrega;
+    private String responsableRecibe;
+    private Double costoUnitario;
+    private LocalDate fechaDocumento;
+    private UUID informeRecepcionId;
+    private UUID movimientoStockId;
 
     public EntradaAlmacenCommand(UUID almacenFincaProductoId, Double cantidad,
                                   TipoMovimientoStock tipo, String descripcion,
@@ -33,7 +41,7 @@ public class EntradaAlmacenCommand implements ICommand {
     }
 
     public static EntradaAlmacenCommand fromRequest(EntradaAlmacenRequest request) {
-        return new EntradaAlmacenCommand(
+        EntradaAlmacenCommand command = new EntradaAlmacenCommand(
                 request.getAlmacenFincaProductoId(),
                 request.getCantidad(),
                 request.getTipo(),
@@ -42,10 +50,17 @@ public class EntradaAlmacenCommand implements ICommand {
                 request.getNumeroConduce(),
                 request.getCentroCosto()
         );
+        command.setProveedor(request.getProveedor());
+        command.setResponsableEntrega(request.getResponsableEntrega());
+        command.setResponsableRecibe(request.getResponsableRecibe());
+        command.setCostoUnitario(request.getCostoUnitario());
+        command.setFechaDocumento(request.getFechaDocumento());
+        return command;
     }
 
     @Override
     public ICommandMessage getMessage() {
-        return new EntradaAlmacenMessage(almacenFincaProductoId, cantidad, stockNuevo);
+        return new EntradaAlmacenMessage(almacenFincaProductoId, cantidad, stockNuevo,
+                informeRecepcionId, movimientoStockId);
     }
 }

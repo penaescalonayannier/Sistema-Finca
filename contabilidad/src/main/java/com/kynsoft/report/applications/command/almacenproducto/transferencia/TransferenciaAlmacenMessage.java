@@ -9,6 +9,7 @@ import java.util.UUID;
 @Getter
 @AllArgsConstructor
 public class TransferenciaAlmacenMessage implements ICommandMessage {
+    private UUID transferenciaId;
     private UUID almacenOrigenId;
     private UUID almacenDestinoId;
     private Double cantidad;

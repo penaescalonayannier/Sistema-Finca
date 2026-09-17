@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.UUID;
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -20,4 +21,10 @@ public class EntradaAlmacenRequest {
     private String numeroFactura;
     private String numeroConduce;
     private String centroCosto;  // Código del centro de costo (ej: 700.01.04 para Plátano)
+    // Datos inmutables del informe de recepción SC-2-04.
+    private String proveedor;
+    private String responsableEntrega;
+    private String responsableRecibe;
+    private Double costoUnitario;
+    private LocalDate fechaDocumento;
 }

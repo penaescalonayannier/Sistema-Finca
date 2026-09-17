@@ -81,6 +81,7 @@ public class AlmacenFincaProducto {
                 .almacenNombre(almacen != null ? almacen.getNombre() : null)
                 .almacenInventario(almacen != null ? almacen.getInventario() : null)
                 .fincaProductoId(fincaProducto != null ? fincaProducto.getId() : null)
+                .fincaId(fincaProducto != null && fincaProducto.getFinca() != null ? fincaProducto.getFinca().getId() : null)
                 .productoId(fincaProducto != null && fincaProducto.getProducto() != null
                         ? fincaProducto.getProducto().getId() : null)
                 .productoCode(fincaProducto != null && fincaProducto.getProducto() != null

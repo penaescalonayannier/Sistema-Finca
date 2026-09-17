@@ -1,0 +1,3 @@
+package com.kynsoft.report.domain.dto;
+import lombok.Builder; import lombok.Getter; import java.time.LocalDateTime; import java.util.List; import java.util.UUID;
+@Getter @Builder public class ConteoFisicoDetalleDto { private UUID id; private UUID fincaId; private UUID almacenId; private String almacenNombre; private String numero; private EstadoConteoFisico estado; private LocalDateTime fechaApertura; private LocalDateTime fechaCierre; private String responsableConteo; private String verificadoPor; private String autorizadoPor; private String observacionesApertura; private String observacionesCierre; private String numeroAjuste; private List<ConteoFisicoLineaDto> lineas; }

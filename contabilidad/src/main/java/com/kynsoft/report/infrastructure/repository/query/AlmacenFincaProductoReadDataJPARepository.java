@@ -18,22 +18,22 @@ import java.util.UUID;
 public interface AlmacenFincaProductoReadDataJPARepository
         extends JpaRepository<AlmacenFincaProducto, UUID>, JpaSpecificationExecutor<AlmacenFincaProducto> {
 
-    @EntityGraph(attributePaths = {"almacen", "fincaProducto", "fincaProducto.producto"})
+    @EntityGraph(attributePaths = {"almacen", "fincaProducto", "fincaProducto.producto", "fincaProducto.finca"})
     Optional<AlmacenFincaProducto> findById(UUID id);
 
-    @EntityGraph(attributePaths = {"almacen", "fincaProducto", "fincaProducto.producto"})
+    @EntityGraph(attributePaths = {"almacen", "fincaProducto", "fincaProducto.producto", "fincaProducto.finca"})
     List<AlmacenFincaProducto> findByAlmacenIdAndActivoTrue(UUID almacenId);
 
-    @EntityGraph(attributePaths = {"almacen", "fincaProducto", "fincaProducto.producto"})
+    @EntityGraph(attributePaths = {"almacen", "fincaProducto", "fincaProducto.producto", "fincaProducto.finca"})
     Page<AlmacenFincaProducto> findByAlmacenIdAndActivoTrue(UUID almacenId, Pageable pageable);
 
-    @EntityGraph(attributePaths = {"almacen", "fincaProducto", "fincaProducto.producto"})
+    @EntityGraph(attributePaths = {"almacen", "fincaProducto", "fincaProducto.producto", "fincaProducto.finca"})
     List<AlmacenFincaProducto> findByFincaProductoIdAndActivoTrue(UUID fincaProductoId);
 
-    @EntityGraph(attributePaths = {"almacen", "fincaProducto", "fincaProducto.producto"})
+    @EntityGraph(attributePaths = {"almacen", "fincaProducto", "fincaProducto.producto", "fincaProducto.finca"})
     Optional<AlmacenFincaProducto> findByAlmacenIdAndFincaProductoId(UUID almacenId, UUID fincaProductoId);
 
-    @EntityGraph(attributePaths = {"almacen", "fincaProducto", "fincaProducto.producto"})
+    @EntityGraph(attributePaths = {"almacen", "fincaProducto", "fincaProducto.producto", "fincaProducto.finca"})
     Optional<AlmacenFincaProducto> findByAlmacenIdAndFincaProductoIdAndActivoTrue(UUID almacenId, UUID fincaProductoId);
 
     boolean existsByAlmacenIdAndFincaProductoIdAndActivoTrue(UUID almacenId, UUID fincaProductoId);

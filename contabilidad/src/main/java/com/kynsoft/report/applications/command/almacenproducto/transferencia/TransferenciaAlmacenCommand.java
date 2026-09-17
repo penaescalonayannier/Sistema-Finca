@@ -16,6 +16,7 @@ public class TransferenciaAlmacenCommand implements ICommand {
     private String observaciones;
     private Double stockOrigenNuevo;
     private Double stockDestinoNuevo;
+    private UUID transferenciaId;
 
     public TransferenciaAlmacenCommand(UUID almacenFincaProductoId, UUID destinoAlmacenId,
                                         Double cantidad, String observaciones) {
@@ -36,7 +37,7 @@ public class TransferenciaAlmacenCommand implements ICommand {
 
     @Override
     public ICommandMessage getMessage() {
-        return new TransferenciaAlmacenMessage(almacenFincaProductoId, destinoAlmacenId,
+        return new TransferenciaAlmacenMessage(transferenciaId, almacenFincaProductoId, destinoAlmacenId,
                 cantidad, stockOrigenNuevo, stockDestinoNuevo);
     }
 }

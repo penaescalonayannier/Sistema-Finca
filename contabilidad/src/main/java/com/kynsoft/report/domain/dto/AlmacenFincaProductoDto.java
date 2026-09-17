@@ -20,6 +20,7 @@ public class AlmacenFincaProductoDto {
     private String almacenNombre;
     private String almacenInventario;
     private UUID fincaProductoId;
+    private UUID fincaId;
     private UUID productoId;
     private String productoCode;
     private String productoName;

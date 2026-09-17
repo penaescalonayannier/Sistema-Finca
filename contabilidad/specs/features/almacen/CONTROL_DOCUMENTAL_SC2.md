@@ -58,6 +58,17 @@ de las copias o archivos digitales.
    cantidades, costos e importes se usa precisión decimal de base de datos y
    aplicación; no `float` ni cálculo desde el precio actual del producto.
 
+## Modelo SC-2-04 — Informe de recepción
+
+Las entradas por factura o conduce emiten un `SC-2-04` interno; el número de
+factura o conduce es una referencia externa y no sustituye su consecutivo.
+La cabecera conserva finca, almacén, fuente, proveedor/remitente, fecha,
+responsables que entregan y reciben, estado `REGISTRADO` y el movimiento físico
+enlazado. Cada línea congela producto, unidad de medida, cantidad, costo
+unitario, importe y saldo posterior. El expediente no tiene rutas de edición o
+borrado: un error se corrige mediante el documento compensatorio autorizado.
+Su PDF es una reimpresión de solo lectura y no altera contabilidad ni stock.
+
 ## Modelo SC-2-06 — Entrega de productos terminados al almacén
 
 ### Uso
