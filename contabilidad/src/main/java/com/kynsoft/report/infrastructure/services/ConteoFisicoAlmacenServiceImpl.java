@@ -4,6 +4,7 @@ import com.kynsoft.report.domain.dto.*;
 import com.kynsoft.report.domain.services.IConteoFisicoAlmacenService;
 import com.kynsoft.report.domain.services.IMovimientoStockService;
 import com.kynsoft.report.domain.services.INumeracionService;
+import com.kynsoft.report.domain.services.IRegistroFormasNumeradasService;
 import com.kynsoft.report.infrastructure.entity.*;
 import com.kynsoft.report.infrastructure.repository.command.*;
 import com.kynsoft.report.infrastructure.repository.query.*;
@@ -33,6 +34,7 @@ public class ConteoFisicoAlmacenServiceImpl implements IConteoFisicoAlmacenServi
     private final FincaProductoReadDataJPARepository fincaProductoRead;
     private final FincaProductoWriteDataJPARepository fincaProductoWrite;
     private final INumeracionService numeracion;
+    private final IRegistroFormasNumeradasService registroFormasNumeradasService;
     private final IMovimientoStockService movimiento;
     private final AuditoriaTransaccionalService auditoria;
 
@@ -40,10 +42,11 @@ public class ConteoFisicoAlmacenServiceImpl implements IConteoFisicoAlmacenServi
       ConteoFisicoLineaWriteDataJPARepository lineaWrite, ConteoFisicoLineaReadDataJPARepository lineaRead, AlmacenReadDataJPARepository almacenRead,
       AlmacenFincaProductoReadDataJPARepository afpRead, AlmacenFincaProductoWriteDataJPARepository afpWrite,
       FincaProductoReadDataJPARepository fincaProductoRead, FincaProductoWriteDataJPARepository fincaProductoWrite,
-      INumeracionService numeracion, IMovimientoStockService movimiento, AuditoriaTransaccionalService auditoria) {
+      INumeracionService numeracion, IRegistroFormasNumeradasService registroFormasNumeradasService,
+      IMovimientoStockService movimiento, AuditoriaTransaccionalService auditoria) {
       this.conteoWrite=conteoWrite; this.conteoRead=conteoRead; this.lineaWrite=lineaWrite; this.lineaRead=lineaRead; this.almacenRead=almacenRead;
       this.afpRead=afpRead; this.afpWrite=afpWrite; this.fincaProductoRead=fincaProductoRead; this.fincaProductoWrite=fincaProductoWrite;
-      this.numeracion=numeracion; this.movimiento=movimiento; this.auditoria=auditoria;
+      this.numeracion=numeracion; this.registroFormasNumeradasService=registroFormasNumeradasService; this.movimiento=movimiento; this.auditoria=auditoria;
     }
 
     @Override @Transactional(transactionManager="writeTransactionManager")
@@ -56,7 +59,8 @@ public class ConteoFisicoAlmacenServiceImpl implements IConteoFisicoAlmacenServi
       List<AlmacenFincaProducto> productos=afpRead.findByAlmacenIdAndActivoTrue(almacen.getId());
       if(productos.isEmpty()) throw new IllegalArgumentException("El almacén no tiene productos activos para inventariar.");
       ConteoFisicoAlmacen c=new ConteoFisicoAlmacen(); c.setId(UUID.randomUUID()); c.setFincaId(fincaId); c.setAlmacen(almacen);
-      c.setNumero(numeracion.generarSiguienteNumero(fincaId, TipoDocumento.CONTEO_FISICO)); c.setEstado(EstadoConteoFisico.ABIERTO); c.setFechaApertura(LocalDateTime.now());
+      c.setNumero(registroFormasNumeradasService.emitir(new EmitirFormaNumeradaRequest("CONTEO_FISICO", AlcanceFormaNumerada.FINCA, fincaId,
+          java.time.LocalDate.now(), "CONTEO_FISICO_ALMACEN", c.getId(), TenantContext.getUsuarioId())).getNumeroFormateado()); c.setEstado(EstadoConteoFisico.ABIERTO); c.setFechaApertura(LocalDateTime.now());
       c.setResponsableConteo(texto(r.getResponsableConteo())); c.setVerificadoPor(texto(r.getVerificadoPor())); c.setObservacionesApertura(texto(r.getObservaciones())); c.setUsuarioId(TenantContext.getUsuarioId()); conteoWrite.save(c);
       for(AlmacenFincaProducto p:productos){ ConteoFisicoLinea l=new ConteoFisicoLinea(); l.setId(UUID.randomUUID());l.setConteo(c);l.setAlmacenFincaProductoId(p.getId());
         l.setProductoCodigo(texto(p.getFincaProducto().getProducto().getCode()));l.setProductoNombre(p.getFincaProducto().getProducto().getName());l.setUnidadMedida(p.getFincaProducto().getProducto().getUnidadMedida() == null ? null : p.getFincaProducto().getProducto().getUnidadMedida().getNombre());l.setExistenciaTeorica(valor(p.getStock())); lineaWrite.save(l); }
@@ -73,7 +77,8 @@ public class ConteoFisicoAlmacenServiceImpl implements IConteoFisicoAlmacenServi
       if(capturadas.size()!=lineas.size() || !lineas.stream().allMatch(x->capturadas.containsKey(x.getId()))) throw new IllegalArgumentException("Debe contar y declarar cada producto del expediente.");
       for(ConteoFisicoLinea l:lineas){ LineaConteoFisicoRequest x=capturadas.get(l.getId()); if(x.getCantidadContada()==null||x.getCantidadContada()<0) throw new IllegalArgumentException("La cantidad física no puede ser negativa."); AlmacenFincaProducto actual=afpRead.findById(l.getAlmacenFincaProductoId()).orElseThrow(()->new IllegalStateException("Producto de almacén inexistente.")); if(Math.abs(valor(actual.getStock())-valor(l.getExistenciaTeorica()))>EPS) throw new IllegalStateException("El stock de "+l.getProductoNombre()+" cambió desde la apertura. Cancele y abra un nuevo conteo para conservar la trazabilidad."); }
       boolean hayDiferencia=lineas.stream().anyMatch(l->Math.abs(capturadas.get(l.getId()).getCantidadContada()-l.getExistenciaTeorica())>EPS);
-      String numeroAjuste=hayDiferencia?numeracion.generarSiguienteNumero(c.getFincaId(),TipoDocumento.AJUSTE_INVENTARIO):null;
+      String numeroAjuste=hayDiferencia?registroFormasNumeradasService.emitir(new EmitirFormaNumeradaRequest("AJUSTE_INVENTARIO", AlcanceFormaNumerada.FINCA, c.getFincaId(),
+          java.time.LocalDate.now(), "AJUSTE_INVENTARIO", c.getId(), TenantContext.getUsuarioId())).getNumeroFormateado():null;
       for(ConteoFisicoLinea l:lineas){ LineaConteoFisicoRequest x=capturadas.get(l.getId()); double fisico=x.getCantidadContada(), diferencia=fisico-valor(l.getExistenciaTeorica()); l.setExistenciaFisica(fisico);l.setDiferencia(diferencia);l.setObservaciones(texto(x.getObservaciones()));lineaWrite.save(l);
         if(Math.abs(diferencia)>EPS){ AlmacenFincaProducto afp=afpRead.findById(l.getAlmacenFincaProductoId()).orElseThrow(); FincaProducto fp=fincaProductoRead.findByIdWithDetails(afp.getFincaProducto().getId()).orElseThrow(); double anterior=valor(afp.getStock()); afp.setStock(fisico); afpWrite.save(afp); fp.setStock(valor(fp.getStock())+diferencia); if(fp.getStock()<-EPS) throw new IllegalStateException("El ajuste dejaría la existencia de finca negativa."); fincaProductoWrite.save(fp);
           movimiento.registrar(MovimientoStockDto.builder().id(UUID.randomUUID()).fincaProductoId(fp.getId()).fincaId(c.getFincaId()).productoId(fp.getProducto().getId()).almacenId(c.getAlmacen().getId()).tipo(diferencia>0?TipoMovimientoStock.ENTRADA_AJUSTE:TipoMovimientoStock.SALIDA_AJUSTE).cantidad(Math.abs(diferencia)).stockAnterior(anterior).stockNuevo(fisico).referenciaId(c.getId()).referenciaTabla("CONTEO_FISICO_ALMACEN").descripcion("Ajuste "+numeroAjuste+" derivado del conteo "+c.getNumero()).observaciones(texto(x.getObservaciones())).build()); }

@@ -23,6 +23,9 @@ import com.kynsoft.report.domain.services.IMovimientoStockService;
 import com.kynsoft.report.domain.services.INumeracionService;
 import com.kynsoft.report.domain.services.ITrabajadorService;
 import com.kynsoft.report.domain.dto.TipoDocumento;
+import com.kynsoft.report.domain.dto.AlcanceFormaNumerada;
+import com.kynsoft.report.domain.dto.EmitirFormaNumeradaRequest;
+import com.kynsoft.report.domain.services.IRegistroFormasNumeradasService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -71,6 +74,7 @@ public class SalidaServiceImpl implements ISalidaService {
     private final IMovimientoStockService movimientoStockService;
     private final INumeracionService numeracionService;
     private final ITrabajadorService trabajadorService;
+    private final IRegistroFormasNumeradasService registroFormasNumeradasService;
 
     public SalidaServiceImpl(
             SalidaWriteDataJPARepository repositoryCommand,
@@ -85,7 +89,8 @@ public class SalidaServiceImpl implements ISalidaService {
             IDeudaTrabajadorDetalleService deudaDetalleService,
             IMovimientoStockService movimientoStockService,
             INumeracionService numeracionService,
-            ITrabajadorService trabajadorService) {
+            ITrabajadorService trabajadorService,
+            IRegistroFormasNumeradasService registroFormasNumeradasService) {
         this.repositoryCommand = repositoryCommand;
         this.repositoryQuery = repositoryQuery;
         this.itemRepositoryCommand = itemRepositoryCommand;
@@ -99,6 +104,7 @@ public class SalidaServiceImpl implements ISalidaService {
         this.movimientoStockService = movimientoStockService;
         this.numeracionService = numeracionService;
         this.trabajadorService = trabajadorService;
+        this.registroFormasNumeradasService = registroFormasNumeradasService;
     }
 
     @Override
@@ -136,8 +142,7 @@ public class SalidaServiceImpl implements ISalidaService {
 
         // Generar número automáticamente usando el servicio de numeración
         UUID fincaId = fincaProducto.getFinca().getId();
-        TipoDocumento tipoDoc = TipoDocumento.fromTipoSalida(tipoFinal);
-        dto.setNumero(numeracionService.generarSiguienteNumero(fincaId, tipoDoc));
+        dto.setNumero(emitirFormaSalida(fincaId, tipoFinal, dto.getId(), dto.getFecha()));
 
         // Crear la salida
         Salida salida = new Salida(dto);
@@ -315,13 +320,14 @@ public class SalidaServiceImpl implements ISalidaService {
         }
 
         TipoSalida tipo = determinarTipoSegunDestino(destino);
+        UUID salidaId = UUID.randomUUID();
         SalidaDto salidaDto = SalidaDto.builder()
-                .id(UUID.randomUUID())
+                .id(salidaId)
                 .tipo(tipo)
                 .destino(destino)
                 // Se conserva para compatibilidad con vales históricos y filtros por finca.
                 .fincaProductoId(productoReferencia.getId())
-                .numero(numeracionService.generarSiguienteNumero(productoReferencia.getFinca().getId(), TipoDocumento.fromTipoSalida(tipo)))
+                .numero(emitirFormaSalida(productoReferencia.getFinca().getId(), tipo, salidaId, null))
                 .fincaId(productoReferencia.getFinca().getId())
                 .observaciones(observaciones)
                 .build();
@@ -762,6 +768,14 @@ public class SalidaServiceImpl implements ISalidaService {
             case COMEDOR -> fincaProducto.getProducto().getPriceComedor();
             default -> fincaProducto.getProducto().getPrice();
         };
+    }
+
+    private String emitirFormaSalida(UUID fincaId, TipoSalida tipo, UUID salidaId, LocalDateTime fecha) {
+        String forma = tipo == TipoSalida.VALE ? "VALE_SALIDA" : "FACTURA";
+        return registroFormasNumeradasService.emitir(new EmitirFormaNumeradaRequest(
+                forma, AlcanceFormaNumerada.FINCA, fincaId,
+                fecha == null ? LocalDate.now() : fecha.toLocalDate(),
+                "SALIDA", salidaId, TenantContext.getUsuarioId())).getNumeroFormateado();
     }
 
     /**

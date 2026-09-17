@@ -2,6 +2,7 @@ package com.kynsoft.report.infrastructure.services;
 
 import com.kynsoft.report.domain.dto.*;
 import com.kynsoft.report.domain.services.INumeracionService;
+import com.kynsoft.report.domain.services.IRegistroFormasNumeradasService;
 import com.kynsoft.report.domain.services.IMovimientoStockService;
 import com.kynsoft.report.infrastructure.entity.*;
 import com.kynsoft.report.infrastructure.repository.command.*;
@@ -31,6 +32,7 @@ public class TransferenciaAlmacenControlService {
     private final TransferenciaAlmacenReadDataJPARepository transferenciaRead;
     private final TransferenciaAlmacenLineaReadDataJPARepository lineaRead;
     private final INumeracionService numeracionService;
+    private final IRegistroFormasNumeradasService registroFormasNumeradasService;
     private final IMovimientoStockService movimientoStockService;
     private final AuditoriaTransaccionalService auditoria;
 
@@ -53,7 +55,9 @@ public class TransferenciaAlmacenControlService {
 
         TransferenciaAlmacen t = new TransferenciaAlmacen();
         t.setId(UUID.randomUUID()); t.setFincaId(fincaId);
-        t.setNumeroDocumento(numeracionService.generarSiguienteNumero(fincaId, TipoDocumento.TRANSFERENCIA_ALMACEN));
+        t.setNumeroDocumento(registroFormasNumeradasService.emitir(new EmitirFormaNumeradaRequest(
+                "TRANSFERENCIA_ALMACEN", AlcanceFormaNumerada.FINCA, fincaId, java.time.LocalDate.now(),
+                "TRANSFERENCIA_ALMACEN", t.getId(), TenantContext.getUsuarioId())).getNumeroFormateado());
         t.setOrigenAlmacenId(origenAlmacen.getId()); t.setDestinoAlmacenId(destino.getId());
         t.setEstado(EstadoTransferenciaAlmacen.EN_TRANSITO); t.setObservaciones(texto(observaciones));
         t.setDespachadoPorId(TenantContext.getUsuarioId()); transferenciaWrite.save(t);

@@ -18,9 +18,13 @@ import com.kynsoft.report.domain.services.IProduccionTerminadaService;
 import com.kynsoft.report.domain.services.ITrabajadorService;
 import com.kynsoft.report.domain.services.INumeracionService;
 import com.kynsoft.report.domain.dto.TipoDocumento;
+import com.kynsoft.report.domain.dto.AlcanceFormaNumerada;
+import com.kynsoft.report.domain.dto.EmitirFormaNumeradaRequest;
+import com.kynsoft.report.domain.services.IRegistroFormasNumeradasService;
 import com.kynsoft.report.infrastructure.entity.ProduccionTerminada;
 import com.kynsoft.report.infrastructure.repository.command.ProduccionTerminadaWriteDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.ProduccionTerminadaReadDataJPARepository;
+import com.kynsoft.report.infrastructure.security.TenantContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +43,7 @@ public class ProduccionTerminadaServiceImpl implements IProduccionTerminadaServi
     private final ITrabajadorService trabajadorService;
     private final IAlmacenFincaProductoService almacenFincaProductoService;
     private final INumeracionService numeracionService;
+    private final IRegistroFormasNumeradasService registroFormasNumeradasService;
 
     public ProduccionTerminadaServiceImpl(
             ProduccionTerminadaWriteDataJPARepository repositoryCommand,
@@ -46,13 +51,15 @@ public class ProduccionTerminadaServiceImpl implements IProduccionTerminadaServi
             IFincaProductoService fincaProductoService,
             ITrabajadorService trabajadorService,
             IAlmacenFincaProductoService almacenFincaProductoService,
-            INumeracionService numeracionService) {
+            INumeracionService numeracionService,
+            IRegistroFormasNumeradasService registroFormasNumeradasService) {
         this.repositoryCommand = repositoryCommand;
         this.repositoryQuery = repositoryQuery;
         this.fincaProductoService = fincaProductoService;
         this.trabajadorService = trabajadorService;
         this.almacenFincaProductoService = almacenFincaProductoService;
         this.numeracionService = numeracionService;
+        this.registroFormasNumeradasService = registroFormasNumeradasService;
     }
 
     @Override
@@ -388,7 +395,10 @@ public class ProduccionTerminadaServiceImpl implements IProduccionTerminadaServi
     private void completarSnapshotDocumento(ProduccionTerminadaDto dto, FincaProductoDto fincaProducto,
                                             AlmacenFincaProductoDto almacenProducto, double saldoPosterior) {
         validarCosto(dto.getCostoUnitario());
-        dto.setNumeroDocumento(numeracionService.generarSiguienteNumero(fincaProducto.getFincaId(), TipoDocumento.PRODUCCION));
+        dto.setNumeroDocumento(registroFormasNumeradasService.emitir(new EmitirFormaNumeradaRequest(
+                "PRODUCCION_TERMINADA", AlcanceFormaNumerada.FINCA, fincaProducto.getFincaId(),
+                dto.getFecha() == null ? java.time.LocalDate.now() : dto.getFecha().toLocalDate(),
+                "PRODUCCION_TERMINADA", dto.getId(), TenantContext.getUsuarioId())).getNumeroFormateado());
         dto.setProductoCodigoSnapshot(fincaProducto.getProductoCode());
         dto.setProductoNombreSnapshot(fincaProducto.getProductoName());
         dto.setUnidadMedidaSnapshot(fincaProducto.getUnidadMedida() == null ? null

@@ -23,6 +23,8 @@ public class ArqueoCaja {
     private UUID id;
     @Column(nullable = false, unique = true)
     private Long numero;
+    @Column(name = "numero_documento", length = 80)
+    private String numeroDocumento;
     @Column(name = "finca_id", nullable = false)
     private UUID fincaId;
     @Column(name = "fecha_apertura", nullable = false)

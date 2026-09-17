@@ -16,7 +16,10 @@ import com.kynsoft.report.domain.dto.SalidaPendienteLiquidacionDto;
 import com.kynsoft.report.domain.dto.TipoMovimiento;
 import com.kynsoft.report.domain.dto.TipoMovimientoCaja;
 import com.kynsoft.report.domain.dto.TipoAccion;
+import com.kynsoft.report.domain.dto.AlcanceFormaNumerada;
+import com.kynsoft.report.domain.dto.EmitirFormaNumeradaRequest;
 import com.kynsoft.report.domain.services.ILiquidacionSalidaService;
+import com.kynsoft.report.domain.services.IRegistroFormasNumeradasService;
 import com.kynsoft.report.infrastructure.entity.DeudaTrabajador;
 import com.kynsoft.report.infrastructure.entity.EntregaBanco;
 import com.kynsoft.report.infrastructure.entity.ItemSalida;
@@ -84,6 +87,7 @@ public class LiquidacionSalidaServiceImpl implements ILiquidacionSalidaService {
     private final EntregaBancoWriteDataJPARepository entregaBancoWriteRepository;
     private final EntregaBancoReadDataJPARepository entregaBancoReadRepository;
     private final AuditoriaTransaccionalService auditoriaTransaccionalService;
+    private final IRegistroFormasNumeradasService registroFormasNumeradasService;
 
     public LiquidacionSalidaServiceImpl(SalidaReadDataJPARepository salidaReadRepository,
                                         SalidaWriteDataJPARepository salidaWriteRepository,
@@ -102,7 +106,8 @@ public class LiquidacionSalidaServiceImpl implements ILiquidacionSalidaService {
                                         SaldoCajaDenominacionReadDataJPARepository saldoDenominacionReadRepository,
                                         EntregaBancoWriteDataJPARepository entregaBancoWriteRepository,
                                         EntregaBancoReadDataJPARepository entregaBancoReadRepository,
-                                        AuditoriaTransaccionalService auditoriaTransaccionalService) {
+                                        AuditoriaTransaccionalService auditoriaTransaccionalService,
+                                        IRegistroFormasNumeradasService registroFormasNumeradasService) {
         this.salidaReadRepository = salidaReadRepository;
         this.salidaWriteRepository = salidaWriteRepository;
         this.itemWriteRepository = itemWriteRepository;
@@ -121,6 +126,7 @@ public class LiquidacionSalidaServiceImpl implements ILiquidacionSalidaService {
         this.entregaBancoWriteRepository = entregaBancoWriteRepository;
         this.entregaBancoReadRepository = entregaBancoReadRepository;
         this.auditoriaTransaccionalService = auditoriaTransaccionalService;
+        this.registroFormasNumeradasService = registroFormasNumeradasService;
     }
 
     @Override
@@ -157,6 +163,9 @@ public class LiquidacionSalidaServiceImpl implements ILiquidacionSalidaService {
         liquidacion.setId(UUID.randomUUID());
         liquidacion.setSalidaId(salida.getId());
         liquidacion.setFincaId(fincaId);
+        liquidacion.setNumeroDocumento(registroFormasNumeradasService.emitir(new EmitirFormaNumeradaRequest(
+                "ENTREGA_DOCUMENTOS_CAJA", AlcanceFormaNumerada.FINCA, fincaId, LocalDate.now(),
+                "LIQUIDACION_SALIDA", liquidacion.getId(), TenantContext.getUsuarioId())).getNumeroFormateado());
         liquidacion.setFecha(LocalDateTime.now());
         liquidacion.setEntregadoPor(texto(request.getEntregadoPor()));
         liquidacion.setRecibidoPor(texto(request.getRecibidoPor()));
@@ -255,6 +264,10 @@ public class LiquidacionSalidaServiceImpl implements ILiquidacionSalidaService {
         EntregaBanco entrega = new EntregaBanco();
         entrega.setId(UUID.randomUUID());
         entrega.setFincaId(request.getFincaId());
+        entrega.setNumeroDocumento(registroFormasNumeradasService.emitir(new EmitirFormaNumeradaRequest(
+                "ENTREGA_BANCO", AlcanceFormaNumerada.FINCA, request.getFincaId(),
+                request.getFecha() == null ? LocalDate.now() : request.getFecha().toLocalDate(),
+                "ENTREGA_BANCO", entrega.getId(), TenantContext.getUsuarioId())).getNumeroFormateado());
         entrega.setFecha(request.getFecha() == null ? LocalDateTime.now() : request.getFecha());
         entrega.setImporte(importeEntrega);
         entrega.setReferenciaBancaria(texto(request.getReferenciaBancaria()));
@@ -285,7 +298,7 @@ public class LiquidacionSalidaServiceImpl implements ILiquidacionSalidaService {
                                 .cantidad(Math.abs(detalle.getCantidad())).build(), Collectors.toList())));
         return entregas.stream()
                 .map(entrega -> EntregaBancoResponse.builder()
-                        .id(entrega.getId()).fincaId(entrega.getFincaId()).fecha(entrega.getFecha())
+                        .id(entrega.getId()).fincaId(entrega.getFincaId()).numeroDocumento(entrega.getNumeroDocumento()).fecha(entrega.getFecha())
                         .importe(entrega.getImporte()).referenciaBancaria(entrega.getReferenciaBancaria())
                         .entregadoPor(entrega.getEntregadoPor()).recibidoPor(entrega.getRecibidoPor())
                         .observaciones(entrega.getObservaciones())

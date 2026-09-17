@@ -5,11 +5,15 @@ import com.kynsoft.report.domain.dto.AlmacenFincaProductoDto;
 import com.kynsoft.report.domain.dto.InformeRecepcionDto;
 import com.kynsoft.report.domain.dto.TipoAccion;
 import com.kynsoft.report.domain.dto.TipoDocumento;
+import com.kynsoft.report.domain.dto.AlcanceFormaNumerada;
+import com.kynsoft.report.domain.dto.EmitirFormaNumeradaRequest;
 import com.kynsoft.report.domain.dto.TipoMovimientoStock;
 import com.kynsoft.report.domain.services.IAlmacenFincaProductoService;
 import com.kynsoft.report.domain.services.INumeracionService;
+import com.kynsoft.report.domain.services.IRegistroFormasNumeradasService;
 import com.kynsoft.report.infrastructure.entity.InformeRecepcion;
 import com.kynsoft.report.infrastructure.entity.InformeRecepcionLinea;
+import com.kynsoft.report.infrastructure.security.TenantContext;
 import com.kynsoft.report.infrastructure.repository.command.InformeRecepcionWriteDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.InformeRecepcionReadDataJPARepository;
 import com.kynsoft.share.core.domain.exception.BusinessNotFoundException;
@@ -29,6 +33,7 @@ public class InformeRecepcionService {
     private final InformeRecepcionReadDataJPARepository readRepository;
     private final IAlmacenFincaProductoService almacenProductoService;
     private final INumeracionService numeracionService;
+    private final IRegistroFormasNumeradasService registroFormasNumeradasService;
     private final AuditoriaTransaccionalService auditoria;
 
     @Transactional(transactionManager = "writeTransactionManager")
@@ -60,7 +65,10 @@ public class InformeRecepcionService {
         UUID movimientoId = UUID.randomUUID();
         InformeRecepcion informe = new InformeRecepcion();
         informe.setId(informeId); informe.setFincaId(fincaId); informe.setAlmacenId(productoAlmacen.getAlmacenId());
-        informe.setNumeroDocumento(numeracionService.generarSiguienteNumero(fincaId, TipoDocumento.RECEPCION));
+        informe.setNumeroDocumento(registroFormasNumeradasService.emitir(new EmitirFormaNumeradaRequest(
+                "INFORME_RECEPCION", AlcanceFormaNumerada.FINCA, fincaId,
+                command.getFechaDocumento() == null ? LocalDate.now() : command.getFechaDocumento(),
+                "INFORME_RECEPCION", informeId, TenantContext.getUsuarioId())).getNumeroFormateado());
         informe.setTipoFuente(tipo); informe.setNumeroFuente(numeroFuente.trim());
         informe.setFechaDocumento(command.getFechaDocumento() == null ? LocalDate.now() : command.getFechaDocumento());
         informe.setProveedor(command.getProveedor().trim()); informe.setResponsableEntrega(command.getResponsableEntrega().trim());

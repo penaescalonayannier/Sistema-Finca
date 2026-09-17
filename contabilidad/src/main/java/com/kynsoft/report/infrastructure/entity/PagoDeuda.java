@@ -51,7 +51,7 @@ public class PagoDeuda {
     @Column(name = "fecha")
     private LocalDateTime fecha;
 
-    @Column(name = "numero_recibo", unique = true)
+    @Column(name = "numero_recibo")
     private String numeroRecibo;
 
     @Column(name = "saldo_anterior")

@@ -90,3 +90,15 @@ PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
     -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V36__historial_salarial_trabajador.sql"
 PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
     -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V37__consecutivo_asiento_contable_seguro.sql"
+PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
+    -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V38__registro_formas_numeradas.sql"
+PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
+    -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V39__semillas_formas_numeradas.sql"
+PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
+    -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V40__numeros_documentales_liquidacion_y_entrega_banco.sql"
+PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
+    -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V41__inicializar_series_formas_desde_consecutivos.sql"
+PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
+    -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V42__formas_numeradas_caja_banco_control.sql"
+PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
+    -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V43__unicidad_formas_por_finca.sql"

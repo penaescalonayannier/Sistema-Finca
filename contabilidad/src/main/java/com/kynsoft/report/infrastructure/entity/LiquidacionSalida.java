@@ -21,6 +21,8 @@ public class LiquidacionSalida {
     private UUID salidaId;
     @Column(name = "finca_id", nullable = false)
     private UUID fincaId;
+    @Column(name = "numero_documento", length = 80)
+    private String numeroDocumento;
     @Column(nullable = false)
     private LocalDateTime fecha;
     @Column(name = "entregado_por")

@@ -44,6 +44,8 @@ import java.util.UUID;
 @Service
 @Transactional
 public class ArqueoCajaServiceImpl implements IArqueoCajaService {
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.kynsoft.report.domain.services.IRegistroFormasNumeradasService registroFormas;
     private static final double EPSILON = 0.000001d;
     private static final List<Integer> DENOMINACIONES_CUP = List.of(5, 10, 20, 50, 100, 200, 500,
             1000, 2000, 5000, 10000, 20000);
@@ -103,6 +105,9 @@ public class ArqueoCajaServiceImpl implements IArqueoCajaService {
         arqueo.setNumero(arqueoWriteRepository.siguienteNumero());
         arqueo.setFincaId(request.getFincaId());
         arqueo.setFechaApertura(LocalDateTime.now());
+        arqueo.setNumeroDocumento(registroFormas.emitir(new com.kynsoft.report.domain.dto.EmitirFormaNumeradaRequest(
+                "ARQUEO_CAJA", com.kynsoft.report.domain.dto.AlcanceFormaNumerada.FINCA, arqueo.getFincaId(),
+                arqueo.getFechaApertura().toLocalDate(), "ARQUEO_CAJA", arqueo.getId(), TenantContext.getUsuarioId())).getNumeroFormateado());
         arqueo.setEstado(EstadoArqueoCaja.ABIERTO);
         arqueo.setTipo(tipo);
         arqueo.setContadorResponsable(texto(request.getContadorResponsable()));

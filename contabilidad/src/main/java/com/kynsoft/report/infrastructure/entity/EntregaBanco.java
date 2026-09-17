@@ -19,6 +19,8 @@ public class EntregaBanco {
     private UUID id;
     @Column(name = "finca_id", nullable = false)
     private UUID fincaId;
+    @Column(name = "numero_documento", length = 80)
+    private String numeroDocumento;
     @Column(nullable = false)
     private LocalDateTime fecha;
     @Column(nullable = false)

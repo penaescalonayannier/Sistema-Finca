@@ -1,7 +1,7 @@
 ---
 document: registro-formas-numeradas-recomendacion
 version: 1.0.0
-status: analizado-pendiente-de-implementacion
+status: implementacion-inicial
 review_date: 2026-09-17
 scope: [contabilidad, almacen, caja, banco, auditoria]
 ---
@@ -45,6 +45,27 @@ en vez de formar parte de un registro uniforme de formas.
 Los asientos contables disponen de un consecutivo propio diario; ese control
 debe permanecer separado, pero visible desde el registro general como una forma
 documental de contabilidad.
+
+## Implementación inicial realizada
+
+Se incorporó el motor común con las tablas `forma_numerada`,
+`serie_forma_numerada` y `emision_forma_numerada`, junto al catálogo inicial
+de 21 formas. El motor abre su propia serie con bloqueo transaccional, registra
+la emisión, impide repetir el documento en una misma serie y conserva eventos
+de anulación y reimpresión.
+
+Las emisiones nuevas de Factura, Vale, Producción Terminada, Informe de
+Recepción, Transferencia, Conteo Físico, Ajuste, Recibo de Cobro, documentos de
+Caja, Entrega de documentos a Caja, Entrega al Banco, Arqueo, Acta de
+Responsabilidad, Cheque, Transferencia bancaria y Conciliación bancaria se
+registran en el libro de formas. Los documentos históricos mantienen sus
+números y las series se inicializan desde su último correlativo sin renumerar.
+
+La vista **Registro de formas numeradas** consulta `/api/numeracion/formas` y
+permite revisar por finca y año la forma, serie, alcance, último número,
+próximo número, estado e integridad. Los asientos conservan por ahora su
+consecutivo diario independiente y se muestran como forma preparada, sin
+reemplazar el control de asientos ya operativo.
 
 La verificación vigente no es suficiente para un control formal: para Recibo,
 Conteo Físico y Ajuste no consulta correctamente los documentos fuente, y una

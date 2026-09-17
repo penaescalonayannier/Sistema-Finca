@@ -18,6 +18,7 @@ import java.util.List;
 public class EntregaBancoResponse {
     private UUID id;
     private UUID fincaId;
+    private String numeroDocumento;
     private LocalDateTime fecha;
     private Double importe;
     private String referenciaBancaria;
