@@ -162,6 +162,17 @@ En **Finanzas → Consecutivos documentales** se consulta el registro oficial de
 
 Antes de operar, compruebe un parte histórico, cree un parte con su responsable y registre una jornada decimal (por ejemplo `7,5`). Las jornadas de más de ocho horas continúan siendo advertidas por la interfaz; se conservan hasta 24 horas para no romper el flujo vigente. Los cambios de interfaz se validan con `npm run type-check` y las reglas de negocio del backend con pruebas unitarias.
 
+### Estructura, disciplina, evaluación y vigencias salariales (V33–V36)
+
+La actualización incorpora cuatro componentes de Recursos Humanos sin modificar la nómina, prenómina ni los trabajadores históricos:
+
+1. **Estructura y plazas** permite configurar áreas, departamentos, brigadas y plazas por finca. La plaza es opcional para el trabajador existente; solo una persona activa puede ocupar una plaza activa a la vez. Al transferir o desactivar un trabajador, el sistema libera su plaza sin alterar sus reportes históricos.
+2. **Disciplina laboral** registra incidencias y expedientes por trabajador. Los expedientes siguen el flujo borrador, notificado y resuelto; una anulación conserva el documento, su motivo y la auditoría. La vista permite descargar el expediente en PDF.
+3. **Evaluaciones** conserva las evaluaciones existentes como borradores y añade criterios configurables, evidencia, constancias y cierre. Una evaluación cerrada o anulada no puede ser modificada.
+4. **Historial salarial** registra vigencias individuales de salario de escala, anticipo y tasa, con motivo, autorizador y anulación trazable. Es una bitácora de condiciones salariales: **no calcula ni modifica nómina, prenómina, pagos ni deudas existentes**.
+
+Las migraciones `V33__estructura_organizativa_y_plazas.sql`, `V34__expediente_disciplina_laboral.sql`, `V35__ciclo_formal_evaluacion_desempeno.sql` y `V36__historial_salarial_trabajador.sql` son aditivas e idempotentes. Después de actualizar, compruebe que un trabajador histórico sigue abriendo normalmente, cree una plaza de prueba sin asignarla, consulte una evaluación existente y registre una vigencia salarial de prueba; no realice cálculos de nómina desde estas nuevas vistas.
+
 ## Estado registrado el 2026-09-16
 
 | PC | Estado | Observaciones |

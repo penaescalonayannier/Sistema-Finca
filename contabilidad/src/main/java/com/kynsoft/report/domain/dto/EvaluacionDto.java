@@ -23,4 +23,13 @@ public class EvaluacionDto {
     private Integer calificacion;
     private String comentarios;
     private LocalDateTime fechaEvaluacion;
+    private EstadoEvaluacion estado;
+    private String evidencia;
+    /** Instantánea JSON de los criterios vigentes cuando se emitió la evaluación. */
+    private String criteriosAplicados;
+    private String constanciaJefe;
+    private String constanciaTrabajador;
+    private LocalDateTime fechaEnvio;
+    private LocalDateTime fechaCierre;
+    private String observacionesCierre;
 }

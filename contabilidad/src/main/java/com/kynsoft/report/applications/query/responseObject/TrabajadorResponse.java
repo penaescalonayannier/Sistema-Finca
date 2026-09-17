@@ -28,6 +28,8 @@ public class TrabajadorResponse implements IResponse {
     private String grupoNombre;
     private UUID cargoId;
     private String cargoName;
+    private UUID plazaId;
+    private String plazaCodigo;
     private Boolean activo;
 
     public TrabajadorResponse(TrabajadorDto trabajador) {
@@ -42,6 +44,8 @@ public class TrabajadorResponse implements IResponse {
         this.grupoNombre = trabajador.getGrupoNombre();
         this.cargoId = trabajador.getCargoId();
         this.cargoName = trabajador.getCargoName();
+        this.plazaId = trabajador.getPlazaId();
+        this.plazaCodigo = trabajador.getPlazaCodigo();
         this.activo = trabajador.getActivo();
     }
 }

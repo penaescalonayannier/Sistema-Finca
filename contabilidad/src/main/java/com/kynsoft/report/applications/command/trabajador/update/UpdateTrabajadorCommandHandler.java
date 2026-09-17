@@ -44,6 +44,7 @@ public class UpdateTrabajadorCommandHandler implements ICommandHandler<UpdateTra
                 .fincaId(command.getFincaId() != null ? command.getFincaId() : dto.getFincaId())
                 .grupoId(command.getGrupoId() != null ? command.getGrupoId() : dto.getGrupoId())
                 .cargoId(command.getCargoId() != null ? command.getCargoId() : dto.getCargoId())
+                .plazaId(command.getPlazaId() != null ? command.getPlazaId() : dto.getPlazaId())
                 .activo(command.getActivo() != null ? command.getActivo() : dto.getActivo())
                 .build();
 

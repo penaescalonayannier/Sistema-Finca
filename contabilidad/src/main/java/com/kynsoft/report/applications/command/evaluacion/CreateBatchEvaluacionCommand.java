@@ -17,6 +17,9 @@ public class CreateBatchEvaluacionCommand implements ICommand {
     private Integer year;
     private UUID grupoId;
     private UUID jefeId;
+    private String evidencia;
+    private String criteriosAplicados;
+    private String constanciaJefe;
     private List<CreateBatchEvaluacionRequest.CreateBatchEvaluacionItem> evaluaciones;
 
     public static CreateBatchEvaluacionCommand fromRequest(CreateBatchEvaluacionRequest request) {
@@ -25,6 +28,9 @@ public class CreateBatchEvaluacionCommand implements ICommand {
                 request.getYear(),
                 request.getGrupoId(),
                 request.getJefeId(),
+                request.getEvidencia(),
+                request.getCriteriosAplicados(),
+                request.getConstanciaJefe(),
                 request.getEvaluaciones()
         );
     }

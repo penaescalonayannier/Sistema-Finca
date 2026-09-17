@@ -20,16 +20,18 @@ public interface TrabajadorReadDataJPARepository extends JpaRepository<Trabajado
 
     Optional<Trabajador> findByRuc(String ruc);
 
+    Optional<Trabajador> findByPlazaIdAndActivoTrue(UUID plazaId);
+
     Long countByFincaIdAndActivoTrue(UUID fincaId);
 
     Page<Trabajador> findByFincaIdAndActivoTrue(UUID fincaId, Pageable pageable);
 
-    @Query("SELECT t FROM Trabajador t LEFT JOIN FETCH t.finca LEFT JOIN FETCH t.grupo LEFT JOIN FETCH t.cargo WHERE t.id = :id")
+    @Query("SELECT t FROM Trabajador t LEFT JOIN FETCH t.finca LEFT JOIN FETCH t.grupo LEFT JOIN FETCH t.cargo LEFT JOIN FETCH t.plaza WHERE t.id = :id")
     Optional<Trabajador> findByIdWithRelations(@Param("id") UUID id);
 
-    @Query("SELECT t FROM Trabajador t LEFT JOIN FETCH t.finca LEFT JOIN FETCH t.grupo LEFT JOIN FETCH t.cargo WHERE t.activo = true ORDER BY t.nombre")
+    @Query("SELECT t FROM Trabajador t LEFT JOIN FETCH t.finca LEFT JOIN FETCH t.grupo LEFT JOIN FETCH t.cargo LEFT JOIN FETCH t.plaza WHERE t.activo = true ORDER BY t.nombre")
     java.util.List<Trabajador> findAllActivosWithRelations();
 
-    @Query("SELECT t FROM Trabajador t LEFT JOIN FETCH t.finca LEFT JOIN FETCH t.grupo LEFT JOIN FETCH t.cargo WHERE t.activo = true AND t.fincaId = :fincaId ORDER BY t.nombre")
+    @Query("SELECT t FROM Trabajador t LEFT JOIN FETCH t.finca LEFT JOIN FETCH t.grupo LEFT JOIN FETCH t.cargo LEFT JOIN FETCH t.plaza WHERE t.activo = true AND t.fincaId = :fincaId ORDER BY t.nombre")
     java.util.List<Trabajador> findAllActivosWithRelationsByFincaId(@Param("fincaId") UUID fincaId);
 }

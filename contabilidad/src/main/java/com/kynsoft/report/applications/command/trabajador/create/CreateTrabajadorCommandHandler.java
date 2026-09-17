@@ -60,6 +60,7 @@ public class CreateTrabajadorCommandHandler implements ICommandHandler<CreateTra
                 .fincaId(command.getFincaId())
                 .grupoId(command.getGrupoId())
                 .cargoId(command.getCargoId())
+                .plazaId(command.getPlazaId())
                 .activo(true)
                 .build());
     }

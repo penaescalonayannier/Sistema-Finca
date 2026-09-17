@@ -80,3 +80,11 @@ else
 fi
 PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
     -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V32__reporte_finca_tenant.sql"
+PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
+    -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V33__estructura_organizativa_y_plazas.sql"
+PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
+    -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V34__expediente_disciplina_laboral.sql"
+PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
+    -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V35__ciclo_formal_evaluacion_desempeno.sql"
+PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
+    -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V36__historial_salarial_trabajador.sql"

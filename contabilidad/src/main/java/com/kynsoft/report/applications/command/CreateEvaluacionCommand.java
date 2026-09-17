@@ -17,6 +17,10 @@ public class CreateEvaluacionCommand implements ICommand {
     private Integer year;
     private Integer calificacion;
     private String comentarios;
+    private String evidencia;
+    private String criteriosAplicados;
+    private String constanciaJefe;
+    private String constanciaTrabajador;
 
     public CreateEvaluacionCommand(
             UUID trabajadorId,
@@ -35,7 +39,7 @@ public class CreateEvaluacionCommand implements ICommand {
     }
 
     public static CreateEvaluacionCommand fromRequest(CreateEvaluacionRequest request) {
-        return new CreateEvaluacionCommand(
+        CreateEvaluacionCommand command = new CreateEvaluacionCommand(
                 request.trabajadorId,
                 request.jefeId,
                 request.mes,
@@ -43,6 +47,11 @@ public class CreateEvaluacionCommand implements ICommand {
                 request.calificacion,
                 request.comentarios
         );
+        command.setEvidencia(request.evidencia);
+        command.setCriteriosAplicados(request.criteriosAplicados);
+        command.setConstanciaJefe(request.constanciaJefe);
+        command.setConstanciaTrabajador(request.constanciaTrabajador);
+        return command;
     }
 
     @Override
@@ -57,5 +66,9 @@ public class CreateEvaluacionCommand implements ICommand {
         public Integer year;
         public Integer calificacion;
         public String comentarios;
+        public String evidencia;
+        public String criteriosAplicados;
+        public String constanciaJefe;
+        public String constanciaTrabajador;
     }
 }

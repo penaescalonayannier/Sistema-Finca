@@ -20,6 +20,7 @@ public class UpdateTrabajadorCommand implements ICommand {
     private UUID fincaId;
     private UUID grupoId;
     private UUID cargoId;
+    private UUID plazaId;
     private Boolean activo;
 
     public static UpdateTrabajadorCommand fromRequest(UpdateTrabajadorRequest request, UUID id) {
@@ -30,6 +31,7 @@ public class UpdateTrabajadorCommand implements ICommand {
                 request.getFincaId(),
                 request.getGrupoId(),
                 request.getCargoId(),
+                request.getPlazaId(),
                 request.getActivo()
         );
     }

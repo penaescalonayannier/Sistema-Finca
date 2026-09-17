@@ -27,5 +27,8 @@ public class TrabajadorDto {
     private String grupoNombre; // Nombre del grupo
     private UUID cargoId; // ID del cargo
     private String cargoName; // Nombre del cargo
+    /** Opcional: la plantilla formal es gradual; los trabajadores históricos pueden no tener plaza. */
+    private UUID plazaId;
+    private String plazaCodigo;
     private ReporteDto reporte;
 }

@@ -14,5 +14,6 @@ public class UpdateTrabajadorRequest {
     private UUID fincaId;
     private UUID grupoId;
     private UUID cargoId;
+    private UUID plazaId;
     private Boolean activo;
 }

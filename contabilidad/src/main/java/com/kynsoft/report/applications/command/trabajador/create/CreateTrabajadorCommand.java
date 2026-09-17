@@ -20,6 +20,7 @@ public class CreateTrabajadorCommand implements ICommand {
     private UUID fincaId;
     private UUID grupoId;
     private UUID cargoId;
+    private UUID plazaId;
 
     public static CreateTrabajadorCommand fromRequest(CreateTrabajadorRequest request) {
         return new CreateTrabajadorCommand(
@@ -29,7 +30,8 @@ public class CreateTrabajadorCommand implements ICommand {
                 request.getCuenta(),
                 request.getFincaId(),
                 request.getGrupoId(),
-                request.getCargoId()
+                request.getCargoId(),
+                request.getPlazaId()
         );
     }
 

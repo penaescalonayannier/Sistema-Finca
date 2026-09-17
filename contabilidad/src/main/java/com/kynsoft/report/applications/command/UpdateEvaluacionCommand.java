@@ -17,6 +17,10 @@ public class UpdateEvaluacionCommand implements ICommand {
     private Integer year;
     private Integer calificacion;
     private String comentarios;
+    private String evidencia;
+    private String criteriosAplicados;
+    private String constanciaJefe;
+    private String constanciaTrabajador;
 
     public UpdateEvaluacionCommand(
             UUID id,
@@ -36,7 +40,7 @@ public class UpdateEvaluacionCommand implements ICommand {
     }
 
     public static UpdateEvaluacionCommand fromRequest(UpdateEvaluacionRequest request) {
-        return new UpdateEvaluacionCommand(
+        UpdateEvaluacionCommand command = new UpdateEvaluacionCommand(
                 request.id,
                 request.trabajadorId,
                 request.jefeId,
@@ -45,6 +49,11 @@ public class UpdateEvaluacionCommand implements ICommand {
                 request.calificacion,
                 request.comentarios
         );
+        command.setEvidencia(request.evidencia);
+        command.setCriteriosAplicados(request.criteriosAplicados);
+        command.setConstanciaJefe(request.constanciaJefe);
+        command.setConstanciaTrabajador(request.constanciaTrabajador);
+        return command;
     }
 
     @Override
@@ -60,6 +69,10 @@ public class UpdateEvaluacionCommand implements ICommand {
         public Integer year;
         public Integer calificacion;
         public String comentarios;
+        public String evidencia;
+        public String criteriosAplicados;
+        public String constanciaJefe;
+        public String constanciaTrabajador;
 
         public void setId(UUID id) {
             this.id = id;

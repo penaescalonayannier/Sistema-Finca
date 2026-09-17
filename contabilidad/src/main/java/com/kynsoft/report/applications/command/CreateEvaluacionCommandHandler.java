@@ -29,6 +29,10 @@ public class CreateEvaluacionCommandHandler implements ICommandHandler<CreateEva
                 .year(command.getYear())
                 .calificacion(command.getCalificacion())
                 .comentarios(command.getComentarios())
+                .evidencia(command.getEvidencia())
+                .criteriosAplicados(command.getCriteriosAplicados())
+                .constanciaJefe(command.getConstanciaJefe())
+                .constanciaTrabajador(command.getConstanciaTrabajador())
                 .fechaEvaluacion(LocalDateTime.now())
                 .build());
     }

@@ -22,6 +22,7 @@ import com.kynsoft.report.infrastructure.repository.query.DeudaTrabajadorReadDat
 import com.kynsoft.report.infrastructure.repository.query.FincaReadDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.TrabajadorDiaReadDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.TrabajadorReadDataJPARepository;
+import com.kynsoft.report.infrastructure.repository.query.PlazaReadDataJPARepository;
 import com.kynsoft.report.infrastructure.security.TenantContext;
 import com.kynsoft.report.infrastructure.security.TenantSpecification;
 import com.kynsoft.report.infrastructure.security.TenantValidator;
@@ -48,22 +49,26 @@ public class TrabajadorServiceImpl implements ITrabajadorService {
     private final FincaReadDataJPARepository fincaRepository;
     private final DeudaTrabajadorReadDataJPARepository deudaRepository;
     private final TrabajadorDiaReadDataJPARepository trabajadorDiaRepository;
+    private final PlazaReadDataJPARepository plazaRepository;
 
     public TrabajadorServiceImpl(TrabajadorWriteDataJPARepository repositoryCommand,
                                   TrabajadorReadDataJPARepository repositoryQuery,
                                   FincaReadDataJPARepository fincaRepository,
                                   DeudaTrabajadorReadDataJPARepository deudaRepository,
-                                  TrabajadorDiaReadDataJPARepository trabajadorDiaRepository) {
+                                  TrabajadorDiaReadDataJPARepository trabajadorDiaRepository,
+                                  PlazaReadDataJPARepository plazaRepository) {
         this.repositoryCommand = repositoryCommand;
         this.repositoryQuery = repositoryQuery;
         this.fincaRepository = fincaRepository;
         this.deudaRepository = deudaRepository;
         this.trabajadorDiaRepository = trabajadorDiaRepository;
+        this.plazaRepository = plazaRepository;
     }
 
     @Override
     public void create(TrabajadorDto object) {
         validarEscritura(object.getFincaId());
+        validarPlaza(object.getPlazaId(), object.getFincaId(), object.getCargoId(), null);
         // Validar que el RUC no exista
         repositoryQuery.findByRuc(object.getRuc())
             .ifPresent(t -> {
@@ -93,11 +98,33 @@ public class TrabajadorServiceImpl implements ITrabajadorService {
         trabajador.setFincaId(object.getFincaId());
         trabajador.setGrupoId(object.getGrupoId());
         trabajador.setCargoId(object.getCargoId());
+        validarPlaza(object.getPlazaId(), object.getFincaId(), object.getCargoId(), trabajador.getId());
+        trabajador.setPlazaId(object.getPlazaId());
         if (object.getActivo() != null) {
             trabajador.setActivo(object.getActivo());
         }
 
         repositoryCommand.save(trabajador);
+    }
+
+    private void validarPlaza(UUID plazaId, UUID fincaId, UUID cargoId, UUID trabajadorId) {
+        if (plazaId == null) return;
+        com.kynsoft.report.infrastructure.entity.Plaza plaza = plazaRepository.findById(plazaId)
+            .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
+                DomainErrorMessage.BUSINESS_NOT_FOUND, new ErrorField("plazaId", "Plaza no encontrada."))));
+        if (!Boolean.TRUE.equals(plaza.getActivo()) || !plaza.getFincaId().equals(fincaId) || !plaza.getCargoId().equals(cargoId)) {
+            throw new BusinessNotFoundException(new GlobalBusinessException(DomainErrorMessage.BUSINESS_NOT_FOUND,
+                new ErrorField("plazaId", "La plaza debe estar activa y corresponder a la finca y cargo del trabajador.")));
+        }
+        java.time.LocalDate hoy = java.time.LocalDate.now();
+        if ((plaza.getFechaInicio() != null && plaza.getFechaInicio().isAfter(hoy)) || (plaza.getFechaFin() != null && plaza.getFechaFin().isBefore(hoy))) {
+            throw new BusinessNotFoundException(new GlobalBusinessException(DomainErrorMessage.BUSINESS_NOT_FOUND,
+                new ErrorField("plazaId", "La plaza no está vigente.")));
+        }
+        repositoryQuery.findByPlazaIdAndActivoTrue(plazaId).filter(t -> !t.getId().equals(trabajadorId)).ifPresent(t -> {
+            throw new BusinessNotFoundException(new GlobalBusinessException(DomainErrorMessage.BUSINESS_NOT_FOUND,
+                new ErrorField("plazaId", "La plaza ya está ocupada.")));
+        });
     }
 
     @Override
@@ -120,6 +147,9 @@ public class TrabajadorServiceImpl implements ITrabajadorService {
 
         // Soft delete: marcar como inactivo
         trabajador.setActivo(false);
+        // La plaza es una ocupación vigente: al desactivar se libera sin afectar
+        // el historial básico del trabajador ni los flujos anteriores.
+        trabajador.setPlazaId(null);
         repositoryCommand.save(trabajador);
 
         return DeleteTrabajadorResponse.builder()
@@ -260,6 +290,9 @@ public class TrabajadorServiceImpl implements ITrabajadorService {
         String fincaAnteriorNombre = trabajador.getFinca() != null ? trabajador.getFinca().getName() : "Desconocida";
 
         trabajador.setFincaId(nuevaFincaId);
+        // Una plaza pertenece a una finca; una transferencia nunca puede llevar
+        // una ocupación inválida a la nueva finca.
+        trabajador.setPlazaId(null);
         repositoryCommand.save(trabajador);
 
         return TransferirTrabajadorResponse.builder()

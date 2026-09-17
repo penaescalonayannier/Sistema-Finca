@@ -59,6 +59,13 @@ public class Trabajador {
     @JoinColumn(name = "cargo_id", insertable = false, updatable = false)
     private Cargo cargo;
 
+    @Column(name = "plaza_id")
+    private UUID plazaId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "plaza_id", insertable = false, updatable = false)
+    private Plaza plaza;
+
     public Trabajador(TrabajadorDto dto) {
         this.id = dto.getId();
         this.nombre = dto.getNombre();
@@ -68,6 +75,7 @@ public class Trabajador {
         this.fincaId = dto.getFincaId();
         this.grupoId = dto.getGrupoId();
         this.cargoId = dto.getCargoId();
+        this.plazaId = dto.getPlazaId();
     }
 
     public TrabajadorDto toAggregate() {
@@ -75,6 +83,7 @@ public class Trabajador {
         String fName = null;
         String gNombre = null;
         String cName = null;
+        String pCodigo = null;
 
         // Check if lazy-loaded entities are initialized before accessing
         if (finca != null && Hibernate.isInitialized(finca)) {
@@ -86,6 +95,9 @@ public class Trabajador {
         }
         if (cargo != null && Hibernate.isInitialized(cargo)) {
             cName = cargo.getName();
+        }
+        if (plaza != null && Hibernate.isInitialized(plaza)) {
+            pCodigo = plaza.getCodigo();
         }
 
         return TrabajadorDto
@@ -102,6 +114,8 @@ public class Trabajador {
                 .grupoNombre(gNombre)
                 .cargoId(cargoId)
                 .cargoName(cName)
+                .plazaId(plazaId)
+                .plazaCodigo(pCodigo)
                 .build();
     }
 }

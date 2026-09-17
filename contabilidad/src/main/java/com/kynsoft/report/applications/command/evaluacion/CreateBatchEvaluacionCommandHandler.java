@@ -67,6 +67,10 @@ public class CreateBatchEvaluacionCommandHandler implements ICommandHandler<Crea
                 EvaluacionDto evalExistente = existente.get();
                 evalExistente.setCalificacion(item.getCalificacion());
                 evalExistente.setComentarios(item.getComentarios());
+                evalExistente.setEvidencia(command.getEvidencia());
+                evalExistente.setCriteriosAplicados(command.getCriteriosAplicados());
+                evalExistente.setConstanciaJefe(command.getConstanciaJefe());
+                evalExistente.setConstanciaTrabajador(item.getConstanciaTrabajador());
                 evalExistente.setFechaEvaluacion(LocalDateTime.now());
                 evalExistente.setJefeId(jefeParaEsteItem);
                 evalExistente.setGrupoId(grupoId);
@@ -82,6 +86,10 @@ public class CreateBatchEvaluacionCommandHandler implements ICommandHandler<Crea
                         .year(command.getYear())
                         .calificacion(item.getCalificacion())
                         .comentarios(item.getComentarios())
+                        .evidencia(command.getEvidencia())
+                        .criteriosAplicados(command.getCriteriosAplicados())
+                        .constanciaJefe(command.getConstanciaJefe())
+                        .constanciaTrabajador(item.getConstanciaTrabajador())
                         .fechaEvaluacion(LocalDateTime.now())
                         .build();
 

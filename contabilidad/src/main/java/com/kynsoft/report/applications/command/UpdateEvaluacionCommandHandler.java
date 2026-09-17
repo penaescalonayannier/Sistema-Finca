@@ -28,6 +28,10 @@ public class UpdateEvaluacionCommandHandler implements ICommandHandler<UpdateEva
                 .year(command.getYear())
                 .calificacion(command.getCalificacion())
                 .comentarios(command.getComentarios())
+                .evidencia(command.getEvidencia())
+                .criteriosAplicados(command.getCriteriosAplicados())
+                .constanciaJefe(command.getConstanciaJefe())
+                .constanciaTrabajador(command.getConstanciaTrabajador())
                 .fechaEvaluacion(LocalDateTime.now())
                 .build());
     }

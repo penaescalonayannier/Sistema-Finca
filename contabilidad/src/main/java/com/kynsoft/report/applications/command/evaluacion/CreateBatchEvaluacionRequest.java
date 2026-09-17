@@ -16,6 +16,9 @@ public class CreateBatchEvaluacionRequest {
     private Integer year;
     private UUID grupoId;
     private UUID jefeId;
+    private String evidencia;
+    private String criteriosAplicados;
+    private String constanciaJefe;
     private List<CreateBatchEvaluacionItem> evaluaciones;
 
     @Getter
@@ -26,5 +29,6 @@ public class CreateBatchEvaluacionRequest {
         private UUID trabajadorId;
         private Integer calificacion;
         private String comentarios;
+        private String constanciaTrabajador;
     }
 }

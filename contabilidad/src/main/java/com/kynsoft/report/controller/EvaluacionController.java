@@ -16,9 +16,12 @@ import com.kynsoft.report.applications.query.GetEvaluacionQuery;
 import com.kynsoft.report.applications.query.SearchEvaluacionQuery;
 import com.kynsoft.report.applications.query.responseObject.EvaluacionResponse;
 import com.kynsoft.report.domain.dto.EvaluacionDto;
+import com.kynsoft.report.domain.dto.CriterioEvaluacionDto;
+import com.kynsoft.report.domain.dto.EstadoEvaluacion;
 import com.kynsoft.report.domain.dto.GrupoDto;
 import com.kynsoft.report.domain.dto.TrabajadorDto;
 import com.kynsoft.report.domain.services.IEvaluacionService;
+import com.kynsoft.report.domain.services.ICriterioEvaluacionService;
 import com.kynsoft.report.domain.services.IGrupoService;
 import com.kynsoft.report.domain.services.ITrabajadorService;
 import org.springframework.data.domain.Pageable;
@@ -39,13 +42,16 @@ public class EvaluacionController {
     private final IGrupoService grupoService;
     private final IEvaluacionService evaluacionService;
     private final ITrabajadorService trabajadorService;
+    private final ICriterioEvaluacionService criterioEvaluacionService;
 
     public EvaluacionController(IMediator mediator, IGrupoService grupoService,
-                               IEvaluacionService evaluacionService, ITrabajadorService trabajadorService) {
+                               IEvaluacionService evaluacionService, ITrabajadorService trabajadorService,
+                               ICriterioEvaluacionService criterioEvaluacionService) {
         this.mediator = mediator;
         this.grupoService = grupoService;
         this.evaluacionService = evaluacionService;
         this.trabajadorService = trabajadorService;
+        this.criterioEvaluacionService = criterioEvaluacionService;
     }
 
     @PostMapping("")
@@ -141,6 +147,13 @@ public class EvaluacionController {
                                     evalEnriquecida.put("calificacion", eval.getCalificacion());
                                     evalEnriquecida.put("comentarios", eval.getComentarios());
                                     evalEnriquecida.put("fechaEvaluacion", eval.getFechaEvaluacion());
+                                    evalEnriquecida.put("estado", eval.getEstado());
+                                    evalEnriquecida.put("evidencia", eval.getEvidencia());
+                                    evalEnriquecida.put("criteriosAplicados", eval.getCriteriosAplicados());
+                                    evalEnriquecida.put("constanciaJefe", eval.getConstanciaJefe());
+                                    evalEnriquecida.put("constanciaTrabajador", eval.getConstanciaTrabajador());
+                                    evalEnriquecida.put("fechaEnvio", eval.getFechaEnvio());
+                                    evalEnriquecida.put("fechaCierre", eval.getFechaCierre());
                                     evaluacionesEnriquecidas.add(evalEnriquecida);
                                 }
                             }
@@ -180,6 +193,41 @@ public class EvaluacionController {
         return ResponseEntity.ok("Evaluación actualizada exitosamente");
     }
 
+    /** Cambia el ciclo sin reutilizar la edición ordinaria; CERRADA queda inmutable. */
+    @PutMapping("/{id}/estado")
+    public ResponseEntity<EvaluacionResponse> cambiarEstado(@PathVariable UUID id,
+            @RequestBody CambioEstadoEvaluacionRequest request) {
+        EvaluacionDto evaluacion = evaluacionService.cambiarEstado(id, request.getEstado(),
+                request.getConstanciaJefe(), request.getConstanciaTrabajador(), request.getObservacionesCierre());
+        return ResponseEntity.ok(new EvaluacionResponse(evaluacion));
+    }
+
+    @GetMapping("/criterios")
+    public ResponseEntity<java.util.List<CriterioEvaluacionDto>> listarCriterios(
+            @RequestParam(defaultValue = "false") boolean incluirInactivos) {
+        return ResponseEntity.ok(criterioEvaluacionService.listar(incluirInactivos));
+    }
+
+    @PostMapping("/criterios")
+    public ResponseEntity<CriterioEvaluacionDto> guardarCriterio(@RequestBody CriterioEvaluacionDto criterio) {
+        return ResponseEntity.ok(criterioEvaluacionService.guardar(criterio));
+    }
+
+    @DeleteMapping("/criterios/{id}")
+    public ResponseEntity<Void> desactivarCriterio(@PathVariable UUID id) {
+        criterioEvaluacionService.desactivar(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @lombok.Getter
+    @lombok.Setter
+    public static class CambioEstadoEvaluacionRequest {
+        private EstadoEvaluacion estado;
+        private String constanciaJefe;
+        private String constanciaTrabajador;
+        private String observacionesCierre;
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable UUID id) {
         DeleteEvaluacionCommand deleteCommand = new DeleteEvaluacionCommand(id);
@@ -212,6 +260,13 @@ public class EvaluacionController {
                 map.put("calificacion", e.getCalificacion());
                 map.put("comentarios", e.getComentarios());
                 map.put("fechaEvaluacion", e.getFechaEvaluacion());
+                map.put("estado", e.getEstado());
+                map.put("evidencia", e.getEvidencia());
+                map.put("criteriosAplicados", e.getCriteriosAplicados());
+                map.put("constanciaJefe", e.getConstanciaJefe());
+                map.put("constanciaTrabajador", e.getConstanciaTrabajador());
+                map.put("fechaEnvio", e.getFechaEnvio());
+                map.put("fechaCierre", e.getFechaCierre());
 
                 // Get worker name
                 try {

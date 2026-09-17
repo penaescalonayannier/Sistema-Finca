@@ -9,6 +9,8 @@ import com.kynsoft.share.core.domain.response.PaginatedResponse;
 import com.kynsoft.share.core.infrastructure.specifications.GenericSpecificationsBuilder;
 import com.kynsoft.report.applications.query.responseObject.EvaluacionResponse;
 import com.kynsoft.report.domain.dto.EvaluacionDto;
+import com.kynsoft.report.domain.dto.EstadoEvaluacion;
+import com.kynsoft.report.domain.dto.TipoAccion;
 import com.kynsoft.report.domain.services.IEvaluacionService;
 import com.kynsoft.report.infrastructure.entity.Evaluacion;
 import com.kynsoft.report.infrastructure.repository.command.EvaluacionWriteDataJPARepository;
@@ -29,32 +31,54 @@ public class EvaluacionServiceImpl implements IEvaluacionService {
 
     private final EvaluacionWriteDataJPARepository repositoryCommand;
     private final EvaluacionReadDataJPARepository repositoryQuery;
+    private final AuditoriaTransaccionalService auditoria;
 
     public EvaluacionServiceImpl(EvaluacionWriteDataJPARepository repositoryCommand,
-                                EvaluacionReadDataJPARepository repositoryQuery) {
+                                EvaluacionReadDataJPARepository repositoryQuery,
+                                AuditoriaTransaccionalService auditoria) {
         this.repositoryCommand = repositoryCommand;
         this.repositoryQuery = repositoryQuery;
+        this.auditoria = auditoria;
     }
 
     @Override
     public void create(EvaluacionDto object) {
-        repositoryCommand.save(new Evaluacion(object));
+        if (object.getEstado() == null) object.setEstado(EstadoEvaluacion.BORRADOR);
+        Evaluacion creada = repositoryCommand.save(new Evaluacion(object));
+        auditoria.registrarDespuesDeConfirmar(TipoAccion.CREATE, "EVALUACION_DESEMPENO", creada.getId(),
+                "Creada evaluación de desempeño", null, creada.toAggregate());
     }
 
     @Override
     public void update(EvaluacionDto object) {
-        repositoryCommand.save(new Evaluacion(object));
+        Evaluacion existente = obtener(object.getId());
+        asegurarEditable(existente);
+        EvaluacionDto anterior = existente.toAggregate();
+        existente.setGrupoId(object.getGrupoId());
+        existente.setTrabajadorId(object.getTrabajadorId());
+        existente.setJefeId(object.getJefeId());
+        existente.setMes(object.getMes());
+        existente.setYear(object.getYear());
+        existente.setCalificacion(object.getCalificacion());
+        existente.setComentarios(object.getComentarios());
+        existente.setFechaEvaluacion(object.getFechaEvaluacion());
+        if (object.getEvidencia() != null) existente.setEvidencia(object.getEvidencia());
+        if (object.getCriteriosAplicados() != null) existente.setCriteriosAplicados(object.getCriteriosAplicados());
+        if (object.getConstanciaJefe() != null) existente.setConstanciaJefe(object.getConstanciaJefe());
+        if (object.getConstanciaTrabajador() != null) existente.setConstanciaTrabajador(object.getConstanciaTrabajador());
+        Evaluacion actualizada = repositoryCommand.save(existente);
+        auditoria.registrarDespuesDeConfirmar(TipoAccion.UPDATE, "EVALUACION_DESEMPENO", actualizada.getId(),
+                "Actualizada evaluación de desempeño", anterior, actualizada.toAggregate());
     }
 
     @Override
     public void delete(UUID id) {
-        try {
-            repositoryCommand.deleteById(id);
-        } catch (Exception e) {
-            throw new BusinessNotFoundException(new GlobalBusinessException(
-                    DomainErrorMessage.NOT_DELETE,
-                    new ErrorField("id", "Evaluación cannot be deleted as it has a related element.")));
-        }
+        Evaluacion existente = obtener(id);
+        asegurarEditable(existente);
+        EvaluacionDto anterior = existente.toAggregate();
+        repositoryCommand.delete(existente);
+        auditoria.registrarDespuesDeConfirmar(TipoAccion.DELETE, "EVALUACION_DESEMPENO", id,
+                "Eliminada evaluación en borrador", anterior, null);
     }
 
     @Override
@@ -111,5 +135,55 @@ public class EvaluacionServiceImpl implements IEvaluacionService {
     public Optional<EvaluacionDto> findByTrabajadorAndMesAndYear(UUID trabajadorId, String mes, Integer year) {
         return repositoryQuery.findByTrabajadorIdAndMesAndYear(trabajadorId, mes, year)
                 .map(Evaluacion::toAggregate);
+    }
+
+    @Override
+    public EvaluacionDto cambiarEstado(UUID id, EstadoEvaluacion estado, String constanciaJefe,
+            String constanciaTrabajador, String observacionesCierre) {
+        if (estado == null) throw new IllegalArgumentException("El estado de la evaluación es obligatorio.");
+        Evaluacion evaluacion = obtener(id);
+        EstadoEvaluacion anteriorEstado = evaluacion.getEstado() == null ? EstadoEvaluacion.BORRADOR : evaluacion.getEstado();
+        validarTransicion(anteriorEstado, estado);
+        EvaluacionDto anterior = evaluacion.toAggregate();
+        evaluacion.setEstado(estado);
+        if (constanciaJefe != null) evaluacion.setConstanciaJefe(constanciaJefe);
+        if (constanciaTrabajador != null) evaluacion.setConstanciaTrabajador(constanciaTrabajador);
+        if (estado == EstadoEvaluacion.ENVIADA) evaluacion.setFechaEnvio(java.time.LocalDateTime.now());
+        if (estado == EstadoEvaluacion.CERRADA) {
+            if (vacio(evaluacion.getConstanciaJefe()) || vacio(evaluacion.getConstanciaTrabajador())) {
+                throw new IllegalArgumentException("Para cerrar la evaluación se requiere la constancia textual del jefe y del trabajador.");
+            }
+            evaluacion.setFechaCierre(java.time.LocalDateTime.now());
+            evaluacion.setObservacionesCierre(observacionesCierre);
+        }
+        Evaluacion guardada = repositoryCommand.save(evaluacion);
+        auditoria.registrarDespuesDeConfirmar(TipoAccion.UPDATE, "EVALUACION_DESEMPENO", id,
+                "Cambio de estado " + anteriorEstado + " a " + estado, anterior, guardada.toAggregate());
+        return guardada.toAggregate();
+    }
+
+    private Evaluacion obtener(UUID id) {
+        return repositoryQuery.findById(id).orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
+                DomainErrorMessage.BUSINESS_NOT_FOUND, new ErrorField("id", "Evaluación not found."))));
+    }
+
+    private void asegurarEditable(Evaluacion evaluacion) {
+        if (evaluacion.getEstado() == EstadoEvaluacion.CERRADA || evaluacion.getEstado() == EstadoEvaluacion.ANULADA) {
+            throw new IllegalStateException("La evaluación cerrada o anulada es inmutable. Debe conservarse como evidencia documental.");
+        }
+    }
+
+    private void validarTransicion(EstadoEvaluacion actual, EstadoEvaluacion destino) {
+        if (actual == EstadoEvaluacion.CERRADA) {
+            throw new IllegalStateException("Una evaluación cerrada no puede cambiar de estado.");
+        }
+        boolean valida = actual == destino
+                || (actual == EstadoEvaluacion.BORRADOR && (destino == EstadoEvaluacion.ENVIADA || destino == EstadoEvaluacion.ANULADA))
+                || (actual == EstadoEvaluacion.ENVIADA && (destino == EstadoEvaluacion.CERRADA || destino == EstadoEvaluacion.ANULADA));
+        if (!valida) throw new IllegalArgumentException("Transición de estado de evaluación no permitida.");
+    }
+
+    private boolean vacio(String valor) {
+        return valor == null || valor.isBlank();
     }
 }
