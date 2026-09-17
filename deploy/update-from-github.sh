@@ -130,7 +130,13 @@ main() {
         "$BASE_DIR/stop-all.sh"
     fi
     [[ -x "$BASE_DIR/start-all.sh" ]] || fail "No existe $BASE_DIR/start-all.sh"
-    "$BASE_DIR/start-all.sh"
+    # Los procesos que inicia start-all.sh permanecen en segundo plano. Cerrar
+    # el descriptor del flock solo en ese subproceso evita que backend o
+    # frontend hereden y conserven el bloqueo de futuras actualizaciones.
+    (
+        exec 9>&-
+        "$BASE_DIR/start-all.sh"
+    )
 
     if command -v curl >/dev/null 2>&1; then
         log "Comprobando backend"
