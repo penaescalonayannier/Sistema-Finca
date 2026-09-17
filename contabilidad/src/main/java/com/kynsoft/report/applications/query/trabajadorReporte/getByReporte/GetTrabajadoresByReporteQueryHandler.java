@@ -5,6 +5,7 @@ import com.kynsoft.report.applications.query.responseObject.TrabajadorReporteDet
 import com.kynsoft.report.applications.query.responseObject.TrabajadorReporteDetailResponse;
 import com.kynsoft.report.infrastructure.entity.TrabajadorReporte;
 import com.kynsoft.report.infrastructure.repository.query.TrabajadorReporteReadDataJPARepository;
+import com.kynsoft.report.domain.services.IReporteService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -17,9 +18,12 @@ public class GetTrabajadoresByReporteQueryHandler
         implements IQueryHandler<GetTrabajadoresByReporteQuery, TrabajadorReporteDetailListResponse> {
 
     private final TrabajadorReporteReadDataJPARepository repositoryQuery;
+    private final IReporteService reporteService;
 
     @Override
     public TrabajadorReporteDetailListResponse handle(GetTrabajadoresByReporteQuery query) {
+        // El servicio valida que el reporte pertenezca a la finca visible del usuario.
+        reporteService.findById(query.getReporteId());
         List<TrabajadorReporte> asignaciones = repositoryQuery.findByReporteId(query.getReporteId());
 
         List<TrabajadorReporteDetailResponse> responses = asignaciones.stream()

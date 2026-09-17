@@ -16,4 +16,7 @@ public class CreateReporteRequest {
     private String year;
     private String mes;
     private UUID trabajadorResponsableId;
+    private UUID tipoReporteId;
+    private UUID tipoCultivoId;
+    private UUID tipoAnimalId;
 }

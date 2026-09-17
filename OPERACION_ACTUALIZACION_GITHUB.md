@@ -156,6 +156,12 @@ En **Finanzas → Consecutivos documentales** se consulta el registro oficial de
 
 **Inventario → Inventario físico** abre el expediente SC-2-15 por almacén y congela el saldo teórico por producto. El cierre exige declarar todas las cantidades físicas, responsables y autorización. Si hubo movimientos desde la apertura, el expediente no se puede cerrar: debe abrirse uno nuevo para mantener el saldo teórico íntegro. Las diferencias, y solo ellas, generan el ajuste consecutivo SC-2-16 enlazado al expediente; un conteo sin diferencias no modifica existencias. Apertura, cierre y ajuste quedan en Auditoría y el expediente se descarga en PDF.
 
+### Partes de trabajo por finca (V32)
+
+`V32__reporte_finca_tenant.sql` incorpora la finca propietaria a cada parte de trabajo. Al actualizar una PC, el script la completa desde el trabajador responsable de los históricos que lo tengan y deja sin alterar los registros excepcionales sin responsable. No modifica códigos, fechas, días ni jornadas. Desde esa versión, los días y jornadas validan la finca del parte, los partes conservan el tipo de reporte/cultivo/animal seleccionado y las altas, cambios y bajas dejan trazabilidad en Auditoría.
+
+Antes de operar, compruebe un parte histórico, cree un parte con su responsable y registre una jornada decimal (por ejemplo `7,5`). Las jornadas de más de ocho horas continúan siendo advertidas por la interfaz; se conservan hasta 24 horas para no romper el flujo vigente. Los cambios de interfaz se validan con `npm run type-check` y las reglas de negocio del backend con pruebas unitarias.
+
 ## Estado registrado el 2026-09-16
 
 | PC | Estado | Observaciones |

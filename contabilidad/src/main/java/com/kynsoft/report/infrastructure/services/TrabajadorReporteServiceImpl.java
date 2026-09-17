@@ -10,6 +10,7 @@ import com.kynsoft.share.core.infrastructure.specifications.GenericSpecification
 import com.kynsoft.report.applications.query.responseObject.TrabajadorReporteResponse;
 import com.kynsoft.report.domain.dto.TrabajadorReporteDetailDto;
 import com.kynsoft.report.domain.dto.TrabajadorReporteDto;
+import com.kynsoft.report.domain.dto.TipoAccion;
 import com.kynsoft.report.domain.services.ITrabajadorReporteService;
 import com.kynsoft.report.infrastructure.entity.Reporte;
 import com.kynsoft.report.infrastructure.entity.Trabajador;
@@ -18,10 +19,14 @@ import com.kynsoft.report.infrastructure.repository.command.TrabajadorReporteWri
 import com.kynsoft.report.infrastructure.repository.query.ReporteReadDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.TrabajadorReadDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.TrabajadorReporteReadDataJPARepository;
+import com.kynsoft.report.infrastructure.security.TenantContext;
+import com.kynsoft.report.infrastructure.security.TenantValidator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -37,6 +42,7 @@ public class TrabajadorReporteServiceImpl implements ITrabajadorReporteService {
     private final TrabajadorReporteReadDataJPARepository repositoryQuery;
     private final ReporteReadDataJPARepository reporteRead;
     private final TrabajadorReadDataJPARepository trabajadorRead;
+    private final AuditoriaTransaccionalService auditoria;
 
     @Override
     public void asignarTrabajadorAReporte(TrabajadorReporteDto object) {
@@ -51,6 +57,10 @@ public class TrabajadorReporteServiceImpl implements ITrabajadorReporteService {
                 .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
                 DomainErrorMessage.BUSINESS_NOT_FOUND,
                 new ErrorField("reporteId", "Reporte not found."))));
+        validarEscritura(r.getFincaId());
+        if (r.getFincaId() != null && !r.getFincaId().equals(tr.getFincaId())) {
+            throw new IllegalArgumentException("El trabajador debe pertenecer a la misma finca del reporte");
+        }
 
         // Validar que no exista ya la relación
         repositoryQuery.findByTrabajadorIdAndReporteId(object.getTrabajador(), object.getReporte())
@@ -60,18 +70,17 @@ public class TrabajadorReporteServiceImpl implements ITrabajadorReporteService {
                             new ErrorField("trabajadorId", "Trabajador already assigned to this reporte.")));
                 });
 
-        // Validar que las horas no excedan 8
-        validarHoras(object.getHoras());
-
         // Crear la relación
         TrabajadorReporte trabajadorReporte = new TrabajadorReporte();
         trabajadorReporte.setId(object.getId());
         trabajadorReporte.setTrabajador(tr);
         trabajadorReporte.setReporte(r);
-        trabajadorReporte.setNorma(object.getNorma());
-        trabajadorReporte.setHoras(object.getHoras());
+        trabajadorReporte.setNorma(ValidacionParteTrabajo.normaRequerida(object.getNorma()));
+        trabajadorReporte.setHoras(ValidacionParteTrabajo.horas(object.getHoras()));
 
-        repositoryCommand.save(trabajadorReporte);
+        TrabajadorReporte creado = repositoryCommand.save(trabajadorReporte);
+        auditoria.registrarDespuesDeConfirmar(TipoAccion.CREATE, "TRABAJADOR_REPORTE", creado.getId(),
+                "Asignado trabajador a parte de trabajo", null, resumen(creado));
     }
 
     @Override
@@ -80,20 +89,24 @@ public class TrabajadorReporteServiceImpl implements ITrabajadorReporteService {
                 .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
                 DomainErrorMessage.BUSINESS_NOT_FOUND,
                 new ErrorField("id", "Relationship not found."))));
+        validarEscritura(trabajadorReporte.getReporte().getFincaId());
 
-        // Validar que las horas no excedan 8
-        validarHoras(object.getHoras());
+        Map<String, Object> anterior = resumen(trabajadorReporte);
+        trabajadorReporte.setHoras(ValidacionParteTrabajo.horas(object.getHoras()));
+        trabajadorReporte.setNorma(ValidacionParteTrabajo.normaRequerida(object.getNorma()));
 
-        trabajadorReporte.setHoras(object.getHoras());
-        trabajadorReporte.setNorma(object.getNorma());
-
-        repositoryCommand.save(trabajadorReporte);
+        TrabajadorReporte actualizado = repositoryCommand.save(trabajadorReporte);
+        auditoria.registrarDespuesDeConfirmar(TipoAccion.UPDATE, "TRABAJADOR_REPORTE", actualizado.getId(),
+                "Actualizada asignación de trabajador en parte", anterior, resumen(actualizado));
     }
 
     @Override
     public TrabajadorReporteDto findById(UUID id) {
         return repositoryQuery.findById(id)
-                .map(TrabajadorReporte::toAggregate)
+                .map(trabajadorReporte -> {
+                    validarLectura(trabajadorReporte.getReporte().getFincaId());
+                    return trabajadorReporte.toAggregate();
+                })
                 .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
                 DomainErrorMessage.BUSINESS_NOT_FOUND,
                 new ErrorField("id", "Trabajador Reporte not found."))));
@@ -102,11 +115,14 @@ public class TrabajadorReporteServiceImpl implements ITrabajadorReporteService {
     @Override
     public void remover(UUID id) {
         try {
-            repositoryQuery.findById(id)
+            TrabajadorReporte trabajadorReporte = repositoryQuery.findById(id)
                 .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
                         DomainErrorMessage.BUSINESS_NOT_FOUND,
                         new ErrorField("id", "TrabajadorReporte not found."))));
+            validarEscritura(trabajadorReporte.getReporte().getFincaId());
             repositoryCommand.deleteById(id);
+            auditoria.registrarDespuesDeConfirmar(TipoAccion.DELETE, "TRABAJADOR_REPORTE", id,
+                    "Eliminada asignación de trabajador en parte", resumen(trabajadorReporte), null);
         } catch (Exception e) {
             throw new BusinessNotFoundException(new GlobalBusinessException(
                     DomainErrorMessage.NOT_DELETE,
@@ -117,12 +133,19 @@ public class TrabajadorReporteServiceImpl implements ITrabajadorReporteService {
     @Override
     public PaginatedResponse search(Pageable pageable, List<FilterCriteria> filterCriteria) {
         GenericSpecificationsBuilder<TrabajadorReporte> specifications = new GenericSpecificationsBuilder<>(filterCriteria);
-        Page<TrabajadorReporte> data = repositoryQuery.findAll(specifications, pageable);
+        org.springframework.data.jpa.domain.Specification<TrabajadorReporte> tenantSpec = (root, query, cb) -> {
+            UUID fincaId = TenantContext.getEffectiveFincaId();
+            return fincaId == null ? cb.conjunction()
+                    : cb.equal(root.join("reporte").get("fincaId"), fincaId);
+        };
+        Page<TrabajadorReporte> data = repositoryQuery.findAll(
+                org.springframework.data.jpa.domain.Specification.where(specifications).and(tenantSpec), pageable);
         return createPaginatedResponse(data);
     }
 
     @Override
     public List<TrabajadorReporteDetailDto> obtenerTrabajadoresConDetallesPorReporte(UUID reporteId) {
+        validarLecturaReporte(reporteId);
         List<TrabajadorReporte> asignaciones = repositoryQuery.findByReporteId(reporteId);
         
         return asignaciones.stream()
@@ -172,20 +195,32 @@ public class TrabajadorReporteServiceImpl implements ITrabajadorReporteService {
                 .build();
     }
 
-    private void validarHoras(String horasString) {
-        double horas;
-        try {
-            horas = Double.parseDouble(horasString);
-        } catch (NumberFormatException e) {
-            throw new BusinessNotFoundException(new GlobalBusinessException(
-                    DomainErrorMessage.BUSINESS_NOT_FOUND,
-                    new ErrorField("horas", "Las horas deben ser un valor numérico válido.")));
-        }
+    private Map<String, Object> resumen(TrabajadorReporte asignacion) {
+        Map<String, Object> datos = new LinkedHashMap<>();
+        datos.put("reporteId", asignacion.getReporte() == null ? null : asignacion.getReporte().getId());
+        datos.put("trabajadorId", asignacion.getTrabajador() == null ? null : asignacion.getTrabajador().getId());
+        datos.put("horas", asignacion.getHoras());
+        datos.put("norma", asignacion.getNorma());
+        return datos;
+    }
 
-        if (horas > 8.0) {
-            throw new BusinessNotFoundException(new GlobalBusinessException(
-                    DomainErrorMessage.BUSINESS_NOT_FOUND,
-                    new ErrorField("horas", "Las horas no pueden exceder 8 horas por día. Horas ingresadas: " + horas)));
+    private void validarLecturaReporte(UUID reporteId) {
+        Reporte reporte = reporteRead.findById(reporteId)
+                .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
+                        DomainErrorMessage.BUSINESS_NOT_FOUND,
+                        new ErrorField("reporteId", "Reporte not found."))));
+        validarLectura(reporte.getFincaId());
+    }
+
+    private void validarLectura(UUID fincaId) {
+        if (fincaId != null && TenantContext.get() != null) {
+            TenantValidator.validateReadAccess(fincaId);
+        }
+    }
+
+    private void validarEscritura(UUID fincaId) {
+        if (fincaId != null && TenantContext.get() != null) {
+            TenantValidator.validateWriteAccess(fincaId);
         }
     }
 }

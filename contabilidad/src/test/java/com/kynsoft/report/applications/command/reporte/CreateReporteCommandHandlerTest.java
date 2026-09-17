@@ -37,17 +37,20 @@ class CreateReporteCommandHandlerTest {
 
     private UUID reporteId;
     private UUID trabajadorResponsableId;
+    private UUID fincaId;
     private TrabajadorDto trabajadorResponsable;
 
     @BeforeEach
     void setUp() {
         reporteId = UUID.randomUUID();
         trabajadorResponsableId = UUID.randomUUID();
+        fincaId = UUID.randomUUID();
 
         trabajadorResponsable = TrabajadorDto.builder()
                 .id(trabajadorResponsableId)
                 .nombre("Juan Pérez")
                 .ruc("12345678901")
+                .fincaId(fincaId)
                 .activo(true)
                 .build();
     }
@@ -80,6 +83,7 @@ class CreateReporteCommandHandlerTest {
             ArgumentCaptor<ReporteDto> captor = ArgumentCaptor.forClass(ReporteDto.class);
             verify(reportService).create(captor.capture());
             assertEquals("2026_08_35", captor.getValue().getCodigo());
+            assertEquals(fincaId, captor.getValue().getFincaId());
         }
 
         @Test

@@ -24,6 +24,7 @@ import com.kynsoft.report.infrastructure.repository.query.TrabajadorDiaReadDataJ
 import com.kynsoft.report.infrastructure.repository.query.TrabajadorReadDataJPARepository;
 import com.kynsoft.report.infrastructure.security.TenantContext;
 import com.kynsoft.report.infrastructure.security.TenantSpecification;
+import com.kynsoft.report.infrastructure.security.TenantValidator;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -62,6 +63,7 @@ public class TrabajadorServiceImpl implements ITrabajadorService {
 
     @Override
     public void create(TrabajadorDto object) {
+        validarEscritura(object.getFincaId());
         // Validar que el RUC no exista
         repositoryQuery.findByRuc(object.getRuc())
             .ifPresent(t -> {
@@ -81,6 +83,8 @@ public class TrabajadorServiceImpl implements ITrabajadorService {
             .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
                     DomainErrorMessage.BUSINESS_NOT_FOUND,
                     new ErrorField("id", "Trabajador no encontrado."))));
+        validarEscritura(trabajador.getFincaId());
+        validarEscritura(object.getFincaId());
 
         // Actualizar solo los campos modificables
         // RUC no se modifica (regla de negocio RN-09)
@@ -102,6 +106,7 @@ public class TrabajadorServiceImpl implements ITrabajadorService {
             .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
                     DomainErrorMessage.BUSINESS_NOT_FOUND,
                     new ErrorField("id", "Trabajador no encontrado."))));
+        validarEscritura(trabajador.getFincaId());
 
         // Verificar que no esté ya inactivo
         if (!trabajador.getActivo()) {
@@ -130,6 +135,7 @@ public class TrabajadorServiceImpl implements ITrabajadorService {
             .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
                     DomainErrorMessage.BUSINESS_NOT_FOUND,
                     new ErrorField("id", "Trabajador no encontrado."))));
+        validarEscritura(trabajador.getFincaId());
 
         // Verificar que no esté ya inactivo
         if (!trabajador.getActivo()) {
@@ -235,12 +241,14 @@ public class TrabajadorServiceImpl implements ITrabajadorService {
             .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
                     DomainErrorMessage.BUSINESS_NOT_FOUND,
                     new ErrorField("id", "Trabajador no encontrado."))));
+        validarEscritura(trabajador.getFincaId());
 
         // Validar que la nueva finca exista
         Finca nuevaFinca = fincaRepository.findById(nuevaFincaId)
             .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
                     DomainErrorMessage.BUSINESS_NOT_FOUND,
                     new ErrorField("nuevaFincaId", "Nueva finca no encontrada."))));
+        validarEscritura(nuevaFincaId);
 
         // Validar que no sea la misma finca
         if (trabajador.getFincaId().equals(nuevaFincaId)) {
@@ -264,7 +272,10 @@ public class TrabajadorServiceImpl implements ITrabajadorService {
     @Override
     public TrabajadorDto findById(UUID id) {
         return repositoryQuery.findByIdWithRelations(id)
-                .map(Trabajador::toAggregate)
+                .map(trabajador -> {
+                    validarLectura(trabajador.getFincaId());
+                    return trabajador.toAggregate();
+                })
                 .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
                         DomainErrorMessage.BUSINESS_NOT_FOUND,
                         new ErrorField("id", "Trabajador no encontrado."))));
@@ -273,7 +284,10 @@ public class TrabajadorServiceImpl implements ITrabajadorService {
     @Override
     public TrabajadorDto findByRuc(String ruc) {
         return repositoryQuery.findByRuc(ruc)
-                .map(Trabajador::toAggregate)
+                .map(trabajador -> {
+                    validarLectura(trabajador.getFincaId());
+                    return trabajador.toAggregate();
+                })
                 .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
                         DomainErrorMessage.BUSINESS_NOT_FOUND,
                         new ErrorField("ruc", "Trabajador con RUC " + ruc + " no encontrado."))));
@@ -304,6 +318,7 @@ public class TrabajadorServiceImpl implements ITrabajadorService {
 
     @Override
     public PaginatedResponse findByFincaId(UUID fincaId, Pageable pageable) {
+        validarLectura(fincaId);
         Specification<Trabajador> spec = (root, query, cb) ->
                 cb.and(
                     cb.equal(root.get("fincaId"), fincaId),
@@ -386,5 +401,17 @@ public class TrabajadorServiceImpl implements ITrabajadorService {
     @Override
     public int desasignarTrabajadoresDeGrupo(UUID grupoId) {
         return repositoryCommand.desasignarTrabajadoresDeGrupo(grupoId);
+    }
+
+    private void validarLectura(UUID fincaId) {
+        if (fincaId != null && TenantContext.get() != null) {
+            TenantValidator.validateReadAccess(fincaId);
+        }
+    }
+
+    private void validarEscritura(UUID fincaId) {
+        if (fincaId != null && TenantContext.get() != null) {
+            TenantValidator.validateWriteAccess(fincaId);
+        }
     }
 }

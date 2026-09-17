@@ -47,4 +47,18 @@ public interface DiaTrabajoReadDataJPARepository
         @Param("year") String year,
         @Param("mes") String mes
     );
+
+    @Query("SELECT dt FROM DiaTrabajo dt " +
+           "LEFT JOIN FETCH dt.reporte dr " +
+           "LEFT JOIN FETCH dt.trabajadores td " +
+           "LEFT JOIN FETCH td.trabajador t " +
+           "WHERE dt.reporte.year = :year AND dt.reporte.mes = :mes " +
+           "AND dt.reporte.fincaId = :fincaId " +
+           "AND dt.reporte.activo = true " +
+           "ORDER BY dt.fecha ASC")
+    List<DiaTrabajo> findByYearAndMesAndFincaIdWithTrabajadores(
+        @Param("year") String year,
+        @Param("mes") String mes,
+        @Param("fincaId") UUID fincaId
+    );
 }

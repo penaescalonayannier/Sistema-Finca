@@ -9,6 +9,7 @@ import com.kynsoft.share.core.domain.response.PaginatedResponse;
 import com.kynsoft.share.core.infrastructure.specifications.GenericSpecificationsBuilder;
 import com.kynsoft.report.applications.query.responseObject.DiaTrabajoResponse;
 import com.kynsoft.report.domain.dto.DiaTrabajoDto;
+import com.kynsoft.report.domain.dto.TipoAccion;
 import com.kynsoft.report.domain.dto.TrabajadorDiaDto;
 import com.kynsoft.report.domain.services.IDiaTrabajoService;
 import com.kynsoft.report.infrastructure.entity.DiaTrabajo;
@@ -17,6 +18,8 @@ import com.kynsoft.report.infrastructure.entity.TrabajadorDia;
 import com.kynsoft.report.infrastructure.repository.command.DiaTrabajoWriteDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.DiaTrabajoReadDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.ReporteReadDataJPARepository;
+import com.kynsoft.report.infrastructure.security.TenantContext;
+import com.kynsoft.report.infrastructure.security.TenantValidator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -24,6 +27,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -34,13 +39,16 @@ public class DiaTrabajoServiceImpl implements IDiaTrabajoService {
     private final DiaTrabajoWriteDataJPARepository repositoryCommand;
     private final DiaTrabajoReadDataJPARepository repositoryQuery;
     private final ReporteReadDataJPARepository reporteReadDataJPARepository;
+    private final AuditoriaTransaccionalService auditoria;
 
     public DiaTrabajoServiceImpl(DiaTrabajoWriteDataJPARepository repositoryCommand,
                                  DiaTrabajoReadDataJPARepository repositoryQuery,
-                                 ReporteReadDataJPARepository reporteReadDataJPARepository) {
+                                 ReporteReadDataJPARepository reporteReadDataJPARepository,
+                                 AuditoriaTransaccionalService auditoria) {
         this.repositoryCommand = repositoryCommand;
         this.repositoryQuery = repositoryQuery;
         this.reporteReadDataJPARepository = reporteReadDataJPARepository;
+        this.auditoria = auditoria;
     }
 
     @Override
@@ -50,6 +58,7 @@ public class DiaTrabajoServiceImpl implements IDiaTrabajoService {
                 .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
                         DomainErrorMessage.BUSINESS_NOT_FOUND,
                         new ErrorField("reporteId", "Reporte not found."))));
+        validarEscritura(reporte.getFincaId());
 
         // Validar que no exista un día con la misma fecha para este reporte
         repositoryQuery.findByReporteIdAndFecha(object.getReporteId(), object.getFecha())
@@ -64,7 +73,9 @@ public class DiaTrabajoServiceImpl implements IDiaTrabajoService {
         dt.setFecha(object.getFecha());
         dt.setReporte(reporte);
         
-        repositoryCommand.save(dt);
+        DiaTrabajo creado = repositoryCommand.save(dt);
+        auditoria.registrarDespuesDeConfirmar(TipoAccion.CREATE, "DIA_TRABAJO", creado.getId(),
+                "Registrado día de trabajo " + creado.getFecha(), null, resumen(creado));
     }
 
     @Override
@@ -74,6 +85,8 @@ public class DiaTrabajoServiceImpl implements IDiaTrabajoService {
                 .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
                         DomainErrorMessage.BUSINESS_NOT_FOUND,
                         new ErrorField("id", "Día de trabajo no encontrado."))));
+        validarEscritura(dt.getReporte().getFincaId());
+        Map<String, Object> anterior = resumen(dt);
 
         // Validar que no exista otro día con la misma fecha para este reporte
         if (object.getFecha() != null && !object.getFecha().equals(dt.getFecha())) {
@@ -88,18 +101,23 @@ public class DiaTrabajoServiceImpl implements IDiaTrabajoService {
             dt.setFecha(object.getFecha());
         }
 
-        repositoryCommand.save(dt);
+        DiaTrabajo actualizado = repositoryCommand.save(dt);
+        auditoria.registrarDespuesDeConfirmar(TipoAccion.UPDATE, "DIA_TRABAJO", actualizado.getId(),
+                "Actualizado día de trabajo " + actualizado.getFecha(), anterior, resumen(actualizado));
     }
 
     @Override
     public void delete(UUID id) {
         try {
             // Verificar que exista antes de eliminar
-            repositoryQuery.findById(id)
+            DiaTrabajo dia = repositoryQuery.findById(id)
                     .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
                             DomainErrorMessage.BUSINESS_NOT_FOUND,
                             new ErrorField("id", "Día de trabajo no encontrado."))));
+            validarEscritura(dia.getReporte().getFincaId());
             repositoryCommand.deleteById(id);
+            auditoria.registrarDespuesDeConfirmar(TipoAccion.DELETE, "DIA_TRABAJO", id,
+                    "Eliminado día de trabajo " + dia.getFecha(), resumen(dia), null);
         } catch (Exception e) {
             throw new BusinessNotFoundException(new GlobalBusinessException(
                     DomainErrorMessage.NOT_DELETE,
@@ -110,7 +128,10 @@ public class DiaTrabajoServiceImpl implements IDiaTrabajoService {
     @Override
     public DiaTrabajoDto findById(UUID id) {
         return repositoryQuery.findById(id)
-                .map(DiaTrabajo::toAggregate)
+                .map(dia -> {
+                    validarLectura(dia.getReporte().getFincaId());
+                    return dia.toAggregate();
+                })
                 .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
                         DomainErrorMessage.BUSINESS_NOT_FOUND,
                         new ErrorField("id", "Día de trabajo no encontrado."))));
@@ -118,6 +139,7 @@ public class DiaTrabajoServiceImpl implements IDiaTrabajoService {
 
     @Override
     public List<DiaTrabajoDto> findByReporteId(UUID reporteId) {
+        validarLecturaReporte(reporteId);
         // CORREGIDO: Usar el método que trae los trabajadores
         List<DiaTrabajo> dias = repositoryQuery.findByReporteIdWithTrabajadores(reporteId);
         return dias.stream()
@@ -127,6 +149,7 @@ public class DiaTrabajoServiceImpl implements IDiaTrabajoService {
 
     @Override
     public List<DiaTrabajoDto> findByReporteIdWithTrabajadores(UUID reporteId) {
+        validarLecturaReporte(reporteId);
         List<DiaTrabajo> dias = repositoryQuery.findByReporteIdWithTrabajadores(reporteId);
         return dias.stream()
                 .map(this::toDtoWithTrabajadores)
@@ -136,7 +159,13 @@ public class DiaTrabajoServiceImpl implements IDiaTrabajoService {
     @Override
     public PaginatedResponse search(Pageable pageable, List<FilterCriteria> filterCriteria) {
         GenericSpecificationsBuilder<DiaTrabajo> specifications = new GenericSpecificationsBuilder<>(filterCriteria);
-        Page<DiaTrabajo> data = repositoryQuery.findAll(specifications, pageable);
+        org.springframework.data.jpa.domain.Specification<DiaTrabajo> tenantSpec = (root, query, cb) -> {
+            UUID fincaId = TenantContext.getEffectiveFincaId();
+            return fincaId == null ? cb.conjunction()
+                    : cb.equal(root.join("reporte").get("fincaId"), fincaId);
+        };
+        Page<DiaTrabajo> data = repositoryQuery.findAll(
+                org.springframework.data.jpa.domain.Specification.where(specifications).and(tenantSpec), pageable);
         return createPaginatedResponse(data);
     }
 
@@ -192,5 +221,33 @@ public class DiaTrabajoServiceImpl implements IDiaTrabajoService {
                 .reporteId(dia.getReporte() != null ? dia.getReporte().getId() : null)
                 .trabajadores(trabajadores)
                 .build();
+    }
+
+    private void validarLecturaReporte(UUID reporteId) {
+        Reporte reporte = reporteReadDataJPARepository.findById(reporteId)
+                .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
+                        DomainErrorMessage.BUSINESS_NOT_FOUND,
+                        new ErrorField("reporteId", "Reporte not found."))));
+        validarLectura(reporte.getFincaId());
+    }
+
+    private void validarLectura(UUID fincaId) {
+        if (fincaId != null && TenantContext.get() != null) {
+            TenantValidator.validateReadAccess(fincaId);
+        }
+    }
+
+    private void validarEscritura(UUID fincaId) {
+        if (fincaId != null && TenantContext.get() != null) {
+            TenantValidator.validateWriteAccess(fincaId);
+        }
+    }
+
+    private Map<String, Object> resumen(DiaTrabajo dia) {
+        Map<String, Object> datos = new LinkedHashMap<>();
+        datos.put("reporteId", dia.getReporte() == null ? null : dia.getReporte().getId());
+        datos.put("fincaId", dia.getReporte() == null ? null : dia.getReporte().getFincaId());
+        datos.put("fecha", dia.getFecha());
+        return datos;
     }
 }

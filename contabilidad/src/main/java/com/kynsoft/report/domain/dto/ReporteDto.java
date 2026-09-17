@@ -44,5 +44,6 @@ public class ReporteDto {
     private String fecha;
     private UUID trabajadorResponsableId;
     private String trabajadorResponsableNombre;
+    private UUID fincaId;
     private Boolean activo;
 }

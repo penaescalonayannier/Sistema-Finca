@@ -2,6 +2,10 @@ package com.kynsoft.report.infrastructure.services;
 
 import com.kynsoft.share.core.domain.exception.BusinessNotFoundException;
 import com.kynsoft.report.infrastructure.entity.Reporte;
+import com.kynsoft.report.infrastructure.entity.DiaTrabajo;
+import com.kynsoft.report.infrastructure.entity.Trabajador;
+import com.kynsoft.report.infrastructure.entity.TrabajadorDia;
+import com.kynsoft.report.domain.dto.ReporteDto;
 import com.kynsoft.report.infrastructure.repository.command.ReporteWriteDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.DiaTrabajoReadDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.ReporteReadDataJPARepository;
@@ -37,6 +41,9 @@ class ReporteServiceImplTest {
 
     @Mock
     private DiaTrabajoReadDataJPARepository diaTrabajoRepository;
+
+    @Mock
+    private AuditoriaTransaccionalService auditoria;
 
     @InjectMocks
     private ReporteServiceImpl reporteService;
@@ -159,6 +166,30 @@ class ReporteServiceImplTest {
         }
     }
 
+    @Test
+    @DisplayName("Debe conservar los tipos del parte, normalizar norma y auditar creación")
+    void debeCrearReporteConTiposYAuditoria() {
+        UUID tipoReporteId = UUID.randomUUID();
+        UUID tipoCultivoId = UUID.randomUUID();
+        UUID tipoAnimalId = UUID.randomUUID();
+        ReporteDto dto = ReporteDto.builder()
+                .id(reporteId).codigo("2026_08_02").bloque("3").campo("2").area("0.6")
+                .norma(" 1,5000 ").year("2026").mes("Agosto")
+                .tipoReporteId(tipoReporteId).tipoCultivoId(tipoCultivoId).tipoAnimalId(tipoAnimalId)
+                .build();
+        when(repositoryCommand.save(any(Reporte.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        reporteService.create(dto);
+
+        verify(repositoryCommand).save(argThat(entidad ->
+                "1.5".equals(entidad.getNorma())
+                        && tipoReporteId.equals(entidad.getTipoReporteId())
+                        && tipoCultivoId.equals(entidad.getTipoCultivoId())
+                        && tipoAnimalId.equals(entidad.getTipoAnimalId())));
+        verify(auditoria).registrarDespuesDeConfirmar(eq(com.kynsoft.report.domain.dto.TipoAccion.CREATE),
+                eq("REPORTE_TRABAJO"), eq(reporteId), anyString(), isNull(), any());
+    }
+
     @Nested
     @DisplayName("findById() Tests")
     class FindByIdTests {
@@ -253,6 +284,31 @@ class ReporteServiceImplTest {
             assertEquals("2026", consolidado.getYear());
             assertEquals("Agosto", consolidado.getMes());
             assertTrue(consolidado.getTrabajadores().isEmpty());
+        }
+
+        @Test
+        @DisplayName("Debe conservar fracciones decimales en el consolidado")
+        void debeConservarFraccionesDecimalesEnElConsolidado() {
+            Trabajador trabajador = new Trabajador();
+            trabajador.setId(UUID.randomUUID());
+            trabajador.setNombre("Ana");
+            trabajador.setRuc("123");
+
+            TrabajadorDia jornada = new TrabajadorDia();
+            jornada.setTrabajador(trabajador);
+            jornada.setHoras("1.5");
+
+            DiaTrabajo dia = new DiaTrabajo();
+            dia.setFecha(LocalDate.of(2026, 8, 3));
+            dia.setTrabajadores(List.of(jornada));
+
+            when(diaTrabajoRepository.findByYearAndMesWithTrabajadores("2026", "Agosto"))
+                    .thenReturn(List.of(dia));
+
+            var consolidado = reporteService.getConsolidado("2026", "Agosto");
+
+            assertEquals(1.5, consolidado.getTrabajadores().getFirst().getTotalHoras());
+            assertEquals("1.5", consolidado.getTrabajadores().getFirst().getHorasPorDia().get(3));
         }
     }
 

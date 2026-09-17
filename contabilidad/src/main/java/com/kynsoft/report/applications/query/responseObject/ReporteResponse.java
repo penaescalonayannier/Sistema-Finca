@@ -27,6 +27,13 @@ public class ReporteResponse implements IResponse {
     private String mes;
     private UUID trabajadorResponsableId;
     private String trabajadorResponsableNombre;
+    private UUID tipoReporteId;
+    private String tipoReporteCodigo;
+    private String tipoReporteNombre;
+    private UUID tipoCultivoId;
+    private String tipoCultivoNombre;
+    private UUID tipoAnimalId;
+    private String tipoAnimalNombre;
 
     public ReporteResponse(ReporteDto dto) {
         this.id = dto.getId();
@@ -40,6 +47,13 @@ public class ReporteResponse implements IResponse {
         this.mes = dto.getMes();
         this.trabajadorResponsableId = dto.getTrabajadorResponsableId();
         this.trabajadorResponsableNombre = dto.getTrabajadorResponsableNombre();
+        this.tipoReporteId = dto.getTipoReporteId();
+        this.tipoReporteCodigo = dto.getTipoReporteCodigo();
+        this.tipoReporteNombre = dto.getTipoReporteNombre();
+        this.tipoCultivoId = dto.getTipoCultivoId();
+        this.tipoCultivoNombre = dto.getTipoCultivoNombre();
+        this.tipoAnimalId = dto.getTipoAnimalId();
+        this.tipoAnimalNombre = dto.getTipoAnimalNombre();
     }
 
 }

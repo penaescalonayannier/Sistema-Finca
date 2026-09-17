@@ -85,6 +85,10 @@ public class Reporte {
     @Column(name = "trabajador_responsable_id")
     private UUID trabajadorResponsableId;
 
+    /** Finca propietaria del parte; se deriva del responsable al crear. */
+    @Column(name = "finca_id")
+    private UUID fincaId;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "trabajador_responsable_id", insertable = false, updatable = false)
     private Trabajador trabajadorResponsable;
@@ -109,6 +113,7 @@ public class Reporte {
         this.mes = dto.getMes();
         this.fecha = dto.getFecha();
         this.trabajadorResponsableId = dto.getTrabajadorResponsableId();
+        this.fincaId = dto.getFincaId();
         this.activo = dto.getActivo() != null ? dto.getActivo() : true;
         // NOTA: No se asignan los días aquí para evitar recursión
     }
@@ -140,6 +145,7 @@ public class Reporte {
                 .fecha(fecha)
                 .trabajadorResponsableId(trabajadorResponsableId)
                 .trabajadorResponsableNombre(trabajadorResponsable != null ? trabajadorResponsable.getNombre() : null)
+                .fincaId(fincaId)
                 .activo(activo)
                 .build();
     }

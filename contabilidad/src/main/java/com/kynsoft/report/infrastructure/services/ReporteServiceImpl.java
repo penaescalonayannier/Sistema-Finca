@@ -12,6 +12,7 @@ import com.kynsoft.report.domain.dto.ReporteConsolidadoDto;
 import com.kynsoft.report.domain.dto.ReporteConsolidadoPorResponsablePdfDto;
 import com.kynsoft.report.domain.dto.ReporteDto;
 import com.kynsoft.report.domain.dto.ResponsableConsolidadoDto;
+import com.kynsoft.report.domain.dto.TipoAccion;
 import com.kynsoft.report.domain.dto.TrabajadorConsolidadoDto;
 import com.kynsoft.report.domain.services.IReporteService;
 import com.kynsoft.report.infrastructure.entity.DiaTrabajo;
@@ -22,6 +23,9 @@ import com.kynsoft.report.infrastructure.repository.command.ReporteWriteDataJPAR
 import com.kynsoft.report.infrastructure.repository.query.DiaTrabajoReadDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.ReporteReadDataJPARepository;
 import com.kynsoft.report.infrastructure.security.TenantSpecification;
+import com.kynsoft.report.infrastructure.security.TenantContext;
+import com.kynsoft.report.infrastructure.security.TenantValidator;
+import java.math.BigDecimal;
 import java.time.YearMonth;
 import java.util.Collections;
 import java.util.Comparator;
@@ -44,19 +48,25 @@ public class ReporteServiceImpl implements IReporteService {
     private final ReporteWriteDataJPARepository repositoryCommand;
     private final ReporteReadDataJPARepository repositoryQuery;
     private final DiaTrabajoReadDataJPARepository diaTrabajoRepository;
+    private final AuditoriaTransaccionalService auditoria;
 
     public ReporteServiceImpl(ReporteWriteDataJPARepository repositoryCommand,
             ReporteReadDataJPARepository repositoryQuery,
-            DiaTrabajoReadDataJPARepository diaTrabajoRepository) {
+            DiaTrabajoReadDataJPARepository diaTrabajoRepository,
+            AuditoriaTransaccionalService auditoria) {
         this.repositoryCommand = repositoryCommand;
         this.repositoryQuery = repositoryQuery;
         this.diaTrabajoRepository = diaTrabajoRepository;
+        this.auditoria = auditoria;
     }
 
     @Override
     public void create(ReporteDto object) {
-        // Validar que el código no exista
-        repositoryCommand.save(new Reporte(object));
+        validarEscritura(object.getFincaId());
+        object.setNorma(ValidacionParteTrabajo.normaRequerida(object.getNorma()));
+        Reporte creado = repositoryCommand.save(new Reporte(object));
+        auditoria.registrarDespuesDeConfirmar(TipoAccion.CREATE, "REPORTE_TRABAJO", creado.getId(),
+                "Creado parte de trabajo " + creado.getCodigo(), null, resumen(creado));
     }
 
     @Override
@@ -66,20 +76,31 @@ public class ReporteServiceImpl implements IReporteService {
                 .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
                 DomainErrorMessage.BUSINESS_NOT_FOUND,
                 new ErrorField("id", "Reporte not found."))));
+        validarEscritura(reporteExistente.getFincaId());
+        Map<String, Object> anterior = resumen(reporteExistente);
+
+        if (reporteExistente.getFincaId() == null && object.getFincaId() != null) {
+            reporteExistente.setFincaId(object.getFincaId());
+        }
 
         // Actualizar solo los campos básicos
         reporteExistente.setBloque(object.getBloque());
         reporteExistente.setCampo(object.getCampo());
         reporteExistente.setArea(object.getArea());
-        reporteExistente.setNorma(object.getNorma());
+        reporteExistente.setNorma(ValidacionParteTrabajo.normaRequerida(object.getNorma()));
         reporteExistente.setCodigo(object.getCodigo());
         reporteExistente.setYear(object.getYear());
         reporteExistente.setMes(object.getMes());
         reporteExistente.setFecha(object.getFecha());
         reporteExistente.setTrabajadorResponsableId(object.getTrabajadorResponsableId());
+        reporteExistente.setTipoReporteId(object.getTipoReporteId());
+        reporteExistente.setTipoCultivoId(object.getTipoCultivoId());
+        reporteExistente.setTipoAnimalId(object.getTipoAnimalId());
 
         // ⚠️ IMPORTANTE: No tocamos la lista de días, se mantiene intacta
-        repositoryCommand.save(reporteExistente);
+        Reporte actualizado = repositoryCommand.save(reporteExistente);
+        auditoria.registrarDespuesDeConfirmar(TipoAccion.UPDATE, "REPORTE_TRABAJO", actualizado.getId(),
+                "Actualizado parte de trabajo " + actualizado.getCodigo(), anterior, resumen(actualizado));
     }
 
     @Override
@@ -88,16 +109,23 @@ public class ReporteServiceImpl implements IReporteService {
                 .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
                 DomainErrorMessage.BUSINESS_NOT_FOUND,
                 new ErrorField("id", "Reporte not found."))));
+        validarEscritura(reporte.getFincaId());
+        Map<String, Object> anterior = resumen(reporte);
 
         // Soft delete: marcar como inactivo
         reporte.setActivo(false);
-        repositoryCommand.save(reporte);
+        Reporte eliminado = repositoryCommand.save(reporte);
+        auditoria.registrarDespuesDeConfirmar(TipoAccion.DELETE, "REPORTE_TRABAJO", eliminado.getId(),
+                "Desactivado parte de trabajo " + eliminado.getCodigo(), anterior, resumen(eliminado));
     }
 
     @Override
     public ReporteDto findById(UUID id) {
         return repositoryQuery.findById(id)
-                .map(Reporte::toAggregate)
+                .map(reporte -> {
+                    validarLectura(reporte.getFincaId());
+                    return reporte.toAggregate();
+                })
                 .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(
                 DomainErrorMessage.BUSINESS_NOT_FOUND,
                 new ErrorField("id", "Reporte not found."))));
@@ -132,7 +160,7 @@ public class ReporteServiceImpl implements IReporteService {
     @Override
     public ReporteConsolidadoDto getConsolidado(String year, String mes) {
         // Obtener todos los días del mes con sus trabajadores
-        List<DiaTrabajo> dias = diaTrabajoRepository.findByYearAndMesWithTrabajadores(year, mes);
+        List<DiaTrabajo> dias = buscarDiasPorPeriodo(year, mes);
 
         if (dias.isEmpty()) {
             return ReporteConsolidadoDto.builder()
@@ -166,18 +194,18 @@ public class ReporteServiceImpl implements IReporteService {
                 );
 
                 if (horas != null && !horas.isEmpty()) {
-                    int horasNum = convertirHorasANumero(horas);
+                    BigDecimal horasNum = convertirHorasADecimal(horas);
 
                     // Si ya hay horas para este día, sumarlas
                     String horasActuales = data.horasPorDia.get(diaDelMes);
                     if (horasActuales != null && !horasActuales.isEmpty()) {
-                        int horasAnteriores = convertirHorasANumero(horasActuales);
-                        int horasTotales = horasAnteriores + horasNum;
-                        data.horasPorDia.put(diaDelMes, String.valueOf(horasTotales));
-                        data.totalHoras += horasNum;
+                        BigDecimal horasAnteriores = convertirHorasADecimal(horasActuales);
+                        BigDecimal horasTotales = horasAnteriores.add(horasNum);
+                        data.horasPorDia.put(diaDelMes, aTextoCanonico(horasTotales));
+                        data.totalHoras = data.totalHoras.add(horasNum);
                     } else {
                         data.horasPorDia.put(diaDelMes, horas);
-                        data.totalHoras += horasNum;
+                        data.totalHoras = data.totalHoras.add(horasNum);
                     }
                 }
             }
@@ -192,7 +220,7 @@ public class ReporteServiceImpl implements IReporteService {
                 .cargo(data.cargo)
                 .cuenta(data.cuenta)
                 .horasPorDia(data.horasPorDia)
-                .totalHoras((double) data.totalHoras)
+                .totalHoras(data.totalHoras.doubleValue())
                 .build()
                 )
                 .sorted(Comparator.comparing(TrabajadorConsolidadoDto::getNombre))
@@ -208,7 +236,7 @@ public class ReporteServiceImpl implements IReporteService {
     @Override
     public ReporteConsolidadoPorResponsablePdfDto getConsolidadoPorResponsable(String year, String mes) {
         // Obtener todos los días del mes con sus trabajadores
-        List<DiaTrabajo> dias = diaTrabajoRepository.findByYearAndMesWithTrabajadores(year, mes);
+        List<DiaTrabajo> dias = buscarDiasPorPeriodo(year, mes);
 
         if (dias.isEmpty()) {
             int daysInMonth = YearMonth.of(Integer.parseInt(year), getMonthNumber(mes)).lengthOfMonth();
@@ -258,14 +286,14 @@ public class ReporteServiceImpl implements IReporteService {
 
                 // Consolidar horas al día - SUMA si hay múltiples registros
                 if (horas != null && !horas.isEmpty()) {
-                    int horasNum = convertirHorasANumero(horas);
+                    BigDecimal horasNum = convertirHorasADecimal(horas);
 
                     // Si ya hay horas para este día, sumarlas
                     String horasActuales = data.horasPorDia.get(diaDelMes);
                     if (horasActuales != null && !horasActuales.isEmpty()) {
-                        int horasAnteriores = convertirHorasANumero(horasActuales);
-                        int horasTotales = horasAnteriores + horasNum;
-                        data.horasPorDia.put(diaDelMes, String.valueOf(horasTotales));
+                        BigDecimal horasAnteriores = convertirHorasADecimal(horasActuales);
+                        BigDecimal horasTotales = horasAnteriores.add(horasNum);
+                        data.horasPorDia.put(diaDelMes, aTextoCanonico(horasTotales));
                     } else {
                         data.horasPorDia.put(diaDelMes, horas);
                     }
@@ -325,7 +353,7 @@ public class ReporteServiceImpl implements IReporteService {
         return horasPorDia.values().stream()
                 .mapToDouble(h -> {
                     if (h == null || h.isEmpty()) return 0.0;
-                    return (double) convertirHorasANumero(h);
+                    return convertirHorasADecimal(h).doubleValue();
                 })
                 .sum();
     }
@@ -347,18 +375,28 @@ public class ReporteServiceImpl implements IReporteService {
         return meses.getOrDefault(mes, 1);
     }
 
-    private int convertirHorasANumero(String horas) {
+    /**
+     * Conserva la semántica histórica de valores HH:mm (los minutos se
+     * redondeaban a la hora siguiente) y evita perder la fracción cuando el
+     * parte ya fue capturado como decimal, por ejemplo 7.5.
+     */
+    private BigDecimal convertirHorasADecimal(String horas) {
         try {
             if (horas.contains(":")) {
                 String[] partes = horas.split(":");
                 int horasInt = Integer.parseInt(partes[0]);
-                return horasInt + (partes.length > 1 && Integer.parseInt(partes[1]) > 0 ? 1 : 0);
+                return BigDecimal.valueOf(horasInt
+                        + (partes.length > 1 && Integer.parseInt(partes[1]) > 0 ? 1 : 0));
             } else {
-                return Integer.parseInt(horas);
+                return new BigDecimal(horas.replace(',', '.'));
             }
         } catch (Exception e) {
-            return 0;
+            return BigDecimal.ZERO;
         }
+    }
+
+    private String aTextoCanonico(BigDecimal valor) {
+        return valor.stripTrailingZeros().toPlainString();
     }
 
     // Clase auxiliar para consolidado simple
@@ -370,7 +408,7 @@ public class ReporteServiceImpl implements IReporteService {
         String cargo;
         String cuenta;
         Map<Integer, String> horasPorDia;
-        int totalHoras = 0;
+        BigDecimal totalHoras = BigDecimal.ZERO;
 
         TrabajadorData(String id, String nombre, String ruc, String cargo, String cuenta, int daysInMonth) {
             this.trabajadorId = id;
@@ -437,7 +475,44 @@ public class ReporteServiceImpl implements IReporteService {
     public List<ReporteDto> getReportesPorTrabajador(UUID trabajadorId, String year, String mes) {
         List<Reporte> reportes = repositoryQuery.findByTrabajadorIdAndYearAndMes(trabajadorId, year, mes);
         return reportes.stream()
+                .peek(reporte -> validarLectura(reporte.getFincaId()))
                 .map(Reporte::toAggregate)
                 .collect(Collectors.toList());
+    }
+
+    private List<DiaTrabajo> buscarDiasPorPeriodo(String year, String mes) {
+        UUID fincaId = TenantContext.getEffectiveFincaId();
+        if (fincaId != null) {
+            return diaTrabajoRepository.findByYearAndMesAndFincaIdWithTrabajadores(year, mes, fincaId);
+        }
+        return diaTrabajoRepository.findByYearAndMesWithTrabajadores(year, mes);
+    }
+
+    /** Los históricos sin finca permanecen administrables, sin abrir acceso a registros de otra finca. */
+    private void validarLectura(UUID fincaId) {
+        if (fincaId != null && TenantContext.get() != null) {
+            TenantValidator.validateReadAccess(fincaId);
+        }
+    }
+
+    private void validarEscritura(UUID fincaId) {
+        if (fincaId != null && TenantContext.get() != null) {
+            TenantValidator.validateWriteAccess(fincaId);
+        }
+    }
+
+    private Map<String, Object> resumen(Reporte reporte) {
+        Map<String, Object> datos = new LinkedHashMap<>();
+        datos.put("codigo", reporte.getCodigo());
+        datos.put("fincaId", reporte.getFincaId());
+        datos.put("tipoReporteId", reporte.getTipoReporteId());
+        datos.put("tipoCultivoId", reporte.getTipoCultivoId());
+        datos.put("tipoAnimalId", reporte.getTipoAnimalId());
+        datos.put("responsableId", reporte.getTrabajadorResponsableId());
+        datos.put("norma", reporte.getNorma());
+        datos.put("year", reporte.getYear());
+        datos.put("mes", reporte.getMes());
+        datos.put("activo", reporte.getActivo());
+        return datos;
     }
 }

@@ -21,6 +21,7 @@ public class UpdateReporteCommandHandler implements ICommandHandler<UpdateReport
         ReporteDto existente = reportService.findById(command.getId());
 
         String trabajadorResponsableNombre = null;
+        TrabajadorDto trabajadorResponsable = null;
 
         // El trabajadorResponsableId es obligatorio
         if (command.getTrabajadorResponsableId() == null) {
@@ -28,9 +29,9 @@ public class UpdateReporteCommandHandler implements ICommandHandler<UpdateReport
         }
 
         try {
-            TrabajadorDto trabajador = trabajadorService.findById(command.getTrabajadorResponsableId());
-            if (trabajador != null) {
-                trabajadorResponsableNombre = trabajador.getNombre();
+            trabajadorResponsable = trabajadorService.findById(command.getTrabajadorResponsableId());
+            if (trabajadorResponsable != null) {
+                trabajadorResponsableNombre = trabajadorResponsable.getNombre();
             } else {
                 throw new IllegalArgumentException("El trabajador seleccionado no existe");
             }
@@ -39,6 +40,11 @@ public class UpdateReporteCommandHandler implements ICommandHandler<UpdateReport
                 throw e;
             }
             throw new IllegalArgumentException("Error al obtener el trabajador responsable: " + e.getMessage());
+        }
+
+        if (existente.getFincaId() != null
+                && !existente.getFincaId().equals(trabajadorResponsable.getFincaId())) {
+            throw new IllegalArgumentException("El responsable debe pertenecer a la misma finca del reporte");
         }
 
         ReporteDto dto = ReporteDto.builder()
@@ -53,6 +59,10 @@ public class UpdateReporteCommandHandler implements ICommandHandler<UpdateReport
                 .fecha(command.getFecha() != null ? command.getFecha() : existente.getFecha())
                 .trabajadorResponsableId(command.getTrabajadorResponsableId() != null ? command.getTrabajadorResponsableId() : existente.getTrabajadorResponsableId())
                 .trabajadorResponsableNombre(trabajadorResponsableNombre)
+                .fincaId(existente.getFincaId() != null ? existente.getFincaId() : trabajadorResponsable.getFincaId())
+                .tipoReporteId(command.getTipoReporteId() != null ? command.getTipoReporteId() : existente.getTipoReporteId())
+                .tipoCultivoId(command.getTipoCultivoId() != null ? command.getTipoCultivoId() : existente.getTipoCultivoId())
+                .tipoAnimalId(command.getTipoAnimalId() != null ? command.getTipoAnimalId() : existente.getTipoAnimalId())
                 .build();
 
         reportService.update(dto);

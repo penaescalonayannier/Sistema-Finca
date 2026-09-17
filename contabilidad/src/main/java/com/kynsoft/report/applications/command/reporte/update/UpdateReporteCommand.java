@@ -23,6 +23,16 @@ public class UpdateReporteCommand implements ICommand {
     private String year;
     private String mes;
     private UUID trabajadorResponsableId;
+    private UUID tipoReporteId;
+    private UUID tipoCultivoId;
+    private UUID tipoAnimalId;
+
+    /** Conserva compatibilidad con las integraciones que aún no envían clasificación. */
+    public UpdateReporteCommand(UUID id, String bloque, String campo, String area, String norma,
+            String fecha, String codigo, String year, String mes, UUID trabajadorResponsableId) {
+        this(id, bloque, campo, area, norma, fecha, codigo, year, mes, trabajadorResponsableId,
+                null, null, null);
+    }
 
     public static UpdateReporteCommand fromRequest(UpdateReporteRequest request, UUID id) {
         return new UpdateReporteCommand(
@@ -35,7 +45,10 @@ public class UpdateReporteCommand implements ICommand {
                 request.getCodigo(),
                 request.getYear(),
                 request.getMes(),
-                request.getTrabajadorResponsableId()
+                request.getTrabajadorResponsableId(),
+                request.getTipoReporteId(),
+                request.getTipoCultivoId(),
+                request.getTipoAnimalId()
         );
     }
 

@@ -18,6 +18,7 @@ public class CreateReporteCommandHandler implements ICommandHandler<CreateReport
     @Override
     public void handle(CreateReporteCommand command) {
         String trabajadorResponsableNombre = null;
+        TrabajadorDto trabajadorResponsable = null;
 
         // El trabajadorResponsableId es obligatorio
         if (command.getTrabajadorResponsableId() == null) {
@@ -25,9 +26,9 @@ public class CreateReporteCommandHandler implements ICommandHandler<CreateReport
         }
 
         try {
-            TrabajadorDto trabajador = trabajadorService.findById(command.getTrabajadorResponsableId());
-            if (trabajador != null) {
-                trabajadorResponsableNombre = trabajador.getNombre();
+            trabajadorResponsable = trabajadorService.findById(command.getTrabajadorResponsableId());
+            if (trabajadorResponsable != null) {
+                trabajadorResponsableNombre = trabajadorResponsable.getNombre();
             } else {
                 throw new IllegalArgumentException("El trabajador seleccionado no existe");
             }
@@ -53,6 +54,10 @@ public class CreateReporteCommandHandler implements ICommandHandler<CreateReport
                 .mes(command.getMes())
                 .trabajadorResponsableId(command.getTrabajadorResponsableId())
                 .trabajadorResponsableNombre(trabajadorResponsableNombre)
+                .fincaId(trabajadorResponsable.getFincaId())
+                .tipoReporteId(command.getTipoReporteId())
+                .tipoCultivoId(command.getTipoCultivoId())
+                .tipoAnimalId(command.getTipoAnimalId())
                 .build());
     }
 }

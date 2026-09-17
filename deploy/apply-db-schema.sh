@@ -64,9 +64,19 @@ PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
     -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V27__salida_finca_consecutivo_unico.sql"
 PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
     -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V28__auditoria_movimientos_caja.sql"
-PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
-    -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V29__transferencias_almacen_sc209.sql"
+if [[ "$(esquema_existe transferencia_almacen)" != "t" ]]; then
+    PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
+        -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V29__transferencias_almacen_sc209.sql"
+else
+    echo "V29 ya está instalada; se conserva el expediente de transferencias existente."
+fi
 PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
     -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V30__informe_recepcion_sc204.sql"
+if [[ "$(esquema_existe conteo_fisico_almacen)" != "t" ]]; then
+    PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
+        -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V31__conteo_fisico_almacen_sc215_sc216.sql"
+else
+    echo "V31 ya está instalada; se conservan los expedientes de inventario físico existentes."
+fi
 PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
-    -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V31__conteo_fisico_almacen_sc215_sc216.sql"
+    -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V32__reporte_finca_tenant.sql"
