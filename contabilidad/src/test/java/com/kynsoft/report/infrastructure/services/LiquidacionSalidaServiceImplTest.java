@@ -6,6 +6,7 @@ import com.kynsoft.report.domain.dto.LiquidarSalidaRequest;
 import com.kynsoft.report.domain.dto.DenominacionCajaDto;
 import com.kynsoft.report.domain.dto.CambioDenominacionesCajaRequest;
 import com.kynsoft.report.domain.dto.TipoMovimientoCaja;
+import com.kynsoft.report.domain.services.IRegistroFormasNumeradasService;
 import com.kynsoft.report.infrastructure.entity.DeudaTrabajador;
 import com.kynsoft.report.infrastructure.entity.Finca;
 import com.kynsoft.report.infrastructure.entity.FincaProducto;
@@ -71,7 +72,8 @@ class LiquidacionSalidaServiceImplTest {
         LiquidacionSalidaServiceImpl service = new LiquidacionSalidaServiceImpl(salidaRead, salidaWrite, itemWrite,
                 liquidacionWrite, aplicacionWrite, aplicacionRead, deudaRead, deudaWrite, detalleWrite,
                 cajaRead, cajaWrite, cajaDenominacionWrite, cajaDenominacionRead, saldoDenominacionWrite,
-                saldoDenominacionRead, entregaWrite, entregaRead, mock(AuditoriaTransaccionalService.class));
+                saldoDenominacionRead, entregaWrite, entregaRead, mock(AuditoriaTransaccionalService.class),
+                mock(IRegistroFormasNumeradasService.class));
 
         UUID fincaId = UUID.randomUUID();
         SaldoCajaDenominacion billete100 = new SaldoCajaDenominacion();
@@ -115,7 +117,8 @@ class LiquidacionSalidaServiceImplTest {
         LiquidacionSalidaServiceImpl service = new LiquidacionSalidaServiceImpl(salidaRead, salidaWrite, itemWrite,
                 liquidacionWrite, aplicacionWrite, aplicacionRead, deudaRead, deudaWrite, detalleWrite,
                 cajaRead, cajaWrite, cajaDenominacionWrite, cajaDenominacionRead, saldoDenominacionWrite,
-                saldoDenominacionRead, entregaWrite, entregaRead, mock(AuditoriaTransaccionalService.class));
+                saldoDenominacionRead, entregaWrite, entregaRead, mock(AuditoriaTransaccionalService.class),
+                mock(IRegistroFormasNumeradasService.class));
 
         UUID salidaId = UUID.randomUUID();
         UUID itemId = UUID.randomUUID();
