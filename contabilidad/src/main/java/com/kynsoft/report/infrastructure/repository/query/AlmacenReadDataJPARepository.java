@@ -19,10 +19,16 @@ public interface AlmacenReadDataJPARepository extends JpaRepository<Almacen, UUI
 
     @Override
     @EntityGraph(attributePaths = {"finca"})
+    Optional<Almacen> findById(UUID id);
+
+    @Override
+    @EntityGraph(attributePaths = {"finca"})
     Page<Almacen> findAll(Specification specification, Pageable pageable);
 
+    @EntityGraph(attributePaths = {"finca"})
     Optional<Almacen> findByInventario(String inventario);
 
+    @EntityGraph(attributePaths = {"finca"})
     Optional<Almacen> findByNombre(String nombre);
 
     @Query("SELECT COUNT(afp) FROM AlmacenFincaProducto afp WHERE afp.almacen.id = :almacenId AND afp.activo = true")
@@ -35,6 +41,7 @@ public interface AlmacenReadDataJPARepository extends JpaRepository<Almacen, UUI
     @EntityGraph(attributePaths = {"finca"})
     Page<Almacen> findByFincaIdAndActivoTrue(UUID fincaId, Pageable pageable);
 
+    @EntityGraph(attributePaths = {"finca"})
     Optional<Almacen> findByFincaIdAndEsPrincipalTrue(UUID fincaId);
 
     @Query("SELECT COUNT(a) FROM Almacen a WHERE a.finca.id = :fincaId")

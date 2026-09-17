@@ -5,6 +5,7 @@ import com.kynsoft.report.infrastructure.entity.PlantacionPermanente;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -15,12 +16,20 @@ import java.util.UUID;
 @Repository
 public interface PlantacionPermanenteReadRepository extends JpaRepository<PlantacionPermanente, UUID> {
 
+    @Override
+    @EntityGraph(attributePaths = "finca")
+    java.util.Optional<PlantacionPermanente> findById(UUID id);
+
+    @EntityGraph(attributePaths = "finca")
     List<PlantacionPermanente> findByBloque(Integer bloque);
 
+    @EntityGraph(attributePaths = "finca")
     List<PlantacionPermanente> findByTipoPlantacion(TipoPlantacion tipoPlantacion);
 
+    @EntityGraph(attributePaths = "finca")
     List<PlantacionPermanente> findByFincaId(UUID fincaId);
 
+    @EntityGraph(attributePaths = "finca")
     @Query("SELECT p FROM PlantacionPermanente p " +
            "WHERE (:query IS NULL OR LOWER(p.numeroInventario) LIKE LOWER(CONCAT('%', :query, '%')) " +
            "       OR LOWER(p.codigoVariedad) LIKE LOWER(CONCAT('%', :query, '%'))) " +

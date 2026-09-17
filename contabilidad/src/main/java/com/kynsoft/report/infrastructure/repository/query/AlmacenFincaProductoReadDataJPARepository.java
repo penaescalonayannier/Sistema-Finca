@@ -3,6 +3,7 @@ package com.kynsoft.report.infrastructure.repository.query;
 import com.kynsoft.report.infrastructure.entity.AlmacenFincaProducto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -17,6 +18,11 @@ import java.util.UUID;
 @Transactional(readOnly = true, transactionManager = "readTransactionManager")
 public interface AlmacenFincaProductoReadDataJPARepository
         extends JpaRepository<AlmacenFincaProducto, UUID>, JpaSpecificationExecutor<AlmacenFincaProducto> {
+
+    /** El DTO usa almacén, finca-producto, finca y producto. */
+    @Override
+    @EntityGraph(attributePaths = {"almacen", "fincaProducto", "fincaProducto.producto", "fincaProducto.finca"})
+    Page<AlmacenFincaProducto> findAll(Specification specification, Pageable pageable);
 
     @EntityGraph(attributePaths = {"almacen", "fincaProducto", "fincaProducto.producto", "fincaProducto.finca"})
     Optional<AlmacenFincaProducto> findById(UUID id);

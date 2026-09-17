@@ -24,6 +24,10 @@ public interface ProduccionTerminadaReadDataJPARepository
 
     @Override
     @EntityGraph(attributePaths = {"finca", "producto", "trabajadorEntrega", "trabajadorRecibe"})
+    Optional<ProduccionTerminada> findById(UUID id);
+
+    @Override
+    @EntityGraph(attributePaths = {"finca", "producto", "trabajadorEntrega", "trabajadorRecibe"})
     Page<ProduccionTerminada> findAll(Specification specification, Pageable pageable);
 
     @Query("SELECT pt FROM ProduccionTerminada pt " +
@@ -34,24 +38,34 @@ public interface ProduccionTerminadaReadDataJPARepository
            "WHERE pt.id = :id AND pt.activo = true")
     Optional<ProduccionTerminada> findByIdWithDetails(@Param("id") UUID id);
 
+    @EntityGraph(attributePaths = {"finca", "producto", "trabajadorEntrega", "trabajadorRecibe"})
     List<ProduccionTerminada> findByProductoIdAndActivoTrue(UUID productoId);
 
+    @EntityGraph(attributePaths = {"finca", "producto", "trabajadorEntrega", "trabajadorRecibe"})
     List<ProduccionTerminada> findByFechaBetweenAndActivoTrue(LocalDateTime fechaInicio, LocalDateTime fechaFin);
 
+    @EntityGraph(attributePaths = {"finca", "producto", "trabajadorEntrega", "trabajadorRecibe"})
     List<ProduccionTerminada> findByTrabajadorEntregaIdAndActivoTrue(UUID trabajadorId);
 
+    @EntityGraph(attributePaths = {"finca", "producto", "trabajadorEntrega", "trabajadorRecibe"})
     List<ProduccionTerminada> findByTrabajadorRecibeIdAndActivoTrue(UUID trabajadorId);
 
     // Por finca
+    @EntityGraph(attributePaths = {"finca", "producto", "trabajadorEntrega", "trabajadorRecibe"})
     List<ProduccionTerminada> findByFincaIdAndActivoTrue(UUID fincaId);
 
+    @EntityGraph(attributePaths = {"finca", "producto", "trabajadorEntrega", "trabajadorRecibe"})
     List<ProduccionTerminada> findByFincaIdAndFechaBetweenAndActivoTrue(
             UUID fincaId, LocalDateTime fechaInicio, LocalDateTime fechaFin);
 
     // Mantener para uso interno (incluye inactivos)
+    @EntityGraph(attributePaths = {"finca", "producto", "trabajadorEntrega", "trabajadorRecibe"})
     List<ProduccionTerminada> findByProductoId(UUID productoId);
+    @EntityGraph(attributePaths = {"finca", "producto", "trabajadorEntrega", "trabajadorRecibe"})
     List<ProduccionTerminada> findByFechaBetween(LocalDateTime fechaInicio, LocalDateTime fechaFin);
+    @EntityGraph(attributePaths = {"finca", "producto", "trabajadorEntrega", "trabajadorRecibe"})
     List<ProduccionTerminada> findByTrabajadorEntregaId(UUID trabajadorId);
+    @EntityGraph(attributePaths = {"finca", "producto", "trabajadorEntrega", "trabajadorRecibe"})
     List<ProduccionTerminada> findByTrabajadorRecibeId(UUID trabajadorId);
 
     @Query("SELECT pt.numeroDocumento FROM ProduccionTerminada pt WHERE pt.fincaId = :fincaId "

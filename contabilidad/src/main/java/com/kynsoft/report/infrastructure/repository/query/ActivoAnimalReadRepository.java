@@ -6,6 +6,7 @@ import com.kynsoft.report.infrastructure.entity.ActivoAnimal;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -16,12 +17,20 @@ import java.util.UUID;
 @Repository
 public interface ActivoAnimalReadRepository extends JpaRepository<ActivoAnimal, UUID> {
 
+    @Override
+    @EntityGraph(attributePaths = "finca")
+    java.util.Optional<ActivoAnimal> findById(UUID id);
+
+    @EntityGraph(attributePaths = "finca")
     List<ActivoAnimal> findByTipoGanado(TipoGanado tipoGanado);
 
+    @EntityGraph(attributePaths = "finca")
     List<ActivoAnimal> findByCategoria(CategoriaAnimal categoria);
 
+    @EntityGraph(attributePaths = "finca")
     List<ActivoAnimal> findByFincaId(UUID fincaId);
 
+    @EntityGraph(attributePaths = "finca")
     @Query("SELECT a FROM ActivoAnimal a " +
            "WHERE (:query IS NULL OR LOWER(a.numeroInventario) LIKE LOWER(CONCAT('%', :query, '%')) " +
            "       OR LOWER(a.hierro) LIKE LOWER(CONCAT('%', :query, '%')) " +

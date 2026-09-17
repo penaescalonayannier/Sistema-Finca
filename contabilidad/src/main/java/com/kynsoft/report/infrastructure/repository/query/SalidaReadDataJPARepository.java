@@ -22,6 +22,16 @@ import java.util.UUID;
 @Transactional(readOnly = true, transactionManager = "readTransactionManager")
 public interface SalidaReadDataJPARepository extends JpaRepository<Salida, UUID>, JpaSpecificationExecutor<Salida> {
 
+    /**
+     * La capa de servicios convierte la salida a DTO después de terminar la
+     * sesión del EntityManager de lectura.  El documento y sus renglones son
+     * parte de la misma vista, por lo que deben salir materializados.
+     */
+    @Override
+    @EntityGraph(attributePaths = {"fincaProducto", "fincaProducto.finca", "fincaProducto.producto",
+            "items", "items.trabajador", "items.fincaProducto", "items.fincaProducto.producto"})
+    Optional<Salida> findById(UUID id);
+
     @Override
     @EntityGraph(attributePaths = {"fincaProducto", "fincaProducto.finca", "fincaProducto.producto", "items", "items.trabajador", "items.fincaProducto", "items.fincaProducto.producto"})
     Page<Salida> findAll(Specification specification, Pageable pageable);
@@ -43,8 +53,12 @@ public interface SalidaReadDataJPARepository extends JpaRepository<Salida, UUID>
            "WHERE s.id IN :ids")
     List<Salida> findByIdInWithDetails(@Param("ids") List<UUID> ids);
 
+    @EntityGraph(attributePaths = {"fincaProducto", "fincaProducto.finca", "fincaProducto.producto",
+            "items", "items.trabajador", "items.fincaProducto", "items.fincaProducto.producto"})
     List<Salida> findByTipo(TipoSalida tipo);
 
+    @EntityGraph(attributePaths = {"fincaProducto", "fincaProducto.finca", "fincaProducto.producto",
+            "items", "items.trabajador", "items.fincaProducto", "items.fincaProducto.producto"})
     List<Salida> findByFincaProductoId(UUID fincaProductoId);
 
     @Query("SELECT DISTINCT s FROM Salida s " +
@@ -96,7 +110,12 @@ public interface SalidaReadDataJPARepository extends JpaRepository<Salida, UUID>
 
     @Query("SELECT DISTINCT s FROM Salida s " +
            "LEFT JOIN FETCH s.fincaProducto fp " +
+           "LEFT JOIN FETCH fp.finca " +
            "LEFT JOIN FETCH fp.producto " +
+           "LEFT JOIN FETCH s.items i " +
+           "LEFT JOIN FETCH i.trabajador " +
+           "LEFT JOIN FETCH i.fincaProducto ifp " +
+           "LEFT JOIN FETCH ifp.producto " +
            "WHERE s.fecha BETWEEN :fechaInicio AND :fechaFin AND s.activo = true")
     List<Salida> findByFechaBetween(@Param("fechaInicio") java.time.LocalDateTime fechaInicio,
                                      @Param("fechaFin") java.time.LocalDateTime fechaFin);

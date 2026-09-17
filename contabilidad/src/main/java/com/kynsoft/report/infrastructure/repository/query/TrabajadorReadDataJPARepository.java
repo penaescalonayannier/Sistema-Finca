@@ -16,20 +16,25 @@ import java.util.UUID;
 
 @Transactional(readOnly = true, transactionManager = "readTransactionManager")
 public interface TrabajadorReadDataJPARepository extends JpaRepository<Trabajador, UUID>, JpaSpecificationExecutor<Trabajador> {
-    /** Los reportes de trabajo muestran el cargo después de la lectura CQRS. */
+    /** El DTO de trabajador muestra las relaciones después de la lectura CQRS. */
     @Override
-    @EntityGraph(attributePaths = {"cargo"})
+    @EntityGraph(attributePaths = {"finca", "grupo", "cargo", "plaza"})
     java.util.List<Trabajador> findAll();
 
     @Override
-    @EntityGraph(attributePaths = {"cargo"})
+    @EntityGraph(attributePaths = {"finca", "grupo", "cargo", "plaza"})
     java.util.List<Trabajador> findAll(Specification<Trabajador> specification);
 
     @Override
-    @EntityGraph(attributePaths = {"cargo"})
+    @EntityGraph(attributePaths = {"finca", "grupo", "cargo", "plaza"})
     Page<Trabajador> findAll(Specification specification, Pageable pageable);
 
+    @EntityGraph(attributePaths = {"finca", "grupo", "cargo", "plaza"})
     Optional<Trabajador> findByRuc(String ruc);
+
+    @Override
+    @EntityGraph(attributePaths = {"finca", "grupo", "cargo", "plaza"})
+    java.util.List<Trabajador> findAllById(Iterable<UUID> ids);
 
     Optional<Trabajador> findByPlazaIdAndActivoTrue(UUID plazaId);
 

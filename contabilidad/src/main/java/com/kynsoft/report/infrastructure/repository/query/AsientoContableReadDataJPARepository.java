@@ -4,6 +4,7 @@ import com.kynsoft.report.infrastructure.entity.AsientoContable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,21 +18,33 @@ import java.util.UUID;
 public interface AsientoContableReadDataJPARepository
         extends JpaRepository<AsientoContable, UUID>, JpaSpecificationExecutor<AsientoContable> {
 
+    @Override
+    @EntityGraph(attributePaths = "lineas")
+    Optional<AsientoContable> findById(UUID id);
+
+    @EntityGraph(attributePaths = "lineas")
     Optional<AsientoContable> findByNumero(String numero);
 
+    @EntityGraph(attributePaths = "lineas")
     Optional<AsientoContable> findByMovimientoStockId(UUID movimientoStockId);
 
+    @EntityGraph(attributePaths = "lineas")
     List<AsientoContable> findByFechaBetween(LocalDate fechaInicio, LocalDate fechaFin);
 
+    @EntityGraph(attributePaths = "lineas")
     Page<AsientoContable> findByFechaBetween(LocalDate fechaInicio, LocalDate fechaFin, Pageable pageable);
 
+    @EntityGraph(attributePaths = "lineas")
     List<AsientoContable> findByAsentadoTrue();
 
+    @EntityGraph(attributePaths = "lineas")
     List<AsientoContable> findByAsentadoFalse();
 
+    @EntityGraph(attributePaths = "lineas")
     @Query("SELECT a FROM AsientoContable a WHERE a.fecha = :fecha ORDER BY a.numero ASC")
     List<AsientoContable> findByFechaOrderByNumero(@Param("fecha") LocalDate fecha);
 
+    @EntityGraph(attributePaths = "lineas")
     @Query("SELECT a FROM AsientoContable a WHERE a.reglaId = :reglaId")
     List<AsientoContable> findByReglaId(@Param("reglaId") UUID reglaId);
 
