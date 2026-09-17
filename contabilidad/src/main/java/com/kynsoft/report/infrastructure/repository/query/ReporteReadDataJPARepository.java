@@ -18,7 +18,7 @@ import org.springframework.data.repository.query.Param;
 public interface ReporteReadDataJPARepository extends JpaRepository<Reporte, UUID>, JpaSpecificationExecutor<Reporte> {
 
     @Override
-    @EntityGraph(attributePaths = {"tipoReporte", "tipoCultivo", "tipoAnimal"})
+    @EntityGraph(attributePaths = {"tipoReporte", "tipoCultivo", "tipoAnimal", "trabajadorResponsable"})
     Page<Reporte> findAll(Specification specification, Pageable pageable);
 
     @Query("SELECT COUNT(r) FROM Reporte r WHERE r.year = :year AND r.mes = :mes AND r.activo = true")

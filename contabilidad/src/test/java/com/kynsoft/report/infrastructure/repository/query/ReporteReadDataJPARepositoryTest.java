@@ -22,6 +22,7 @@ class ReporteReadDataJPARepositoryTest {
 
         assertNotNull(entityGraph);
         List<String> relaciones = List.of(entityGraph.attributePaths());
-        assertTrue(relaciones.containsAll(List.of("tipoReporte", "tipoCultivo", "tipoAnimal")));
+        assertTrue(relaciones.containsAll(List.of(
+                "tipoReporte", "tipoCultivo", "tipoAnimal", "trabajadorResponsable")));
     }
 }
