@@ -13,6 +13,7 @@ import com.kynsoft.report.domain.dto.KardexDto;
 import com.kynsoft.report.domain.dto.MovimientoStockDto;
 import com.kynsoft.report.domain.dto.ResumenMovimientosDto;
 import com.kynsoft.report.domain.dto.TipoMovimientoStock;
+import com.kynsoft.report.domain.dto.TipoAccion;
 import com.kynsoft.report.domain.dto.reportes.ReporteMovimientosConsolidadoDto;
 import com.kynsoft.report.domain.services.IContabilizacionAutomaticaService;
 import com.kynsoft.report.domain.services.IMovimientoStockService;
@@ -76,6 +77,7 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
     private final LiquidacionItemSalidaReadDataJPARepository liquidacionItemReadRepository;
     private final LiquidacionSalidaReadDataJPARepository liquidacionReadRepository;
     private final IContabilizacionAutomaticaService contabilizacionService;
+    private final AuditoriaTransaccionalService auditoriaTransaccionalService;
 
     public MovimientoStockServiceImpl(
             MovimientoStockWriteDataJPARepository repositoryCommand,
@@ -91,7 +93,8 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
             ItemSalidaReadDataJPARepository itemSalidaRepository,
             LiquidacionItemSalidaReadDataJPARepository liquidacionItemReadRepository,
             LiquidacionSalidaReadDataJPARepository liquidacionReadRepository,
-            @Lazy IContabilizacionAutomaticaService contabilizacionService) {
+            @Lazy IContabilizacionAutomaticaService contabilizacionService,
+            AuditoriaTransaccionalService auditoriaTransaccionalService) {
         this.repositoryCommand = repositoryCommand;
         this.repositoryQuery = repositoryQuery;
         this.fincaRepository = fincaRepository;
@@ -106,12 +109,21 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
         this.liquidacionItemReadRepository = liquidacionItemReadRepository;
         this.liquidacionReadRepository = liquidacionReadRepository;
         this.contabilizacionService = contabilizacionService;
+        this.auditoriaTransaccionalService = auditoriaTransaccionalService;
     }
 
     @Override
     public void registrar(MovimientoStockDto dto) {
         MovimientoStock entity = new MovimientoStock(dto);
         MovimientoStock saved = repositoryCommand.save(entity);
+        MovimientoStockDto confirmado = saved.toAggregate();
+        auditoriaTransaccionalService.registrarDespuesDeConfirmar(
+                TipoAccion.STOCK_ADJUSTMENT,
+                "MOVIMIENTO_STOCK",
+                saved.getId(),
+                "Movimiento de inventario " + confirmado.getTipo(),
+                Map.of("stock", confirmado.getStockAnterior()),
+                datosAuditoriaMovimiento(confirmado));
 
         // Generate automatic accounting entry
         // This happens internally - users don't see or interact with it
@@ -123,6 +135,19 @@ public class MovimientoStockServiceImpl implements IMovimientoStockService {
             log.warn("Could not generate accounting entry for movement {}: {}",
                     dto.getId(), e.getMessage());
         }
+    }
+
+    private Map<String, Object> datosAuditoriaMovimiento(MovimientoStockDto movimiento) {
+        Map<String, Object> datos = new HashMap<>();
+        datos.put("fincaId", movimiento.getFincaId());
+        datos.put("productoId", movimiento.getProductoId());
+        datos.put("almacenId", movimiento.getAlmacenId());
+        datos.put("tipo", movimiento.getTipo());
+        datos.put("cantidad", movimiento.getCantidad());
+        datos.put("stock", movimiento.getStockNuevo());
+        datos.put("referenciaId", movimiento.getReferenciaId());
+        datos.put("referenciaTabla", movimiento.getReferenciaTabla());
+        return datos;
     }
 
     @Override

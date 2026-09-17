@@ -142,6 +142,14 @@ La gestión física de inventario se centraliza en **Almacenes**. La aplicación
 
 Las migraciones `V26__documento_produccion_snapshot.sql` y `V27__salida_finca_consecutivo_unico.sql` se aplican automáticamente. Después de actualizar una PC, realice una entrada de producción de prueba desde un almacén, descargue su SC-2-06, y compruebe que el consecutivo y saldo impresos siguen iguales después de otro movimiento. Luego registre una salida simple mediante la salida múltiple y valide que se emite un vale/factura consecutivo.
 
+### Trazabilidad de Caja y Banco (V28)
+
+La migración `V28__auditoria_movimientos_caja.sql` añade el usuario autenticado y
+el instante técnico de registro a cada movimiento físico de Caja y entrega al
+Banco. Conserva la fecha económica original y no recalcula importes ni saldos
+históricos. El detalle de cumplimiento y las pruebas de aceptación están en
+[`contabilidad/specs/features/caja/AUDITORIA_CUMPLIMIENTO_CUBANO_CAJA_2026-09-16.md`](contabilidad/specs/features/caja/AUDITORIA_CUMPLIMIENTO_CUBANO_CAJA_2026-09-16.md).
+
 En **Finanzas → Consecutivos documentales** se consulta el registro oficial de Facturas, Vales y Producciones Terminadas por finca y año. Muestra prefijo, último número emitido, próximo número, cantidad de documentos e integridad de la secuencia. Es una consulta de auditoría: no existen opciones para editar, reiniciar o reutilizar consecutivos. Un estado de advertencia debe revisarse antes de emitir nuevos documentos.
 
 ## Estado registrado el 2026-09-16

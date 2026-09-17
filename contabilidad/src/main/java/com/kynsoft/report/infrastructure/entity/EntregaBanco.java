@@ -29,6 +29,10 @@ public class EntregaBanco {
     private String entregadoPor;
     @Column(name = "recibido_por")
     private String recibidoPor;
+    @Column(name = "usuario_id")
+    private UUID usuarioId;
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
     private String observaciones;
     private Boolean activo = true;
 }

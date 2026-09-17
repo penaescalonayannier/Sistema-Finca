@@ -8,6 +8,7 @@ import com.kynsoft.report.domain.dto.CrearArqueoCajaRequest;
 import com.kynsoft.report.domain.dto.DenominacionCajaDto;
 import com.kynsoft.report.domain.dto.EstadoArqueoCaja;
 import com.kynsoft.report.domain.dto.TipoArqueoCaja;
+import com.kynsoft.report.domain.dto.TipoAccion;
 import com.kynsoft.report.domain.services.IArqueoCajaService;
 import com.kynsoft.report.infrastructure.entity.ArqueoCaja;
 import com.kynsoft.report.infrastructure.entity.ArqueoCajaDenominacion;
@@ -54,6 +55,7 @@ public class ArqueoCajaServiceImpl implements IArqueoCajaService {
     private final SaldoCajaDenominacionReadDataJPARepository saldoDenominacionReadRepository;
     private final MovimientoCajaReadDataJPARepository movimientoCajaReadRepository;
     private final FincaReadDataJPARepository fincaReadRepository;
+    private final AuditoriaTransaccionalService auditoriaTransaccionalService;
 
     public ArqueoCajaServiceImpl(ArqueoCajaWriteDataJPARepository arqueoWriteRepository,
                                  ArqueoCajaDenominacionWriteDataJPARepository detalleWriteRepository,
@@ -61,7 +63,8 @@ public class ArqueoCajaServiceImpl implements IArqueoCajaService {
                                  ArqueoCajaDenominacionReadDataJPARepository detalleReadRepository,
                                  SaldoCajaDenominacionReadDataJPARepository saldoDenominacionReadRepository,
                                  MovimientoCajaReadDataJPARepository movimientoCajaReadRepository,
-                                 FincaReadDataJPARepository fincaReadRepository) {
+                                 FincaReadDataJPARepository fincaReadRepository,
+                                 AuditoriaTransaccionalService auditoriaTransaccionalService) {
         this.arqueoWriteRepository = arqueoWriteRepository;
         this.detalleWriteRepository = detalleWriteRepository;
         this.arqueoReadRepository = arqueoReadRepository;
@@ -69,6 +72,7 @@ public class ArqueoCajaServiceImpl implements IArqueoCajaService {
         this.saldoDenominacionReadRepository = saldoDenominacionReadRepository;
         this.movimientoCajaReadRepository = movimientoCajaReadRepository;
         this.fincaReadRepository = fincaReadRepository;
+        this.auditoriaTransaccionalService = auditoriaTransaccionalService;
     }
 
     @Override
@@ -117,6 +121,15 @@ public class ArqueoCajaServiceImpl implements IArqueoCajaService {
             detalle.setCantidadEsperada(existencias.getOrDefault(denominacion, 0));
             detalleWriteRepository.save(detalle);
         }
+        Map<String, Object> creado = new HashMap<>();
+        creado.put("fincaId", arqueo.getFincaId());
+        creado.put("numero", arqueo.getNumero());
+        creado.put("tipo", arqueo.getTipo());
+        creado.put("muestraDenominaciones", muestra);
+        creado.put("totalEsperado", arqueo.getTotalEsperado());
+        creado.put("contadorResponsable", arqueo.getContadorResponsable());
+        auditoriaTransaccionalService.registrarDespuesDeConfirmar(TipoAccion.CREATE, "ARQUEO_CAJA",
+                arqueo.getId(), "Apertura de arqueo de caja", null, creado);
         return arqueo.getId();
     }
 
@@ -149,12 +162,22 @@ public class ArqueoCajaServiceImpl implements IArqueoCajaService {
         if (Math.abs(diferencia) > EPSILON && observaciones == null) {
             throw new IllegalArgumentException("Las observaciones de cierre son obligatorias cuando existe una diferencia de caja.");
         }
+        Map<String, Object> anterior = new HashMap<>();
+        anterior.put("estado", arqueo.getEstado());
+        anterior.put("totalEsperado", arqueo.getTotalEsperado());
         arqueo.setFechaCierre(LocalDateTime.now());
         arqueo.setTotalFisico(totalFisico);
         arqueo.setDiferencia(diferencia);
         arqueo.setEstado(EstadoArqueoCaja.CERRADO);
         arqueo.setObservacionesCierre(observaciones);
         arqueoWriteRepository.save(arqueo);
+        Map<String, Object> cerrado = new HashMap<>();
+        cerrado.put("estado", arqueo.getEstado());
+        cerrado.put("totalFisico", arqueo.getTotalFisico());
+        cerrado.put("diferencia", arqueo.getDiferencia());
+        cerrado.put("observacionesCierre", arqueo.getObservacionesCierre());
+        auditoriaTransaccionalService.registrarDespuesDeConfirmar(TipoAccion.UPDATE, "ARQUEO_CAJA",
+                arqueo.getId(), "Cierre de arqueo de caja", anterior, cerrado);
     }
 
     @Override

@@ -71,7 +71,7 @@ class LiquidacionSalidaServiceImplTest {
         LiquidacionSalidaServiceImpl service = new LiquidacionSalidaServiceImpl(salidaRead, salidaWrite, itemWrite,
                 liquidacionWrite, aplicacionWrite, aplicacionRead, deudaRead, deudaWrite, detalleWrite,
                 cajaRead, cajaWrite, cajaDenominacionWrite, cajaDenominacionRead, saldoDenominacionWrite,
-                saldoDenominacionRead, entregaWrite, entregaRead);
+                saldoDenominacionRead, entregaWrite, entregaRead, mock(AuditoriaTransaccionalService.class));
 
         UUID fincaId = UUID.randomUUID();
         SaldoCajaDenominacion billete100 = new SaldoCajaDenominacion();
@@ -115,7 +115,7 @@ class LiquidacionSalidaServiceImplTest {
         LiquidacionSalidaServiceImpl service = new LiquidacionSalidaServiceImpl(salidaRead, salidaWrite, itemWrite,
                 liquidacionWrite, aplicacionWrite, aplicacionRead, deudaRead, deudaWrite, detalleWrite,
                 cajaRead, cajaWrite, cajaDenominacionWrite, cajaDenominacionRead, saldoDenominacionWrite,
-                saldoDenominacionRead, entregaWrite, entregaRead);
+                saldoDenominacionRead, entregaWrite, entregaRead, mock(AuditoriaTransaccionalService.class));
 
         UUID salidaId = UUID.randomUUID();
         UUID itemId = UUID.randomUUID();

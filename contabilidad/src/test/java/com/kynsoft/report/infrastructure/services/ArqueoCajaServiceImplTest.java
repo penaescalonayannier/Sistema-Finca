@@ -46,7 +46,8 @@ class ArqueoCajaServiceImplTest {
         SaldoCajaDenominacionReadDataJPARepository saldoRead = mock(SaldoCajaDenominacionReadDataJPARepository.class);
         MovimientoCajaReadDataJPARepository movimientoRead = mock(MovimientoCajaReadDataJPARepository.class);
         FincaReadDataJPARepository fincaRead = mock(FincaReadDataJPARepository.class);
-        ArqueoCajaServiceImpl service = new ArqueoCajaServiceImpl(arqueoWrite, detalleWrite, arqueoRead, detalleRead, saldoRead, movimientoRead, fincaRead);
+        ArqueoCajaServiceImpl service = new ArqueoCajaServiceImpl(arqueoWrite, detalleWrite, arqueoRead, detalleRead,
+                saldoRead, movimientoRead, fincaRead, mock(AuditoriaTransaccionalService.class));
         UUID fincaId = UUID.randomUUID();
         SaldoCajaDenominacion billete = new SaldoCajaDenominacion();
         billete.setDenominacion(100); billete.setCantidad(2);
@@ -79,7 +80,8 @@ class ArqueoCajaServiceImplTest {
         SaldoCajaDenominacionReadDataJPARepository saldoRead = mock(SaldoCajaDenominacionReadDataJPARepository.class);
         MovimientoCajaReadDataJPARepository movimientoRead = mock(MovimientoCajaReadDataJPARepository.class);
         FincaReadDataJPARepository fincaRead = mock(FincaReadDataJPARepository.class);
-        ArqueoCajaServiceImpl service = new ArqueoCajaServiceImpl(arqueoWrite, detalleWrite, arqueoRead, detalleRead, saldoRead, movimientoRead, fincaRead);
+        ArqueoCajaServiceImpl service = new ArqueoCajaServiceImpl(arqueoWrite, detalleWrite, arqueoRead, detalleRead,
+                saldoRead, movimientoRead, fincaRead, mock(AuditoriaTransaccionalService.class));
         UUID id = UUID.randomUUID();
         ArqueoCaja arqueo = new ArqueoCaja();
         arqueo.setId(id); arqueo.setEstado(EstadoArqueoCaja.ABIERTO); arqueo.setTotalEsperado(10d);

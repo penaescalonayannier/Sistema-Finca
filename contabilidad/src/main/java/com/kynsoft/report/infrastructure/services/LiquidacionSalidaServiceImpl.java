@@ -15,6 +15,7 @@ import com.kynsoft.report.domain.dto.SaldoDenominacionCajaDto;
 import com.kynsoft.report.domain.dto.SalidaPendienteLiquidacionDto;
 import com.kynsoft.report.domain.dto.TipoMovimiento;
 import com.kynsoft.report.domain.dto.TipoMovimientoCaja;
+import com.kynsoft.report.domain.dto.TipoAccion;
 import com.kynsoft.report.domain.services.ILiquidacionSalidaService;
 import com.kynsoft.report.infrastructure.entity.DeudaTrabajador;
 import com.kynsoft.report.infrastructure.entity.EntregaBanco;
@@ -42,6 +43,8 @@ import com.kynsoft.report.infrastructure.repository.query.MovimientoCajaReadData
 import com.kynsoft.report.infrastructure.repository.query.MovimientoCajaDenominacionReadDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.SaldoCajaDenominacionReadDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.SalidaReadDataJPARepository;
+import com.kynsoft.report.infrastructure.security.TenantValidator;
+import com.kynsoft.report.infrastructure.security.TenantContext;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -80,6 +83,7 @@ public class LiquidacionSalidaServiceImpl implements ILiquidacionSalidaService {
     private final SaldoCajaDenominacionReadDataJPARepository saldoDenominacionReadRepository;
     private final EntregaBancoWriteDataJPARepository entregaBancoWriteRepository;
     private final EntregaBancoReadDataJPARepository entregaBancoReadRepository;
+    private final AuditoriaTransaccionalService auditoriaTransaccionalService;
 
     public LiquidacionSalidaServiceImpl(SalidaReadDataJPARepository salidaReadRepository,
                                         SalidaWriteDataJPARepository salidaWriteRepository,
@@ -97,7 +101,8 @@ public class LiquidacionSalidaServiceImpl implements ILiquidacionSalidaService {
                                         SaldoCajaDenominacionWriteDataJPARepository saldoDenominacionWriteRepository,
                                         SaldoCajaDenominacionReadDataJPARepository saldoDenominacionReadRepository,
                                         EntregaBancoWriteDataJPARepository entregaBancoWriteRepository,
-                                        EntregaBancoReadDataJPARepository entregaBancoReadRepository) {
+                                        EntregaBancoReadDataJPARepository entregaBancoReadRepository,
+                                        AuditoriaTransaccionalService auditoriaTransaccionalService) {
         this.salidaReadRepository = salidaReadRepository;
         this.salidaWriteRepository = salidaWriteRepository;
         this.itemWriteRepository = itemWriteRepository;
@@ -115,6 +120,7 @@ public class LiquidacionSalidaServiceImpl implements ILiquidacionSalidaService {
         this.saldoDenominacionReadRepository = saldoDenominacionReadRepository;
         this.entregaBancoWriteRepository = entregaBancoWriteRepository;
         this.entregaBancoReadRepository = entregaBancoReadRepository;
+        this.auditoriaTransaccionalService = auditoriaTransaccionalService;
     }
 
     @Override
@@ -126,6 +132,7 @@ public class LiquidacionSalidaServiceImpl implements ILiquidacionSalidaService {
         UUID fincaId = salida.getFincaProducto() == null || salida.getFincaProducto().getFinca() == null
                 ? null : salida.getFincaProducto().getFinca().getId();
         if (fincaId == null) throw new IllegalArgumentException("La salida no tiene una finca válida.");
+        TenantValidator.validateWriteAccess(fincaId);
 
         Map<UUID, Double> importesPorItem = request.getAplicaciones().stream()
                 .collect(Collectors.groupingBy(AplicacionLiquidacionSalidaDto::getItemSalidaId,
@@ -204,9 +211,10 @@ public class LiquidacionSalidaServiceImpl implements ILiquidacionSalidaService {
         if (fechaInicio == null || fechaFin == null || fechaFin.isBefore(fechaInicio)) {
             throw new IllegalArgumentException("El rango de fechas es inválido.");
         }
-        List<Salida> salidas = fincaId == null
-                ? salidaReadRepository.findByFechaAndActivo(fechaInicio.atStartOfDay(), fechaFin.atTime(23, 59, 59))
-                : salidaReadRepository.findByFincaIdAndFechaBetween(fincaId, fechaInicio.atStartOfDay(), fechaFin.atTime(23, 59, 59));
+        if (fincaId == null) throw new IllegalArgumentException("La finca es obligatoria para consultar liquidaciones pendientes.");
+        TenantValidator.validateReadAccess(fincaId);
+        List<Salida> salidas = salidaReadRepository.findByFincaIdAndFechaBetween(
+                fincaId, fechaInicio.atStartOfDay(), fechaFin.atTime(23, 59, 59));
         return salidas.stream().map(this::aPendienteDto)
                 .filter(dto -> dto.getSaldoPendiente() > EPSILON)
                 .toList();
@@ -215,6 +223,7 @@ public class LiquidacionSalidaServiceImpl implements ILiquidacionSalidaService {
     @Override
     public SaldoCajaDto obtenerSaldoCaja(UUID fincaId) {
         if (fincaId == null) throw new IllegalArgumentException("La finca es obligatoria para consultar caja.");
+        TenantValidator.validateReadAccess(fincaId);
         double efectivo = valor(cajaReadRepository.totalCobradoEfectivoByFincaId(fincaId));
         double entregado = valor(cajaReadRepository.totalEntregadoBancoByFincaId(fincaId));
         List<SaldoDenominacionCajaDto> denominaciones = saldoDenominacionReadRepository
@@ -234,6 +243,7 @@ public class LiquidacionSalidaServiceImpl implements ILiquidacionSalidaService {
         if (request == null || request.getFincaId() == null) {
             throw new IllegalArgumentException("La finca es obligatoria para la entrega al banco.");
         }
+        TenantValidator.validateWriteAccess(request.getFincaId());
         Map<Integer, Integer> denominaciones = validarDenominaciones(request.getDenominaciones(), request.getImporte(),
                 "El desglose de billetes de la entrega al banco");
         double importeEntrega = totalDenominaciones(denominaciones);
@@ -250,6 +260,8 @@ public class LiquidacionSalidaServiceImpl implements ILiquidacionSalidaService {
         entrega.setReferenciaBancaria(texto(request.getReferenciaBancaria()));
         entrega.setEntregadoPor(texto(request.getEntregadoPor()));
         entrega.setRecibidoPor(texto(request.getRecibidoPor()));
+        entrega.setUsuarioId(TenantContext.getUsuarioId());
+        entrega.setCreatedAt(LocalDateTime.now());
         entrega.setObservaciones(texto(request.getObservaciones()));
         entrega.setActivo(true);
         entregaBancoWriteRepository.save(entrega);
@@ -261,6 +273,7 @@ public class LiquidacionSalidaServiceImpl implements ILiquidacionSalidaService {
     @Override
     public List<EntregaBancoResponse> listarEntregasBanco(UUID fincaId) {
         if (fincaId == null) throw new IllegalArgumentException("La finca es obligatoria para consultar entregas al banco.");
+        TenantValidator.validateReadAccess(fincaId);
         List<EntregaBanco> entregas = entregaBancoReadRepository.findByFincaIdAndActivoTrueOrderByFechaDesc(fincaId);
         Map<UUID, UUID> movimientoPorEntrega = cajaReadRepository.findByEntregaBancoIdIn(
                         entregas.stream().map(EntregaBanco::getId).toList()).stream()
@@ -286,6 +299,7 @@ public class LiquidacionSalidaServiceImpl implements ILiquidacionSalidaService {
         if (request == null || request.getFincaId() == null) {
             throw new IllegalArgumentException("La finca es obligatoria para la apertura de caja.");
         }
+        TenantValidator.validateWriteAccess(request.getFincaId());
         Map<Integer, Integer> denominaciones = validarDenominaciones(request.getDenominaciones(), null,
                 "El desglose de la apertura de caja");
         double saldoRegistrado = valor(cajaReadRepository.saldoByFincaId(request.getFincaId()));
@@ -312,6 +326,7 @@ public class LiquidacionSalidaServiceImpl implements ILiquidacionSalidaService {
         if (request == null || request.getFincaId() == null) {
             throw new IllegalArgumentException("La finca es obligatoria para el cambio de denominaciones.");
         }
+        TenantValidator.validateWriteAccess(request.getFincaId());
         Map<Integer, Integer> entregadas = validarDenominaciones(request.getDenominacionesEntregadas(), null,
                 "Las denominaciones entregadas");
         Map<Integer, Integer> recibidas = validarDenominaciones(request.getDenominacionesRecibidas(), null,
@@ -400,12 +415,34 @@ public class LiquidacionSalidaServiceImpl implements ILiquidacionSalidaService {
         movimiento.setFecha(LocalDateTime.now());
         movimiento.setTipo(tipo);
         movimiento.setImporte(importe);
+        movimiento.setUsuarioId(TenantContext.getUsuarioId());
+        movimiento.setCreatedAt(LocalDateTime.now());
         movimiento.setLiquidacionItemSalidaId(aplicacionId);
         movimiento.setEntregaBancoId(entregaBancoId);
         movimiento.setObservaciones(observaciones);
         cajaWriteRepository.save(movimiento);
         registrarDenominacionesMovimiento(movimiento.getId(), fincaId, denominaciones);
+        auditoriaTransaccionalService.registrarDespuesDeConfirmar(
+                TipoAccion.PAYMENT,
+                "MOVIMIENTO_CAJA",
+                movimiento.getId(),
+                "Movimiento de caja " + tipo,
+                Map.of("importe", 0d),
+                datosAuditoriaCaja(fincaId, tipo, importe, aplicacionId, entregaBancoId, denominaciones));
         return movimiento;
+    }
+
+    private Map<String, Object> datosAuditoriaCaja(UUID fincaId, TipoMovimientoCaja tipo, double importe,
+                                                    UUID aplicacionId, UUID entregaBancoId,
+                                                    Map<Integer, Integer> denominaciones) {
+        Map<String, Object> datos = new LinkedHashMap<>();
+        datos.put("fincaId", fincaId);
+        datos.put("tipo", tipo);
+        datos.put("importe", importe);
+        datos.put("liquidacionItemSalidaId", aplicacionId);
+        datos.put("entregaBancoId", entregaBancoId);
+        datos.put("denominaciones", denominaciones);
+        return datos;
     }
 
     private double saldoPendiente(ItemSalida item) {

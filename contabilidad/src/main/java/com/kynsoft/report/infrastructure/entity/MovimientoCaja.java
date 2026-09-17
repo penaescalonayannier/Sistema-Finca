@@ -36,5 +36,11 @@ public class MovimientoCaja {
     private UUID entregaBancoId;
     @Column(name = "documento_caja_id")
     private UUID documentoCajaId;
+    /** Usuario autenticado que registró el movimiento físico. */
+    @Column(name = "usuario_id")
+    private UUID usuarioId;
+    /** Instante técnico de registro, independiente de la fecha económica. */
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
     private String observaciones;
 }
