@@ -10,6 +10,7 @@ Este directorio contiene las especificaciones técnicas para mejoras del sistema
 | [SPEC-002](./SPEC-002-comprobante-pago.md) | Comprobante de Pago de Deuda (PDF) | Recibos | ALTA | Propuesto |
 | [SPEC-003](./SPEC-003-alertas-stock.md) | Alertas de Stock Mínimo | Inventario | MEDIA | Propuesto |
 | [SPEC-004](./SPEC-004-reportes-consolidados.md) | Reportes Consolidados | Reportes | MEDIA | Propuesto |
+| [Registro de formas numeradas](./REGISTRO_FORMAS_NUMERADAS_RECOMENDACION.md) | Recomendación de control documental por tipo y serie | Contabilidad / Caja / Almacén | ALTA | Analizado |
 
 ---
 
