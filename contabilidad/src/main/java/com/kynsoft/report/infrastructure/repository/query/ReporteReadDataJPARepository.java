@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
@@ -17,6 +18,7 @@ import org.springframework.data.repository.query.Param;
 public interface ReporteReadDataJPARepository extends JpaRepository<Reporte, UUID>, JpaSpecificationExecutor<Reporte> {
 
     @Override
+    @EntityGraph(attributePaths = {"tipoReporte", "tipoCultivo", "tipoAnimal"})
     Page<Reporte> findAll(Specification specification, Pageable pageable);
 
     @Query("SELECT COUNT(r) FROM Reporte r WHERE r.year = :year AND r.mes = :mes AND r.activo = true")
