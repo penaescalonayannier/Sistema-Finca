@@ -17,6 +17,15 @@ import org.springframework.data.repository.query.Param;
 @Transactional(readOnly = true, transactionManager = "readTransactionManager")
 public interface ReporteReadDataJPARepository extends JpaRepository<Reporte, UUID>, JpaSpecificationExecutor<Reporte> {
 
+    /**
+     * El mapeo de Reporte a DTO se ejecuta fuera de la sesión del repositorio de
+     * lectura (CQRS usa un EntityManager independiente). Por eso cada relación
+     * consumida por {@code Reporte.toAggregate()} debe quedar materializada aquí.
+     */
+    @Override
+    @EntityGraph(attributePaths = {"tipoReporte", "tipoCultivo", "tipoAnimal", "trabajadorResponsable"})
+    java.util.Optional<Reporte> findById(UUID id);
+
     @Override
     @EntityGraph(attributePaths = {"tipoReporte", "tipoCultivo", "tipoAnimal", "trabajadorResponsable"})
     Page<Reporte> findAll(Specification specification, Pageable pageable);
@@ -27,6 +36,7 @@ public interface ReporteReadDataJPARepository extends JpaRepository<Reporte, UUI
     @Query("SELECT MAX(r.codigo) FROM Reporte r WHERE r.year = :year AND r.mes = :mes")
     String findMaxCodigoByYearAndMes(@Param("year") String year, @Param("mes") String mes);
 
+    @EntityGraph(attributePaths = {"tipoReporte", "tipoCultivo", "tipoAnimal", "trabajadorResponsable"})
     @Query("SELECT DISTINCT r FROM Reporte r " +
            "JOIN r.dias d " +
            "JOIN d.trabajadores td " +

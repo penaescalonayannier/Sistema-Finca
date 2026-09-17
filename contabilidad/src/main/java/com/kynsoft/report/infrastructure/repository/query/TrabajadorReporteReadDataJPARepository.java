@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
@@ -16,8 +17,13 @@ import org.springframework.data.repository.query.Param;
 
 @Transactional(readOnly = true, transactionManager = "readTransactionManager")
 public interface TrabajadorReporteReadDataJPARepository extends JpaRepository<TrabajadorReporte, UUID>, JpaSpecificationExecutor<TrabajadorReporte> {
+
+    @Override
+    @EntityGraph(attributePaths = {"reporte", "trabajador", "trabajador.cargo"})
+    Optional<TrabajadorReporte> findById(UUID id);
     
     @Override
+    @EntityGraph(attributePaths = {"reporte", "trabajador"})
     Page<TrabajadorReporte> findAll(Specification specification, Pageable pageable);
 
     Optional<TrabajadorReporte> findByTrabajadorIdAndReporteId(UUID trabajadorId, UUID reporteId);
@@ -25,6 +31,7 @@ public interface TrabajadorReporteReadDataJPARepository extends JpaRepository<Tr
     // NUEVO MÉTODO: Obtener todas las asignaciones de un reporte con JOIN FETCH para evitar N+1
     @Query("SELECT tr FROM TrabajadorReporte tr " +
            "JOIN FETCH tr.trabajador t " +
+           "LEFT JOIN FETCH t.cargo " +
            "JOIN FETCH tr.reporte r " +
            "WHERE tr.reporte.id = :reporteId")
     List<TrabajadorReporte> findByReporteId(@Param("reporteId") UUID reporteId);
@@ -32,6 +39,7 @@ public interface TrabajadorReporteReadDataJPARepository extends JpaRepository<Tr
     // NUEVO MÉTODO: Obtener todas las asignaciones de un trabajador con JOIN FETCH
     @Query("SELECT tr FROM TrabajadorReporte tr " +
            "JOIN FETCH tr.trabajador t " +
+           "LEFT JOIN FETCH t.cargo " +
            "JOIN FETCH tr.reporte r " +
            "WHERE tr.trabajador.id = :trabajadorId")
     List<TrabajadorReporte> findByTrabajadorId(@Param("trabajadorId") UUID trabajadorId);
@@ -39,6 +47,7 @@ public interface TrabajadorReporteReadDataJPARepository extends JpaRepository<Tr
         // NUEVO MÉTODO: Obtener asignaciones por año y mes
     @Query("SELECT tr FROM TrabajadorReporte tr " +
            "JOIN FETCH tr.trabajador t " +
+           "LEFT JOIN FETCH t.cargo " +
            "JOIN FETCH tr.reporte r " +
            "WHERE r.year = :year AND r.mes = :mes")
     List<TrabajadorReporte> findByReporteYearAndReporteMes(

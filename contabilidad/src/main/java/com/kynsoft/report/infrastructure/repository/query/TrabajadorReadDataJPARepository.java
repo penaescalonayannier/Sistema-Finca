@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,7 +16,17 @@ import java.util.UUID;
 
 @Transactional(readOnly = true, transactionManager = "readTransactionManager")
 public interface TrabajadorReadDataJPARepository extends JpaRepository<Trabajador, UUID>, JpaSpecificationExecutor<Trabajador> {
+    /** Los reportes de trabajo muestran el cargo después de la lectura CQRS. */
     @Override
+    @EntityGraph(attributePaths = {"cargo"})
+    java.util.List<Trabajador> findAll();
+
+    @Override
+    @EntityGraph(attributePaths = {"cargo"})
+    java.util.List<Trabajador> findAll(Specification<Trabajador> specification);
+
+    @Override
+    @EntityGraph(attributePaths = {"cargo"})
     Page<Trabajador> findAll(Specification specification, Pageable pageable);
 
     Optional<Trabajador> findByRuc(String ruc);

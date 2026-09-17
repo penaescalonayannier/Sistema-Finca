@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -18,8 +19,14 @@ import java.util.UUID;
 @Transactional(readOnly = true, transactionManager = "readTransactionManager")
 public interface DiaTrabajoReadDataJPARepository 
     extends JpaRepository<DiaTrabajo, UUID>, JpaSpecificationExecutor<DiaTrabajo> {
+
+    /** El servicio valida finca mediante dia.reporte después de la lectura. */
+    @Override
+    @EntityGraph(attributePaths = {"reporte"})
+    Optional<DiaTrabajo> findById(UUID id);
     
     @Override
+    @EntityGraph(attributePaths = {"reporte"})
     Page<DiaTrabajo> findAll(Specification specification, Pageable pageable);
     
     List<DiaTrabajo> findByReporteIdOrderByFechaAsc(UUID reporteId);
@@ -29,8 +36,10 @@ public interface DiaTrabajoReadDataJPARepository
     // Este es el método que debe usarse para obtener días con trabajadores
     @Query("SELECT dt FROM DiaTrabajo dt " +
            "LEFT JOIN FETCH dt.reporte dr " +
+           "LEFT JOIN FETCH dr.trabajadorResponsable " +
            "LEFT JOIN FETCH dt.trabajadores td " +
            "LEFT JOIN FETCH td.trabajador t " +
+           "LEFT JOIN FETCH t.cargo " +
            "WHERE dt.reporte.id = :reporteId " +
            "AND dt.reporte.activo = true " +
            "ORDER BY dt.fecha ASC")
@@ -38,8 +47,10 @@ public interface DiaTrabajoReadDataJPARepository
     
     @Query("SELECT dt FROM DiaTrabajo dt " +
            "LEFT JOIN FETCH dt.reporte dr " +
+           "LEFT JOIN FETCH dr.trabajadorResponsable " +
            "LEFT JOIN FETCH dt.trabajadores td " +
            "LEFT JOIN FETCH td.trabajador t " +
+           "LEFT JOIN FETCH t.cargo " +
            "WHERE dt.reporte.year = :year AND dt.reporte.mes = :mes " +
            "AND dt.reporte.activo = true " +
            "ORDER BY dt.fecha ASC")
@@ -50,8 +61,10 @@ public interface DiaTrabajoReadDataJPARepository
 
     @Query("SELECT dt FROM DiaTrabajo dt " +
            "LEFT JOIN FETCH dt.reporte dr " +
+           "LEFT JOIN FETCH dr.trabajadorResponsable " +
            "LEFT JOIN FETCH dt.trabajadores td " +
            "LEFT JOIN FETCH td.trabajador t " +
+           "LEFT JOIN FETCH t.cargo " +
            "WHERE dt.reporte.year = :year AND dt.reporte.mes = :mes " +
            "AND dt.reporte.fincaId = :fincaId " +
            "AND dt.reporte.activo = true " +

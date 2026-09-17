@@ -35,9 +35,7 @@ public class ReportesMetricasServiceImpl implements IReportesMetricasService {
         List<DiaTrabajo> diasTrabajados = diaTrabajoRepository.findByYearAndMesWithTrabajadores(year, mes);
 
         // Obtener lista de todos los trabajadores activos
-        List<Trabajador> trabajadores = trabajadorRepository.findAll().stream()
-                .filter(t -> t.getActivo() != null && t.getActivo())
-                .collect(Collectors.toList());
+        List<Trabajador> trabajadores = trabajadorRepository.findAllActivosWithRelations();
 
         // Si se especifica un trabajador, filtrar
         if (trabajadorId != null) {
@@ -106,9 +104,7 @@ public class ReportesMetricasServiceImpl implements IReportesMetricasService {
         LocalDate fechaLimite = calcularFechaLimite(year, mes);
 
         // Obtener lista de todos los trabajadores activos
-        List<Trabajador> trabajadores = trabajadorRepository.findAll().stream()
-                .filter(t -> t.getActivo() != null && t.getActivo())
-                .collect(Collectors.toList());
+        List<Trabajador> trabajadores = trabajadorRepository.findAllActivosWithRelations();
 
         // Si se especifica un trabajador, filtrar
         if (trabajadorId != null) {
@@ -244,8 +240,7 @@ public class ReportesMetricasServiceImpl implements IReportesMetricasService {
         LocalDate fechaLimite = calcularFechaLimite(year, mes);
 
         // Obtener lista de trabajadores activos para filtro
-        Set<UUID> trabajadoresActivos = trabajadorRepository.findAll().stream()
-                .filter(t -> t.getActivo() != null && t.getActivo())
+        Set<UUID> trabajadoresActivos = trabajadorRepository.findAllActivosWithRelations().stream()
                 .map(Trabajador::getId)
                 .collect(Collectors.toSet());
 

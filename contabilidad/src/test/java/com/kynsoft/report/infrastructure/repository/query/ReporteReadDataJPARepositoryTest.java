@@ -7,11 +7,15 @@ import org.springframework.data.jpa.repository.EntityGraph;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ReporteReadDataJPARepositoryTest {
+
+    private static final List<String> RELACIONES_DTO = List.of(
+            "tipoReporte", "tipoCultivo", "tipoAnimal", "trabajadorResponsable");
 
     @Test
     void laBusquedaPaginadaDebeCargarLasRelacionesUsadasPorElDto() throws NoSuchMethodException {
@@ -22,7 +26,27 @@ class ReporteReadDataJPARepositoryTest {
 
         assertNotNull(entityGraph);
         List<String> relaciones = List.of(entityGraph.attributePaths());
-        assertTrue(relaciones.containsAll(List.of(
-                "tipoReporte", "tipoCultivo", "tipoAnimal", "trabajadorResponsable")));
+        assertTrue(relaciones.containsAll(RELACIONES_DTO));
+    }
+
+    @Test
+    void laConsultaPorIdDebeCargarLasRelacionesUsadasPorElDto() throws NoSuchMethodException {
+        Method findById = ReporteReadDataJPARepository.class.getMethod("findById", UUID.class);
+
+        EntityGraph entityGraph = findById.getAnnotation(EntityGraph.class);
+
+        assertNotNull(entityGraph);
+        assertTrue(List.of(entityGraph.attributePaths()).containsAll(RELACIONES_DTO));
+    }
+
+    @Test
+    void laConsultaPorTrabajadorDebeCargarLasRelacionesUsadasPorElDto() throws NoSuchMethodException {
+        Method findByTrabajador = ReporteReadDataJPARepository.class.getMethod(
+                "findByTrabajadorIdAndYearAndMes", UUID.class, String.class, String.class);
+
+        EntityGraph entityGraph = findByTrabajador.getAnnotation(EntityGraph.class);
+
+        assertNotNull(entityGraph);
+        assertTrue(List.of(entityGraph.attributePaths()).containsAll(RELACIONES_DTO));
     }
 }
