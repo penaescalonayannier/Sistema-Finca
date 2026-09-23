@@ -11,6 +11,7 @@ public class UpdateTrabajadorRequest {
     // RUC no se puede modificar (RN-09)
     private String nombre;
     private String cuenta;
+    private String nivelCultural;
     private UUID fincaId;
     private UUID grupoId;
     private UUID cargoId;

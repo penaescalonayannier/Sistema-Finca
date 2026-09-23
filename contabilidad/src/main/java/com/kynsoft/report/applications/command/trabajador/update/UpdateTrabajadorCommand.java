@@ -17,6 +17,7 @@ public class UpdateTrabajadorCommand implements ICommand {
     // RUC no se puede modificar (RN-09)
     private String nombre;
     private String cuenta;
+    private String nivelCultural;
     private UUID fincaId;
     private UUID grupoId;
     private UUID cargoId;
@@ -28,6 +29,7 @@ public class UpdateTrabajadorCommand implements ICommand {
                 id,
                 request.getNombre(),
                 request.getCuenta(),
+                request.getNivelCultural(),
                 request.getFincaId(),
                 request.getGrupoId(),
                 request.getCargoId(),

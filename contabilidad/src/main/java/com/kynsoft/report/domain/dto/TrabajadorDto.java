@@ -19,6 +19,7 @@ public class TrabajadorDto {
     private String ruc; // CI
     private String nombre; // NOMBRE
     private String cuenta; // CUENTA_E
+    private String nivelCultural;
     private Boolean activo; // Activo/Inactivo
     private UUID fincaId; // Finca a la que pertenece
     private String fincaCode; // Código de la finca

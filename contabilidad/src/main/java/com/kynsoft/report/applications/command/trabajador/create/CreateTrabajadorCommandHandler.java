@@ -57,6 +57,7 @@ public class CreateTrabajadorCommandHandler implements ICommandHandler<CreateTra
                 .ruc(command.getRuc())
                 .nombre(command.getNombre())
                 .cuenta(command.getCuenta())
+                .nivelCultural(command.getNivelCultural())
                 .fincaId(command.getFincaId())
                 .grupoId(command.getGrupoId())
                 .cargoId(command.getCargoId())

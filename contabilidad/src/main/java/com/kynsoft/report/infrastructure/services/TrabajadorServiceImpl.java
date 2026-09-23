@@ -95,6 +95,7 @@ public class TrabajadorServiceImpl implements ITrabajadorService {
         // RUC no se modifica (regla de negocio RN-09)
         trabajador.setNombre(object.getNombre());
         trabajador.setCuenta(object.getCuenta());
+        trabajador.setNivelCultural(object.getNivelCultural());
         trabajador.setFincaId(object.getFincaId());
         trabajador.setGrupoId(object.getGrupoId());
         trabajador.setCargoId(object.getCargoId());

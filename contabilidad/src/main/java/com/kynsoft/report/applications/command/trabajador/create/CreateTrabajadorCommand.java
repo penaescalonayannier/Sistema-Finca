@@ -17,6 +17,7 @@ public class CreateTrabajadorCommand implements ICommand {
     private String ruc;
     private String nombre;
     private String cuenta;
+    private String nivelCultural;
     private UUID fincaId;
     private UUID grupoId;
     private UUID cargoId;
@@ -28,6 +29,7 @@ public class CreateTrabajadorCommand implements ICommand {
                 request.getRuc(),
                 request.getNombre(),
                 request.getCuenta(),
+                request.getNivelCultural(),
                 request.getFincaId(),
                 request.getGrupoId(),
                 request.getCargoId(),

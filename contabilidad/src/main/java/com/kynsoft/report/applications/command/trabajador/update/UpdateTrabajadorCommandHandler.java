@@ -41,6 +41,7 @@ public class UpdateTrabajadorCommandHandler implements ICommandHandler<UpdateTra
                 .ruc(dto.getRuc()) // RUC no se puede modificar
                 .nombre(command.getNombre() != null ? command.getNombre() : dto.getNombre())
                 .cuenta(command.getCuenta() != null ? command.getCuenta() : dto.getCuenta())
+                .nivelCultural(command.getNivelCultural() != null ? command.getNivelCultural() : dto.getNivelCultural())
                 .fincaId(command.getFincaId() != null ? command.getFincaId() : dto.getFincaId())
                 .grupoId(command.getGrupoId() != null ? command.getGrupoId() : dto.getGrupoId())
                 .cargoId(command.getCargoId() != null ? command.getCargoId() : dto.getCargoId())

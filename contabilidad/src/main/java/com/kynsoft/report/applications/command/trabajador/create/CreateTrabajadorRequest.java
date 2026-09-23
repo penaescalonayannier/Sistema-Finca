@@ -12,6 +12,7 @@ public class CreateTrabajadorRequest {
     private String ruc;
     private String nombre;
     private String cuenta;
+    private String nivelCultural;
     private UUID fincaId;
     private UUID grupoId;
     private UUID cargoId;

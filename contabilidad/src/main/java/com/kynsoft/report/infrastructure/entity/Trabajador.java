@@ -35,6 +35,10 @@ public class Trabajador {
     @Column(name = "cuenta", length = 50)
     private String cuenta;
 
+    /** Nivel de escolaridad o preparación cultural declarado por el trabajador. */
+    @Column(name = "nivel_cultural", length = 100)
+    private String nivelCultural;
+
     @Column(name = "activo", nullable = false)
     private Boolean activo = true;
 
@@ -71,6 +75,7 @@ public class Trabajador {
         this.nombre = dto.getNombre();
         this.ruc = dto.getRuc();
         this.cuenta = dto.getCuenta();
+        this.nivelCultural = dto.getNivelCultural();
         this.activo = dto.getActivo() != null ? dto.getActivo() : true;
         this.fincaId = dto.getFincaId();
         this.grupoId = dto.getGrupoId();
@@ -106,6 +111,7 @@ public class Trabajador {
                 .nombre(nombre)
                 .ruc(ruc)
                 .cuenta(cuenta)
+                .nivelCultural(nivelCultural)
                 .activo(activo)
                 .fincaId(fincaId)
                 .fincaCode(fCode)

@@ -21,6 +21,7 @@ public class TrabajadorResponse implements IResponse {
     private String ruc;
     private String nombre;
     private String cuenta;
+    private String nivelCultural;
     private UUID fincaId;
     private String fincaCode;
     private String fincaName;
@@ -37,6 +38,7 @@ public class TrabajadorResponse implements IResponse {
         this.ruc = trabajador.getRuc();
         this.nombre = trabajador.getNombre();
         this.cuenta = trabajador.getCuenta();
+        this.nivelCultural = trabajador.getNivelCultural();
         this.fincaId = trabajador.getFincaId();
         this.fincaCode = trabajador.getFincaCode();
         this.fincaName = trabajador.getFincaName();
