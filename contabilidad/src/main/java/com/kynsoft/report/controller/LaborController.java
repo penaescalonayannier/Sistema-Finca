@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/labor")
+@RequestMapping({"/api/labor", "/api/labor-agricola"})
 public class LaborController {
 
     private final IMediator mediator;

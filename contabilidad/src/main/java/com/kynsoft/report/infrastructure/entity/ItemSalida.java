@@ -51,6 +51,16 @@ public class ItemSalida {
     @JoinColumn(name = "trabajador_id", insertable = false, updatable = false)
     private Trabajador trabajador;
 
+    @Column(name = "labor_id")
+    private UUID laborId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "labor_id", insertable = false, updatable = false)
+    private Labor labor;
+
+    @Column(name = "cantidad_actividad")
+    private Double cantidadActividad;
+
     @Column(name = "cantidad", nullable = false)
     private Double cantidad;
 
@@ -70,6 +80,8 @@ public class ItemSalida {
         this.fincaProductoId = dto.getFincaProductoId();
         this.almacenFincaProductoId = dto.getAlmacenFincaProductoId();
         this.trabajadorId = dto.getTrabajadorId();
+        this.laborId = dto.getLaborId();
+        this.cantidadActividad = dto.getCantidadActividad();
         this.cantidad = dto.getCantidad();
         this.precio = dto.getPrecio();
         this.pagado = dto.getPagado() != null ? dto.getPagado() : false;
@@ -87,9 +99,21 @@ public class ItemSalida {
                         ? fincaProducto.getProducto().getUnidadMedida().name() : null)
                 .trabajadorId(trabajadorId)
                 .trabajadorNombre(trabajador != null ? trabajador.getNombre() : null)
+                .laborId(laborId)
+                .laborCode(labor != null ? labor.getCode() : null)
+                .laborName(labor != null ? labor.getName() : null)
+                .cantidadActividad(cantidadActividad)
+                .indiceConsumoCalculado(indiceCalculado())
+                .indiceConsumoPermisible(labor != null && labor.getIndiceConsumo() != null
+                        ? labor.getIndiceConsumo().doubleValue() : null)
                 .cantidad(cantidad)
                 .precio(precio)
                 .pagado(pagado)
                 .build();
+    }
+
+    private Double indiceCalculado() {
+        if (cantidad == null || cantidadActividad == null || cantidadActividad <= 0) return null;
+        return cantidad / cantidadActividad;
     }
 }

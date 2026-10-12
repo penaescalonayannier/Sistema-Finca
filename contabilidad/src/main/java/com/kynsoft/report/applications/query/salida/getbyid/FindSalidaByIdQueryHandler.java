@@ -36,6 +36,12 @@ public class FindSalidaByIdQueryHandler implements IQueryHandler<FindSalidaByIdQ
                             item.getUnidadMedida(),
                             item.getTrabajadorId(),
                             item.getTrabajadorNombre(),
+                            item.getLaborId(),
+                            item.getLaborCode(),
+                            item.getLaborName(),
+                            item.getCantidadActividad(),
+                            item.getIndiceConsumoCalculado(),
+                            item.getIndiceConsumoPermisible(),
                             item.getCantidad(),
                             item.getPrecio()
                     ))

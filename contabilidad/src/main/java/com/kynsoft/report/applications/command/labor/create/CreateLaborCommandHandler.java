@@ -18,6 +18,17 @@ public class CreateLaborCommandHandler implements ICommandHandler<CreateLaborCom
                 .id(command.getId())
                 .code(command.getCode())
                 .name(command.getName())
+                .activo(command.getActivo())
+                .tipoCultivoId(command.getTipoCultivoId())
+                .codigoCentroCosto(command.getCodigoCentroCosto())
+                .unidadMedida(command.getUnidadMedida())
+                .normaRendimiento(command.getNormaRendimiento())
+                .indiceConsumo(command.getIndiceConsumo())
+                .nivelActividad(command.getNivelActividad())
+                .dotacionEstandar(command.getDotacionEstandar())
+                .diasEstimados(command.getDiasEstimados())
+                .horasEstimadas(command.getHorasEstimadas())
+                .cargosRequeridos(command.getCargosRequeridos())
                 .build());
     }
 }

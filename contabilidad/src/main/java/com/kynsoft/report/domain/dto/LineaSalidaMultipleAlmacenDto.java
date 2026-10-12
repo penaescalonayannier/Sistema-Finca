@@ -16,6 +16,9 @@ import java.util.UUID;
 @AllArgsConstructor
 public class LineaSalidaMultipleAlmacenDto {
     private UUID almacenFincaProductoId;
+    /** Actividad agrícola opcional a la que se imputa el insumo. */
+    private UUID laborId;
+    private Double cantidadActividad;
     private Double cantidad;
     /** Compradores del producto cuando el destino de la salida es TRABAJADORES. */
     private List<ItemSalidaDto> items;

@@ -41,6 +41,7 @@ import com.kynsoft.report.infrastructure.repository.command.FincaProductoWriteDa
 import com.kynsoft.report.infrastructure.repository.query.AlmacenFincaProductoReadDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.FincaProductoReadDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.ItemSalidaReadDataJPARepository;
+import com.kynsoft.report.infrastructure.repository.query.LaborReadDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.SalidaReadDataJPARepository;
 import com.kynsoft.report.infrastructure.security.TenantSpecification;
 import com.kynsoft.report.infrastructure.security.TenantContext;
@@ -75,6 +76,7 @@ public class SalidaServiceImpl implements ISalidaService {
     private final INumeracionService numeracionService;
     private final ITrabajadorService trabajadorService;
     private final IRegistroFormasNumeradasService registroFormasNumeradasService;
+    private final LaborReadDataJPARepository laborReadRepository;
 
     public SalidaServiceImpl(
             SalidaWriteDataJPARepository repositoryCommand,
@@ -90,7 +92,8 @@ public class SalidaServiceImpl implements ISalidaService {
             IMovimientoStockService movimientoStockService,
             INumeracionService numeracionService,
             ITrabajadorService trabajadorService,
-            IRegistroFormasNumeradasService registroFormasNumeradasService) {
+            IRegistroFormasNumeradasService registroFormasNumeradasService,
+            LaborReadDataJPARepository laborReadRepository) {
         this.repositoryCommand = repositoryCommand;
         this.repositoryQuery = repositoryQuery;
         this.itemRepositoryCommand = itemRepositoryCommand;
@@ -105,6 +108,7 @@ public class SalidaServiceImpl implements ISalidaService {
         this.numeracionService = numeracionService;
         this.trabajadorService = trabajadorService;
         this.registroFormasNumeradasService = registroFormasNumeradasService;
+        this.laborReadRepository = laborReadRepository;
     }
 
     @Override
@@ -266,6 +270,7 @@ public class SalidaServiceImpl implements ISalidaService {
             if (linea.getCantidad() == null || linea.getCantidad() <= 0) {
                 throw validationError("cantidad", "La cantidad de cada producto debe ser mayor que cero.");
             }
+            validarLaborParaInsumo(destino, linea.getLaborId(), linea.getCantidadActividad());
             if (destino == DestinoSalida.TRABAJADORES) {
                 if (linea.getItems() == null || linea.getItems().isEmpty()) {
                     throw validationError("items", "Debe indicar los trabajadores que compraron cada producto.");
@@ -348,6 +353,8 @@ public class SalidaServiceImpl implements ISalidaService {
                             .salidaId(salida.getId())
                             .fincaProductoId(fincaProducto.getId())
                             .almacenFincaProductoId(afp.getId())
+                            .laborId(linea.getLaborId())
+                            .cantidadActividad(linea.getCantidadActividad())
                             .trabajadorId(comprador.getTrabajadorId())
                             .cantidad(comprador.getCantidad())
                             .precio(precio)
@@ -384,6 +391,8 @@ public class SalidaServiceImpl implements ISalidaService {
                         .salidaId(salida.getId())
                         .fincaProductoId(fincaProducto.getId())
                         .almacenFincaProductoId(afp.getId())
+                        .laborId(linea.getLaborId())
+                        .cantidadActividad(linea.getCantidadActividad())
                         .cantidad(linea.getCantidad())
                         .precio(precio)
                         .build();
@@ -427,6 +436,7 @@ public class SalidaServiceImpl implements ISalidaService {
             if (item == null || item.getCantidad() == null || item.getCantidad() <= 0) {
                 throw validationError("cantidad", "Cada cantidad de salida debe ser mayor que cero.");
             }
+            validarLaborParaInsumo(dto.getDestino(), item.getLaborId(), item.getCantidadActividad());
             if (dto.getDestino() == DestinoSalida.TRABAJADORES) {
                 if (item.getTrabajadorId() == null) {
                     throw validationError("trabajadorId", "Debe indicar el trabajador receptor.");
@@ -441,6 +451,26 @@ public class SalidaServiceImpl implements ISalidaService {
                     throw validationError("trabajadorId", "El trabajador receptor no pertenece a la finca del producto.");
                 }
             }
+        }
+    }
+
+    private void validarLaborParaInsumo(DestinoSalida destino, UUID laborId, Double cantidadActividad) {
+        if (laborId == null) {
+            if (cantidadActividad != null) {
+                throw validationError("cantidadActividad", "Seleccione una actividad agrícola antes de indicar la cantidad realizada.");
+            }
+            return;
+        }
+        if (destino != DestinoSalida.INSUMO) {
+            throw validationError("laborId", "La actividad agrícola solo puede asociarse a una salida con destino Insumo.");
+        }
+        if (cantidadActividad == null || cantidadActividad <= 0) {
+            throw validationError("cantidadActividad", "Indique una cantidad de actividad realizada mayor que cero.");
+        }
+        if (laborReadRepository.findById(laborId)
+                .filter(labor -> Boolean.TRUE.equals(labor.getActivo()))
+                .isEmpty()) {
+            throw validationError("laborId", "La actividad agrícola seleccionada no existe o está inactiva.");
         }
     }
 

@@ -22,6 +22,17 @@ public class UpdateLaborCommandHandler implements ICommandHandler<UpdateLaborCom
                 .id(dto.getId())
                 .code(command.getCode())
                 .name(command.getName())
+                .activo(command.getActivo())
+                .tipoCultivoId(command.getTipoCultivoId())
+                .codigoCentroCosto(command.getCodigoCentroCosto())
+                .unidadMedida(command.getUnidadMedida())
+                .normaRendimiento(command.getNormaRendimiento())
+                .indiceConsumo(command.getIndiceConsumo())
+                .nivelActividad(command.getNivelActividad())
+                .dotacionEstandar(command.getDotacionEstandar())
+                .diasEstimados(command.getDiasEstimados())
+                .horasEstimadas(command.getHorasEstimadas())
+                .cargosRequeridos(command.getCargosRequeridos())
                 .build();
 
         // 3. Llamar al servicio para persistir la actualización

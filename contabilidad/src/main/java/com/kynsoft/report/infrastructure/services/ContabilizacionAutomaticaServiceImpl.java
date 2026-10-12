@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -48,7 +49,7 @@ public class ContabilizacionAutomaticaServiceImpl implements IContabilizacionAut
     private final ICuentaContableService cuentaContableService;
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW, transactionManager = "writeTransactionManager")
     public Optional<AsientoContableDto> generarAsientoDesdeMovimiento(MovimientoStockDto movimiento) {
         log.debug("Generating accounting entry for movement: {} type: {}",
                 movimiento.getId(), movimiento.getTipo());

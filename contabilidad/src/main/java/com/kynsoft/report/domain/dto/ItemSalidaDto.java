@@ -23,6 +23,12 @@ public class ItemSalidaDto {
     private String unidadMedida;
     private UUID trabajadorId;
     private String trabajadorNombre;
+    private UUID laborId;
+    private String laborCode;
+    private String laborName;
+    private Double cantidadActividad;
+    private Double indiceConsumoCalculado;
+    private Double indiceConsumoPermisible;
     private Double cantidad;
     private Double precio;
     private Boolean pagado;
