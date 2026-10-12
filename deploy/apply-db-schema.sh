@@ -34,6 +34,13 @@ esquema_existe() {
         -c "SELECT to_regclass('public.${relation}') IS NOT NULL;"
 }
 
+columna_existe() {
+    local relation="$1"
+    local column="$2"
+    PGPASSWORD="$DB_PASSWORD" psql -At "$DB_URL" -U "$DB_USER" \
+        -c "SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = '${relation}' AND column_name = '${column}');"
+}
+
 PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
     -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V16__item_salida_producto_multiple.sql"
 PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
@@ -108,3 +115,33 @@ PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
     -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V45__establecer_nivel_cultural_12_grado.sql"
 PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
     -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V46__plan_ingreso_venta.sql"
+PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
+    -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V47__agregar_indicador_cosecha_tipo_cultivo.sql"
+PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
+    -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V48__datos_cosecha_en_reporte.sql"
+PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
+    -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V49__plan_mensual_actividades_y_revision.sql"
+PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
+    -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V50__dotacion_plan_mensual.sql"
+PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
+    -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V51__gastos_plan_mensual_por_centro_costo.sql"
+if [[ "$(columna_existe labor activo)" != "t" ]]; then
+    PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
+        -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V52__ampliar_nomenclador_labor_agricola.sql"
+fi
+if [[ "$(columna_existe item_salida labor_id)" != "t" ]]; then
+    PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
+        -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V53__actividad_agricola_en_item_salida.sql"
+fi
+if [[ "$(columna_existe labor indice_consumo)" != "t" ]]; then
+    PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
+        -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V54__indice_consumo_labor_agricola.sql"
+fi
+if [[ "$(columna_existe labor nivel_actividad)" != "t" ]]; then
+    PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
+        -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V55__nivel_actividad_labor_agricola.sql"
+fi
+if [[ "$(columna_existe item_salida cantidad_actividad)" != "t" ]]; then
+    PGPASSWORD="$DB_PASSWORD" psql -v ON_ERROR_STOP=1 "$DB_URL" -U "$DB_USER" \
+        -f "$SOURCE_DIR/contabilidad/src/main/resources/db/migration/V56__cantidad_actividad_en_item_salida.sql"
+fi
