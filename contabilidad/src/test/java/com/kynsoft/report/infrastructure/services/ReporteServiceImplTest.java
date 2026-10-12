@@ -5,10 +5,15 @@ import com.kynsoft.report.infrastructure.entity.Reporte;
 import com.kynsoft.report.infrastructure.entity.DiaTrabajo;
 import com.kynsoft.report.infrastructure.entity.Trabajador;
 import com.kynsoft.report.infrastructure.entity.TrabajadorDia;
+import com.kynsoft.report.infrastructure.entity.Producto;
+import com.kynsoft.report.infrastructure.entity.TipoCultivo;
+import com.kynsoft.report.domain.dto.UnidadMedida;
 import com.kynsoft.report.domain.dto.ReporteDto;
 import com.kynsoft.report.infrastructure.repository.command.ReporteWriteDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.DiaTrabajoReadDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.ReporteReadDataJPARepository;
+import com.kynsoft.report.infrastructure.repository.query.ProductoReadDataJPARepository;
+import com.kynsoft.report.infrastructure.repository.query.TipoCultivoReadDataJPARepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -41,6 +46,12 @@ class ReporteServiceImplTest {
 
     @Mock
     private DiaTrabajoReadDataJPARepository diaTrabajoRepository;
+
+    @Mock
+    private ProductoReadDataJPARepository productoRepository;
+
+    @Mock
+    private TipoCultivoReadDataJPARepository tipoCultivoRepository;
 
     @Mock
     private AuditoriaTransaccionalService auditoria;
@@ -177,6 +188,7 @@ class ReporteServiceImplTest {
                 .norma(" 1,5000 ").year("2026").mes("Agosto")
                 .tipoReporteId(tipoReporteId).tipoCultivoId(tipoCultivoId).tipoAnimalId(tipoAnimalId)
                 .build();
+        when(tipoCultivoRepository.findById(tipoCultivoId)).thenReturn(Optional.of(new TipoCultivo()));
         when(repositoryCommand.save(any(Reporte.class))).thenAnswer(inv -> inv.getArgument(0));
 
         reporteService.create(dto);
@@ -188,6 +200,60 @@ class ReporteServiceImplTest {
                         && tipoAnimalId.equals(entidad.getTipoAnimalId())));
         verify(auditoria).registrarDespuesDeConfirmar(eq(com.kynsoft.report.domain.dto.TipoAccion.CREATE),
                 eq("REPORTE_TRABAJO"), eq(reporteId), anyString(), isNull(), any());
+    }
+
+    @Test
+    @DisplayName("Debe guardar el snapshot de unidad y precio seleccionado para una cosecha")
+    void debeGuardarSnapshotDeCosechaDesdeProducto() {
+        UUID tipoCultivoId = UUID.randomUUID();
+        UUID productoId = UUID.randomUUID();
+        TipoCultivo tipoCultivo = new TipoCultivo();
+        tipoCultivo.setEsCosecha(true);
+        Producto producto = new Producto();
+        producto.setUnidadMedida(UnidadMedida.KG);
+        producto.setPrice(10.0);
+        producto.setPriceTrabajador(8.5);
+        producto.setPriceComedor(7.0);
+        ReporteDto dto = ReporteDto.builder()
+                .id(reporteId).codigo("2026_08_02").norma("1").year("2026").mes("Agosto")
+                .tipoCultivoId(tipoCultivoId).productoId(productoId).cantidadCosechada(12.5)
+                .tipoPrecioReferencia("precio_trabajador")
+                // No se debe confiar en los valores proporcionados por el cliente.
+                .unidadMedidaSnapshot("UND").precioUnitarioReferencia(999.0)
+                .build();
+        when(tipoCultivoRepository.findById(tipoCultivoId)).thenReturn(Optional.of(tipoCultivo));
+        when(productoRepository.findById(productoId)).thenReturn(Optional.of(producto));
+        when(repositoryCommand.save(any(Reporte.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        reporteService.create(dto);
+
+        verify(repositoryCommand).save(argThat(entidad ->
+                productoId.equals(entidad.getProductoId())
+                        && Double.valueOf(12.5).equals(entidad.getCantidadCosechada())
+                        && "KG".equals(entidad.getUnidadMedidaSnapshot())
+                        && Double.valueOf(8.5).equals(entidad.getPrecioUnitarioReferencia())
+                        && "TRABAJADOR".equals(entidad.getTipoPrecioReferencia())));
+    }
+
+    @Test
+    @DisplayName("Debe limpiar los datos de cosecha cuando el cultivo no es de cosecha")
+    void debeLimpiarDatosCosechaParaCultivoRegular() {
+        UUID tipoCultivoId = UUID.randomUUID();
+        TipoCultivo tipoCultivo = new TipoCultivo();
+        tipoCultivo.setEsCosecha(false);
+        ReporteDto dto = ReporteDto.builder()
+                .id(reporteId).codigo("2026_08_02").norma("1").year("2026").mes("Agosto")
+                .tipoCultivoId(tipoCultivoId).productoId(UUID.randomUUID()).cantidadCosechada(12.5)
+                .tipoPrecioReferencia("GENERAL").build();
+        when(tipoCultivoRepository.findById(tipoCultivoId)).thenReturn(Optional.of(tipoCultivo));
+        when(repositoryCommand.save(any(Reporte.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        reporteService.create(dto);
+
+        verify(repositoryCommand).save(argThat(entidad -> entidad.getProductoId() == null
+                && entidad.getCantidadCosechada() == null && entidad.getUnidadMedidaSnapshot() == null
+                && entidad.getPrecioUnitarioReferencia() == null && entidad.getTipoPrecioReferencia() == null));
+        verifyNoInteractions(productoRepository);
     }
 
     @Nested

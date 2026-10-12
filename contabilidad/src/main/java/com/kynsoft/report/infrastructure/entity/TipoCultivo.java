@@ -52,6 +52,13 @@ public class TipoCultivo {
     @Column(name = "requiere_campo", nullable = false)
     private Boolean requiereCampo = false;
 
+    /**
+     * Permite identificar actividades de cosecha, que requieren control de la
+     * producción terminada frente al salario de los trabajadores participantes.
+     */
+    @Column(name = "es_cosecha", nullable = false)
+    private Boolean esCosecha = false;
+
     @Column(name = "activo", nullable = false)
     private Boolean activo = true;
 
@@ -68,6 +75,7 @@ public class TipoCultivo {
         this.descripcion = dto.getDescripcion();
         this.categoria = dto.getCategoria() != null ? dto.getCategoria() : CategoriaTipoCultivo.OTRO;
         this.requiereCampo = dto.getRequiereCampo() != null ? dto.getRequiereCampo() : false;
+        this.esCosecha = dto.getEsCosecha() != null ? dto.getEsCosecha() : false;
         this.activo = dto.getActivo() != null ? dto.getActivo() : true;
         this.orden = dto.getOrden();
     }
@@ -80,6 +88,7 @@ public class TipoCultivo {
                 .descripcion(descripcion)
                 .categoria(categoria)
                 .requiereCampo(requiereCampo)
+                .esCosecha(esCosecha)
                 .activo(activo)
                 .orden(orden)
                 .build();

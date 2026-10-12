@@ -52,6 +52,9 @@ public class TipoCultivoServiceImpl implements ITipoCultivoService {
         entity.setDescripcion(dto.getDescripcion());
         entity.setCategoria(dto.getCategoria());
         entity.setRequiereCampo(dto.getRequiereCampo());
+        if (dto.getEsCosecha() != null) {
+            entity.setEsCosecha(dto.getEsCosecha());
+        }
         entity.setActivo(dto.getActivo());
         entity.setOrden(dto.getOrden());
 

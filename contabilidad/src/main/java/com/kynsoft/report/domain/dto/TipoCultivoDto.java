@@ -23,6 +23,10 @@ public class TipoCultivoDto {
      */
     private CategoriaTipoCultivo categoria;
     private Boolean requiereCampo;
+    /**
+     * Indica si el tipo de cultivo representa una actividad de cosecha.
+     */
+    private Boolean esCosecha;
     private Boolean activo;
     private Integer orden;
 }

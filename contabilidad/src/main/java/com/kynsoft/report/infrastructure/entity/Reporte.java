@@ -41,6 +41,11 @@ public class Reporte {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tipo_cultivo_id", insertable = false, updatable = false)
     private TipoCultivo tipoCultivo;
+    @Column(name = "producto_id") private UUID productoId;
+    @Column(name = "cantidad_cosechada") private Double cantidadCosechada;
+    @Column(name = "unidad_medida_snapshot") private String unidadMedidaSnapshot;
+    @Column(name = "precio_unitario_referencia") private Double precioUnitarioReferencia;
+    @Column(name = "tipo_precio_referencia") private String tipoPrecioReferencia;
 
     /**
      * Tipo de animal (nomenclador). Para reportes de vaquería.
@@ -103,6 +108,7 @@ public class Reporte {
         this.id = dto.getId();
         this.tipoReporteId = dto.getTipoReporteId();
         this.tipoCultivoId = dto.getTipoCultivoId();
+        this.productoId = dto.getProductoId(); this.cantidadCosechada = dto.getCantidadCosechada(); this.unidadMedidaSnapshot = dto.getUnidadMedidaSnapshot(); this.precioUnitarioReferencia = dto.getPrecioUnitarioReferencia(); this.tipoPrecioReferencia = dto.getTipoPrecioReferencia();
         this.tipoAnimalId = dto.getTipoAnimalId();
         this.bloque = dto.getBloque();
         this.campo = dto.getCampo();
@@ -131,6 +137,7 @@ public class Reporte {
                 .tipoCultivoId(tipoCultivoId)
                 .tipoCultivoNombre(tipoCultivo != null ? tipoCultivo.getNombre() : null)
                 .tipoCultivoRequiereCampo(tipoCultivo != null ? tipoCultivo.getRequiereCampo() : null)
+                .productoId(productoId).cantidadCosechada(cantidadCosechada).unidadMedidaSnapshot(unidadMedidaSnapshot).precioUnitarioReferencia(precioUnitarioReferencia).tipoPrecioReferencia(tipoPrecioReferencia)
                 // Tipo de animal
                 .tipoAnimalId(tipoAnimalId)
                 .tipoAnimalNombre(tipoAnimal != null ? tipoAnimal.getNombre() : null)

@@ -21,7 +21,9 @@ import com.kynsoft.report.infrastructure.entity.Reporte;
 import com.kynsoft.report.infrastructure.entity.TrabajadorDia;
 import com.kynsoft.report.infrastructure.repository.command.ReporteWriteDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.DiaTrabajoReadDataJPARepository;
+import com.kynsoft.report.infrastructure.repository.query.ProductoReadDataJPARepository;
 import com.kynsoft.report.infrastructure.repository.query.ReporteReadDataJPARepository;
+import com.kynsoft.report.infrastructure.repository.query.TipoCultivoReadDataJPARepository;
 import com.kynsoft.report.infrastructure.security.TenantSpecification;
 import com.kynsoft.report.infrastructure.security.TenantContext;
 import com.kynsoft.report.infrastructure.security.TenantValidator;
@@ -48,15 +50,21 @@ public class ReporteServiceImpl implements IReporteService {
     private final ReporteWriteDataJPARepository repositoryCommand;
     private final ReporteReadDataJPARepository repositoryQuery;
     private final DiaTrabajoReadDataJPARepository diaTrabajoRepository;
+    private final ProductoReadDataJPARepository productoRepository;
+    private final TipoCultivoReadDataJPARepository tipoCultivoRepository;
     private final AuditoriaTransaccionalService auditoria;
 
     public ReporteServiceImpl(ReporteWriteDataJPARepository repositoryCommand,
             ReporteReadDataJPARepository repositoryQuery,
             DiaTrabajoReadDataJPARepository diaTrabajoRepository,
+            ProductoReadDataJPARepository productoRepository,
+            TipoCultivoReadDataJPARepository tipoCultivoRepository,
             AuditoriaTransaccionalService auditoria) {
         this.repositoryCommand = repositoryCommand;
         this.repositoryQuery = repositoryQuery;
         this.diaTrabajoRepository = diaTrabajoRepository;
+        this.productoRepository = productoRepository;
+        this.tipoCultivoRepository = tipoCultivoRepository;
         this.auditoria = auditoria;
     }
 
@@ -64,6 +72,7 @@ public class ReporteServiceImpl implements IReporteService {
     public void create(ReporteDto object) {
         validarEscritura(object.getFincaId());
         object.setNorma(ValidacionParteTrabajo.normaRequerida(object.getNorma()));
+        normalizarDatosCosecha(object);
         Reporte creado = repositoryCommand.save(new Reporte(object));
         auditoria.registrarDespuesDeConfirmar(TipoAccion.CREATE, "REPORTE_TRABAJO", creado.getId(),
                 "Creado parte de trabajo " + creado.getCodigo(), null, resumen(creado));
@@ -96,6 +105,12 @@ public class ReporteServiceImpl implements IReporteService {
         reporteExistente.setTipoReporteId(object.getTipoReporteId());
         reporteExistente.setTipoCultivoId(object.getTipoCultivoId());
         reporteExistente.setTipoAnimalId(object.getTipoAnimalId());
+        normalizarDatosCosecha(object);
+        reporteExistente.setProductoId(object.getProductoId());
+        reporteExistente.setCantidadCosechada(object.getCantidadCosechada());
+        reporteExistente.setUnidadMedidaSnapshot(object.getUnidadMedidaSnapshot());
+        reporteExistente.setPrecioUnitarioReferencia(object.getPrecioUnitarioReferencia());
+        reporteExistente.setTipoPrecioReferencia(object.getTipoPrecioReferencia());
 
         // ⚠️ IMPORTANTE: No tocamos la lista de días, se mantiene intacta
         Reporte actualizado = repositoryCommand.save(reporteExistente);
@@ -508,11 +523,96 @@ public class ReporteServiceImpl implements IReporteService {
         datos.put("tipoReporteId", reporte.getTipoReporteId());
         datos.put("tipoCultivoId", reporte.getTipoCultivoId());
         datos.put("tipoAnimalId", reporte.getTipoAnimalId());
+        datos.put("productoId", reporte.getProductoId());
+        datos.put("cantidadCosechada", reporte.getCantidadCosechada());
+        datos.put("unidadMedidaSnapshot", reporte.getUnidadMedidaSnapshot());
+        datos.put("precioUnitarioReferencia", reporte.getPrecioUnitarioReferencia());
+        datos.put("tipoPrecioReferencia", reporte.getTipoPrecioReferencia());
         datos.put("responsableId", reporte.getTrabajadorResponsableId());
         datos.put("norma", reporte.getNorma());
         datos.put("year", reporte.getYear());
         datos.put("mes", reporte.getMes());
         datos.put("activo", reporte.getActivo());
         return datos;
+    }
+
+    /**
+     * El cliente sólo escoge el producto y el tipo de precio. La unidad y el
+     * importe se obtienen del producto al guardar para que el reporte conserve
+     * un snapshot confiable, aun cuando esos precios cambien posteriormente.
+     */
+    private void normalizarDatosCosecha(ReporteDto reporte) {
+        if (reporte.getTipoCultivoId() == null) {
+            if (tieneDatosCosecha(reporte)) {
+                throw new IllegalArgumentException("Los datos de cosecha requieren un tipo de cultivo de cosecha");
+            }
+            limpiarDatosCosecha(reporte);
+            return;
+        }
+
+        var tipoCultivo = tipoCultivoRepository.findById(reporte.getTipoCultivoId())
+                .orElseThrow(() -> new IllegalArgumentException("El tipo de cultivo seleccionado no existe"));
+        if (!Boolean.TRUE.equals(tipoCultivo.getEsCosecha())) {
+            limpiarDatosCosecha(reporte);
+            return;
+        }
+
+        if (reporte.getProductoId() == null) {
+            throw new IllegalArgumentException("El producto cosechado es obligatorio");
+        }
+        if (reporte.getCantidadCosechada() == null || !Double.isFinite(reporte.getCantidadCosechada())
+                || reporte.getCantidadCosechada() <= 0) {
+            throw new IllegalArgumentException("La cantidad cosechada debe ser mayor que cero");
+        }
+        if (reporte.getTipoPrecioReferencia() == null || reporte.getTipoPrecioReferencia().isBlank()) {
+            throw new IllegalArgumentException("Debe seleccionar el precio de referencia");
+        }
+
+        Producto producto = productoRepository.findById(reporte.getProductoId())
+                .orElseThrow(() -> new IllegalArgumentException("El producto seleccionado no existe"));
+        if (producto.getUnidadMedida() == null) {
+            throw new IllegalArgumentException("El producto seleccionado no tiene unidad de medida");
+        }
+
+        String tipoPrecio = tipoPrecioCanonico(reporte.getTipoPrecioReferencia());
+        Double precio = precioSeleccionado(producto, tipoPrecio);
+        if (precio == null || !Double.isFinite(precio) || precio < 0) {
+            throw new IllegalArgumentException("El precio de referencia del producto no es válido");
+        }
+        reporte.setUnidadMedidaSnapshot(producto.getUnidadMedida().name());
+        reporte.setPrecioUnitarioReferencia(precio);
+        reporte.setTipoPrecioReferencia(tipoPrecio);
+    }
+
+    private String tipoPrecioCanonico(String tipoPrecio) {
+        return switch (tipoPrecio.trim().toUpperCase(java.util.Locale.ROOT)) {
+            case "GENERAL", "PRECIO_GENERAL", "PRICE" -> "GENERAL";
+            case "TRABAJADOR", "PRECIO_TRABAJADOR", "PRICE_TRABAJADOR" -> "TRABAJADOR";
+            case "COMEDOR", "PRECIO_COMEDOR", "PRICE_COMEDOR" -> "COMEDOR";
+            default -> throw new IllegalArgumentException("Tipo de precio de referencia no válido");
+        };
+    }
+
+    private Double precioSeleccionado(Producto producto, String tipoPrecio) {
+        return switch (tipoPrecio) {
+            case "GENERAL" -> producto.getPrice();
+            case "TRABAJADOR" -> producto.getPriceTrabajador();
+            case "COMEDOR" -> producto.getPriceComedor();
+            default -> throw new IllegalArgumentException("Tipo de precio de referencia no válido");
+        };
+    }
+
+    private boolean tieneDatosCosecha(ReporteDto reporte) {
+        return reporte.getProductoId() != null || reporte.getCantidadCosechada() != null
+                || reporte.getUnidadMedidaSnapshot() != null || reporte.getPrecioUnitarioReferencia() != null
+                || reporte.getTipoPrecioReferencia() != null;
+    }
+
+    private void limpiarDatosCosecha(ReporteDto reporte) {
+        reporte.setProductoId(null);
+        reporte.setCantidadCosechada(null);
+        reporte.setUnidadMedidaSnapshot(null);
+        reporte.setPrecioUnitarioReferencia(null);
+        reporte.setTipoPrecioReferencia(null);
     }
 }

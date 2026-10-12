@@ -53,6 +53,7 @@ class TipoCultivoServiceImplTest {
         tipoCultivo.setDescripcion("Cultivo de caña");
         tipoCultivo.setCategoria(CategoriaTipoCultivo.CANNA);
         tipoCultivo.setRequiereCampo(true);
+        tipoCultivo.setEsCosecha(false);
         tipoCultivo.setActivo(true);
         tipoCultivo.setOrden(1);
 
@@ -63,6 +64,7 @@ class TipoCultivoServiceImplTest {
                 .descripcion("Cultivo de caña")
                 .categoria(CategoriaTipoCultivo.CANNA)
                 .requiereCampo(true)
+                .esCosecha(false)
                 .activo(true)
                 .orden(1)
                 .build();
@@ -86,7 +88,8 @@ class TipoCultivoServiceImplTest {
                     entity.getCodigo().equals("CANA") &&
                     entity.getNombre().equals("Caña de Azúcar") &&
                     entity.getCategoria() == CategoriaTipoCultivo.CANNA &&
-                    entity.getRequiereCampo()
+                    entity.getRequiereCampo() &&
+                    !entity.getEsCosecha()
             ));
         }
     }
@@ -109,6 +112,7 @@ class TipoCultivoServiceImplTest {
                     .descripcion("Descripción modificada")
                     .categoria(CategoriaTipoCultivo.CANNA)
                     .requiereCampo(true)
+                    .esCosecha(true)
                     .activo(true)
                     .orden(2)
                     .build();
@@ -120,7 +124,8 @@ class TipoCultivoServiceImplTest {
             verify(writeRepository).save(argThat(entity ->
                     entity.getCodigo().equals("CANA_MOD") &&
                     entity.getNombre().equals("Caña Modificada") &&
-                    entity.getOrden() == 2
+                    entity.getOrden() == 2 &&
+                    entity.getEsCosecha()
             ));
         }
 
@@ -188,6 +193,7 @@ class TipoCultivoServiceImplTest {
             assertEquals(tipoCultivoId, result.getId());
             assertEquals("CANA", result.getCodigo());
             assertEquals(CategoriaTipoCultivo.CANNA, result.getCategoria());
+            assertFalse(result.getEsCosecha());
         }
 
         @Test

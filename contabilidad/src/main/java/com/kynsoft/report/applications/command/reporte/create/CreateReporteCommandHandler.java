@@ -58,6 +58,11 @@ public class CreateReporteCommandHandler implements ICommandHandler<CreateReport
                 .tipoReporteId(command.getTipoReporteId())
                 .tipoCultivoId(command.getTipoCultivoId())
                 .tipoAnimalId(command.getTipoAnimalId())
+                .productoId(command.getProductoId())
+                .cantidadCosechada(command.getCantidadCosechada())
+                .unidadMedidaSnapshot(command.getUnidadMedidaSnapshot())
+                .precioUnitarioReferencia(command.getPrecioUnitarioReferencia())
+                .tipoPrecioReferencia(command.getTipoPrecioReferencia())
                 .build());
     }
 }

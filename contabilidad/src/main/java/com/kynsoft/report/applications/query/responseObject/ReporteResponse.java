@@ -34,6 +34,11 @@ public class ReporteResponse implements IResponse {
     private String tipoCultivoNombre;
     private UUID tipoAnimalId;
     private String tipoAnimalNombre;
+    private UUID productoId;
+    private Double cantidadCosechada;
+    private String unidadMedidaSnapshot;
+    private Double precioUnitarioReferencia;
+    private String tipoPrecioReferencia;
 
     public ReporteResponse(ReporteDto dto) {
         this.id = dto.getId();
@@ -54,6 +59,11 @@ public class ReporteResponse implements IResponse {
         this.tipoCultivoNombre = dto.getTipoCultivoNombre();
         this.tipoAnimalId = dto.getTipoAnimalId();
         this.tipoAnimalNombre = dto.getTipoAnimalNombre();
+        this.productoId = dto.getProductoId();
+        this.cantidadCosechada = dto.getCantidadCosechada();
+        this.unidadMedidaSnapshot = dto.getUnidadMedidaSnapshot();
+        this.precioUnitarioReferencia = dto.getPrecioUnitarioReferencia();
+        this.tipoPrecioReferencia = dto.getTipoPrecioReferencia();
     }
 
 }

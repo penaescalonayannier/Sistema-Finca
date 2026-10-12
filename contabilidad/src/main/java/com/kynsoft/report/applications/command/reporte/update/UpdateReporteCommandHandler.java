@@ -63,6 +63,11 @@ public class UpdateReporteCommandHandler implements ICommandHandler<UpdateReport
                 .tipoReporteId(command.getTipoReporteId() != null ? command.getTipoReporteId() : existente.getTipoReporteId())
                 .tipoCultivoId(command.getTipoCultivoId() != null ? command.getTipoCultivoId() : existente.getTipoCultivoId())
                 .tipoAnimalId(command.getTipoAnimalId() != null ? command.getTipoAnimalId() : existente.getTipoAnimalId())
+                .productoId(command.getProductoId())
+                .cantidadCosechada(command.getCantidadCosechada())
+                .unidadMedidaSnapshot(command.getUnidadMedidaSnapshot())
+                .precioUnitarioReferencia(command.getPrecioUnitarioReferencia())
+                .tipoPrecioReferencia(command.getTipoPrecioReferencia())
                 .build();
 
         reportService.update(dto);

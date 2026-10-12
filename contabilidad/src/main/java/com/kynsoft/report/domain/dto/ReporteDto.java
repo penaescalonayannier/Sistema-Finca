@@ -27,6 +27,11 @@ public class ReporteDto {
     private UUID tipoCultivoId;
     private String tipoCultivoNombre;
     private Boolean tipoCultivoRequiereCampo;
+    private UUID productoId;
+    private Double cantidadCosechada;
+    private String unidadMedidaSnapshot;
+    private Double precioUnitarioReferencia;
+    private String tipoPrecioReferencia;
 
     // Tipo de animal (para vaquería)
     private UUID tipoAnimalId;

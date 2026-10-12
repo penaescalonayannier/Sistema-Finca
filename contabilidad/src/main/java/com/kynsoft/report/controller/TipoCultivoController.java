@@ -34,6 +34,7 @@ public class TipoCultivoController {
                 .descripcion(request.getDescripcion())
                 .categoria(request.getCategoria())
                 .requiereCampo(request.getRequiereCampo())
+                .esCosecha(request.getEsCosecha())
                 .activo(request.getActivo() != null ? request.getActivo() : true)
                 .orden(request.getOrden())
                 .build();
@@ -51,6 +52,7 @@ public class TipoCultivoController {
                 .descripcion(request.getDescripcion())
                 .categoria(request.getCategoria())
                 .requiereCampo(request.getRequiereCampo())
+                .esCosecha(request.getEsCosecha())
                 .activo(request.getActivo())
                 .orden(request.getOrden())
                 .build();
@@ -99,6 +101,7 @@ public class TipoCultivoController {
         private String descripcion;
         private CategoriaTipoCultivo categoria;
         private Boolean requiereCampo;
+        private Boolean esCosecha;
         private Boolean activo;
         private Integer orden;
     }

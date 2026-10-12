@@ -19,4 +19,11 @@ public class UpdateReporteRequest {
     private UUID tipoReporteId;
     private UUID tipoCultivoId;
     private UUID tipoAnimalId;
+    private UUID productoId;
+    private Double cantidadCosechada;
+    /** Se ignora al guardar: se toma de la unidad vigente del producto. */
+    private String unidadMedidaSnapshot;
+    /** Se ignora al guardar: se toma del precio seleccionado del producto. */
+    private Double precioUnitarioReferencia;
+    private String tipoPrecioReferencia;
 }
